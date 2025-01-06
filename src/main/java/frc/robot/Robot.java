@@ -26,7 +26,6 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
-import java.util.stream.Stream;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;

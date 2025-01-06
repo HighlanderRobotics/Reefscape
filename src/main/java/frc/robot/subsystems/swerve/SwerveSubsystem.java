@@ -103,8 +103,8 @@ public class SwerveSubsystem extends SubsystemBase {
         "SwervePeriodic",
         () -> {
           // for (var camera : cameras) {
-            // Tracer.trace("Update cam inputs", camera::updateInputs);
-            // Tracer.trace("Process cam inputs", camera::processInputs);
+          // Tracer.trace("Update cam inputs", camera::updateInputs);
+          // Tracer.trace("Process cam inputs", camera::processInputs);
           // }
           Tracer.trace(
               "Update odo inputs",
@@ -283,7 +283,8 @@ public class SwerveSubsystem extends SubsystemBase {
   //       // Sets the pose on the sim field
   //       camera.setSimPose(estPose, camera, isNewResult);
   //       Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-  //       Logger.recordOutput("Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+  //       Logger.recordOutput("Vision/Vision Pose2d From " + camera.getName(),
+  // visionPose.toPose2d());
   //       estimator.addVisionMeasurement(
   //           visionPose.toPose2d(),
   //           camera.inputs.timestamp,
@@ -471,11 +472,12 @@ public class SwerveSubsystem extends SubsystemBase {
   public Command driveTeleop(Supplier<ChassisSpeeds> speeds) {
     return this.run(
         () -> {
-          var speed = ChassisSpeeds.fromFieldRelativeSpeeds(
-            speeds.get(),
-              DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                  ? getPose().getRotation()
-                  : getPose().getRotation().minus(Rotation2d.fromDegrees(180)));
+          var speed =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  speeds.get(),
+                  DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                      ? getPose().getRotation()
+                      : getPose().getRotation().minus(Rotation2d.fromDegrees(180)));
           this.drive(speed, true, new double[4], new double[4]);
         });
   }
