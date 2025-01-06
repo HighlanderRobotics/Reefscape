@@ -29,6 +29,7 @@ import frc.robot.subsystems.swerve.ModuleIOReal;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.utils.Arena2025Reefscape;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
@@ -209,6 +210,7 @@ public class Robot extends LoggedRobot {
     // be added.
     SignalLogger.setPath("/media/sda1/");
 
+    SimulatedArena.overrideInstance(new Arena2025Reefscape());
     SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation);
 
     // Default Commands

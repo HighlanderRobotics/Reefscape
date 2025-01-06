@@ -136,7 +136,7 @@ public class ModuleIOMapleSim implements ModuleIO {
 
     this.simulation = simulation;
     simulation.useDriveMotorController(
-        new MaplePhoenixUtil.TalonFXMotorControllerSim(driveTalon, false));
+        new MaplePhoenixUtil.TalonFXMotorControllerSim(driveTalon, true));
     simulation.useSteerMotorController(
         new MaplePhoenixUtil.TalonFXMotorControllerWithRemoteCancoderSim(
             turnTalon,

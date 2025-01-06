@@ -237,10 +237,10 @@ public class BansheeSwerveConstants extends SwerveConstants {
     turnConfig.Slot0.kV = 2.7935;
     turnConfig.Slot0.kA = 0.031543;
     turnConfig.Slot0.kS = 0.28;
-    turnConfig.Slot0.kP = 400.0;
+    turnConfig.Slot0.kP = 100.0;
     turnConfig.Slot0.kD = 0.68275;
     turnConfig.MotionMagic.MotionMagicCruiseVelocity = 5500 / getTurnGearRatio();
-    turnConfig.MotionMagic.MotionMagicAcceleration = (5500 * 0.1) / getTurnGearRatio();
+    turnConfig.MotionMagic.MotionMagicAcceleration = (5500) / getTurnGearRatio();
     turnConfig.ClosedLoopGeneral.ContinuousWrap = true;
     return turnConfig;
   }
