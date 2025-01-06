@@ -4,10 +4,17 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
@@ -17,8 +24,8 @@ import frc.robot.subsystems.swerve.BansheeSwerveConstants;
 import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.GyroIOPigeon2;
 import frc.robot.subsystems.swerve.ModuleIO;
+import frc.robot.subsystems.swerve.ModuleIOMapleSim;
 import frc.robot.subsystems.swerve.ModuleIOReal;
-import frc.robot.subsystems.swerve.ModuleIOSim;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
@@ -26,6 +33,11 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.COTS;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -57,6 +69,41 @@ public class Robot extends LoggedRobot {
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.BANSHEE;
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
+
+  // Create and configure a drivetrain simulation configuration
+  private DriveTrainSimulationConfig driveTrainSimulationConfig =
+      ROBOT_TYPE == RobotType.SIM
+          ? DriveTrainSimulationConfig.Default()
+              // Specify gyro type (for realistic gyro drifting and error simulation)
+              .withGyro(COTS.ofPigeon2())
+              // Specify swerve module (for realistic swerve dynamics)
+              .withSwerveModule(
+                  new SwerveModuleSimulationConfig(
+                      DCMotor.getKrakenX60Foc(1),
+                      DCMotor.getKrakenX60Foc(1),
+                      ROBOT_HARDWARE.swerveConstants.getDriveGearRatio(),
+                      ROBOT_HARDWARE.swerveConstants.getTurnGearRatio(),
+                      Volts.of(0.1),
+                      Volts.of(0.2),
+                      Meter.of(ROBOT_HARDWARE.swerveConstants.getWheelRadiusMeters()),
+                      KilogramSquareMeters.of(0.03),
+                      1.5))
+              // Configures the track length and track width (spacing between swerve modules)
+              .withTrackLengthTrackWidth(
+                  Meter.of(ROBOT_HARDWARE.swerveConstants.getTrackWidthX()),
+                  Meter.of(ROBOT_HARDWARE.swerveConstants.getTrackWidthY()))
+              // Configures the bumper size (dimensions of the robot bumper)
+              .withBumperSize(Inches.of(30), Inches.of(30))
+          : null;
+  /* Create a swerve drive simulation */
+  private SwerveDriveSimulation swerveDriveSimulation =
+      ROBOT_TYPE == RobotType.SIM
+          ? new SwerveDriveSimulation(
+              // Specify Configuration
+              driveTrainSimulationConfig,
+              // Specify starting pose
+              new Pose2d(3, 3, new Rotation2d()))
+          : null;
 
   private final SwerveSubsystem swerve =
       new SwerveSubsystem(
@@ -94,18 +141,22 @@ public class Robot extends LoggedRobot {
                     ROBOT_HARDWARE.swerveConstants)
               }
               : new ModuleIO[] {
-                new ModuleIOSim(
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getFrontLeftModule(),
-                    ROBOT_HARDWARE.swerveConstants),
-                new ModuleIOSim(
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.getModules()[0]),
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getFrontRightModule(),
-                    ROBOT_HARDWARE.swerveConstants),
-                new ModuleIOSim(
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.getModules()[1]),
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getBackLeftModule(),
-                    ROBOT_HARDWARE.swerveConstants),
-                new ModuleIOSim(
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.getModules()[2]),
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getBackRightModule(),
-                    ROBOT_HARDWARE.swerveConstants)
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.getModules()[3])
               },
           PhoenixOdometryThread.getInstance());
 
@@ -158,6 +209,8 @@ public class Robot extends LoggedRobot {
     // be added.
     SignalLogger.setPath("/media/sda1/");
 
+    SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation);
+
     // Default Commands
 
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
@@ -207,6 +260,10 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    if (ROBOT_TYPE == RobotType.SIM) {
+      SimulatedArena.getInstance().simulationPeriodic();
+      Logger.recordOutput("MapleSim/Pose", swerveDriveSimulation.getSimulatedDriveTrainPose());
+    }
   }
 
   @Override
