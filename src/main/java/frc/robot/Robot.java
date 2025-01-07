@@ -13,6 +13,8 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.swerve.BansheeSwerveConstants;
 import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.GyroIOPigeon2;
@@ -25,10 +27,13 @@ import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
+import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
@@ -109,6 +114,12 @@ public class Robot extends LoggedRobot {
               },
           PhoenixOdometryThread.getInstance());
 
+  private final Autos autos;
+  // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
+  // option isn't akit friendly
+  // Main benefit to that is reducing startup time, which idt we care about too much
+  private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
+
   public Robot() {
     SignalLogger.enableAutoLogging(false);
     RobotController.setBrownoutVoltage(6.0);
@@ -157,6 +168,16 @@ public class Robot extends LoggedRobot {
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
     // be added.
     SignalLogger.setPath("/media/sda1/");
+
+    autos = new Autos(swerve);
+    autoChooser.addDefaultOption("None", autos.getNoneAuto());
+    autoChooser.addOption("Triangle Test", autos.getTestTriangle());
+    autoChooser.addOption("Sprint Test", autos.getTestSprint());
+    autoChooser.addOption("Cycle Demo", autos.getDCycle());
+
+    // Run auto when auto starts. Matches Choreolib's defer impl
+    RobotModeTriggers.autonomous()
+        .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
 
     // Default Commands
 

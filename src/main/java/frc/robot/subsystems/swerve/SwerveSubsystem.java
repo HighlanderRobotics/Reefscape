@@ -12,6 +12,7 @@
 
 package frc.robot.subsystems.swerve;
 
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -35,9 +36,12 @@ import frc.robot.utils.Tracer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+
+import choreo.trajectory.SwerveSample;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final SwerveConstants constants;
@@ -319,6 +323,10 @@ public class SwerveSubsystem extends SubsystemBase {
     return getPose().getRotation();
   }
 
+  public void resetPose(Pose2d pose) {
+    estimator.resetPose(pose);
+  }
+
   /** Returns the module states (turn angles and drive velocitoes) for all of the modules. */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
@@ -407,6 +415,62 @@ public class SwerveSubsystem extends SubsystemBase {
     // Log setpoint states
     Logger.recordOutput("SwerveStates/ForceSetpoints", forceSetpoints);
     Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
+  }
+
+  /**
+   * This function bypasses the command-based framework because Choreolib handles setting
+   * requirements internally. Do NOT use outside of ChoreoLib
+   *
+   * @return a Consumer that runs the drivebase to follow a SwerveSample with PID feedback, sample
+   *     target vel feedforward, and module force feedforward.
+   */
+  @SuppressWarnings("resource")
+  public Consumer<SwerveSample> choreoDriveController() {
+    final PIDController xController = new PIDController(10.0, 0.0, 0.0);
+    final PIDController yController = new PIDController(10.0, 0.0, 0.0);
+    final PIDController thetaController =
+        new PIDController(constants.getHeadingVelocityKP(), 0.0, 0.0);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    return (sample) -> {
+      final var pose = getPose();
+      Logger.recordOutput(
+          "Choreo/Target Pose",
+          new Pose2d(sample.x, sample.y, Rotation2d.fromRadians(sample.heading)));
+      Logger.recordOutput(
+          "Choreo/Target Speeds Field Relative",
+          new ChassisSpeeds(sample.vx, sample.vy, sample.omega));
+      var feedback =
+          new ChassisSpeeds(
+              xController.calculate(pose.getX(), sample.x),
+              yController.calculate(pose.getY(), sample.y),
+              thetaController.calculate(pose.getRotation().getRadians(), sample.heading));
+      var speeds = ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(sample.vx, sample.vy, sample.omega).plus(feedback), getRotation());
+      Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
+      this.drive(speeds, false, sample.moduleForcesX(), sample.moduleForcesY());
+    };
+  }
+
+  @SuppressWarnings("resource")
+  public Command poseLockDriveCommand(Supplier<Pose2d> targetSupplier) {
+    final PIDController xController = new PIDController(10.0, 0.0, 0.0);
+    final PIDController yController = new PIDController(10.0, 0.0, 0.0);
+    final PIDController thetaController =
+        new PIDController(constants.getHeadingVelocityKP(), 0.0, 0.0);
+    thetaController.enableContinuousInput(-Math.PI, Math.PI);
+    return this.run(
+        () -> {
+          final var pose = getPose();
+          final var target = targetSupplier.get();
+          Logger.recordOutput("Swerve/Target Pose", target);
+          var speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
+              new ChassisSpeeds(
+                  xController.calculate(pose.getX(), target.getX()),
+                  yController.calculate(pose.getY(), target.getY()),
+                  thetaController.calculate(
+                      pose.getRotation().getRadians(), target.getRotation().getRadians())), getRotation());
+          Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
+          this.drive(speeds, false, new double[4], new double[4]);
+        });
   }
 
   /**
