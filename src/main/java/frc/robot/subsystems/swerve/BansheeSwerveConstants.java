@@ -1,5 +1,7 @@
 package frc.robot.subsystems.swerve;
 
+import static edu.wpi.first.units.Units.Kilogram;
+
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -10,6 +12,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Filesystem;
@@ -203,7 +206,7 @@ public class BansheeSwerveConstants extends SwerveConstants {
     // Current control gains
     driveConfig.Slot0.kV = 0.0;
     // kT (stall torque / stall current) converted to linear wheel frame
-    driveConfig.Slot0.kA = (9.37 / 483.0) / getDriveRotorToMeters(); // 3.07135116146;
+    driveConfig.Slot0.kA = 0.0; // (9.37 / 483.0) / getDriveRotorToMeters(); // 3.07135116146;
     driveConfig.Slot0.kS = 14.0;
     driveConfig.Slot0.kP = 100.0;
     driveConfig.Slot0.kD = 1.0;
@@ -237,10 +240,10 @@ public class BansheeSwerveConstants extends SwerveConstants {
     turnConfig.Slot0.kV = 2.7935;
     turnConfig.Slot0.kA = 0.031543;
     turnConfig.Slot0.kS = 0.28;
-    turnConfig.Slot0.kP = 100.0;
+    turnConfig.Slot0.kP = 20.0;
     turnConfig.Slot0.kD = 0.68275;
-    turnConfig.MotionMagic.MotionMagicCruiseVelocity = 5500 / getTurnGearRatio();
-    turnConfig.MotionMagic.MotionMagicAcceleration = 5500 / (getTurnGearRatio() * 0.05);
+    turnConfig.MotionMagic.MotionMagicCruiseVelocity = (5500 / 60) / getTurnGearRatio();
+    turnConfig.MotionMagic.MotionMagicAcceleration = (5500 / 60) / (getTurnGearRatio() * 0.1);
     turnConfig.ClosedLoopGeneral.ContinuousWrap = true;
     return turnConfig;
   }
@@ -254,5 +257,10 @@ public class BansheeSwerveConstants extends SwerveConstants {
             ? SensorDirectionValue.CounterClockwise_Positive
             : SensorDirectionValue.Clockwise_Positive;
     return cancoderConfig;
+  }
+
+  @Override
+  public Mass getMass() {
+    return Kilogram.of(74.0);
   }
 }

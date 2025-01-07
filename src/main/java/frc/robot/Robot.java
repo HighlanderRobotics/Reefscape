@@ -35,6 +35,7 @@ import frc.robot.utils.Arena2025Reefscape;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import org.ironmaple.simulation.SimulatedArena;
@@ -100,6 +101,8 @@ public class Robot extends LoggedRobot {
                   Meter.of(ROBOT_HARDWARE.swerveConstants.getTrackWidthY()))
               // Configures the bumper size (dimensions of the robot bumper)
               .withBumperSize(Inches.of(30), Inches.of(30))
+              .withRobotMass(ROBOT_HARDWARE.swerveConstants.getMass())
+              .withCustomModuleTranslations(ROBOT_HARDWARE.swerveConstants.getModuleTranslations())
           : null;
   /* Create a swerve drive simulation */
   private SwerveDriveSimulation swerveDriveSimulation =
@@ -157,7 +160,8 @@ public class Robot extends LoggedRobot {
                     ROBOT_HARDWARE.swerveConstants,
                     swerveDriveSimulation.getModules()[3])
               },
-          PhoenixOdometryThread.getInstance());
+          PhoenixOdometryThread.getInstance(),
+          Optional.ofNullable(swerveDriveSimulation));
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -292,7 +296,11 @@ public class Robot extends LoggedRobot {
   public void disabledExit() {}
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+    if (ROBOT_TYPE == RobotType.SIM) {
+      SimulatedArena.getInstance().resetFieldForAuto();
+    }
+  }
 
   @Override
   public void autonomousPeriodic() {}

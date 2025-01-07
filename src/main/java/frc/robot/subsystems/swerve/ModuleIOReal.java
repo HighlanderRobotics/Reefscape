@@ -65,7 +65,7 @@ public class ModuleIOReal implements ModuleIO {
   private final VoltageOut driveVoltage = new VoltageOut(0.0).withEnableFOC(true);
   private final VoltageOut turnVoltage = new VoltageOut(0.0).withEnableFOC(true);
   private final VelocityTorqueCurrentFOC driveControlVelocity =
-      new VelocityTorqueCurrentFOC(0.0).withSlot(1);
+      new VelocityTorqueCurrentFOC(0.0).withSlot(0);
   private final MotionMagicVoltage turnPID = new MotionMagicVoltage(0.0).withEnableFOC(true);
 
   public ModuleIOReal(ModuleConstants moduleConstants, SwerveConstants swerveConstants) {
