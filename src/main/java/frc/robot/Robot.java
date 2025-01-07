@@ -21,8 +21,8 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import frc.robot.subsystems.swerve.BansheeSwerveConstants;
-import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.GyroIOPigeon2;
+import frc.robot.subsystems.swerve.GyroIOSim;
 import frc.robot.subsystems.swerve.ModuleIO;
 import frc.robot.subsystems.swerve.ModuleIOMapleSim;
 import frc.robot.subsystems.swerve.ModuleIOReal;
@@ -35,7 +35,7 @@ import frc.robot.utils.Tracer;
 import java.util.HashMap;
 import java.util.function.BiConsumer;
 import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.COTS;
+import org.ironmaple.simulation.drivesims.GyroSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
@@ -75,8 +75,9 @@ public class Robot extends LoggedRobot {
   private DriveTrainSimulationConfig driveTrainSimulationConfig =
       ROBOT_TYPE == RobotType.SIM
           ? DriveTrainSimulationConfig.Default()
-              // Specify gyro type (for realistic gyro drifting and error simulation)
-              .withGyro(COTS.ofPigeon2())
+              // Specify gyro type (for realistic gyro drifting and error simulation). i dont wanna
+              // deal w too much error lol
+              .withGyro(() -> new GyroSimulation(0.01, 0.01))
               // Specify swerve module (for realistic swerve dynamics)
               .withSwerveModule(
                   new SwerveModuleSimulationConfig(
@@ -111,14 +112,7 @@ public class Robot extends LoggedRobot {
           ROBOT_HARDWARE.swerveConstants,
           ROBOT_TYPE == RobotType.REAL
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
-              : new GyroIO() {
-                // Blank impl in sim.
-                @Override
-                public void updateInputs(GyroIOInputs inputs) {}
-
-                @Override
-                public void setYaw(Rotation2d yaw) {}
-              },
+              : new GyroIOSim(swerveDriveSimulation.getGyroSimulation()),
           // Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
           //     .map(
           //         (constants) ->

@@ -5,9 +5,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import java.util.Arrays;
 import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.utils.FieldMirroringUtils;
 
 public class Arena2025Reefscape extends SimulatedArena {
+  public static final double FIELD_WIDTH = 17.55;
+
   public static final class ReefscapeFieldObstacleMap extends FieldMap {
     public ReefscapeFieldObstacleMap() {
       super();
@@ -52,8 +53,7 @@ public class Arena2025Reefscape extends SimulatedArena {
           Arrays.stream(reefVorticesBlue)
               .map(
                   pointAtBlue ->
-                      new Translation2d(
-                          FieldMirroringUtils.FIELD_WIDTH - pointAtBlue.getX(), pointAtBlue.getY()))
+                      new Translation2d(FIELD_WIDTH - pointAtBlue.getX(), pointAtBlue.getY()))
               .toArray(Translation2d[]::new);
       for (int i = 0; i < 6; i++)
         super.addBorderLine(reefVorticesRed[i], reefVorticesRed[(i + 1) % 6]);

@@ -150,7 +150,15 @@ public class SwerveSubsystem extends SubsystemBase {
   private void updateOdometry() {
     Logger.recordOutput("Swerve/Updates Since Last", odoThreadInputs.sampledStates.size());
     var sampleStates = odoThreadInputs.sampledStates;
-    if (sampleStates.size() == 0 || sampleStates.get(0).values().isEmpty()) {
+    if (sampleStates.size() == 0
+        || sampleStates.get(0).values().isEmpty()
+        || sampleStates.stream()
+            .allMatch(
+                (sample) ->
+                    !sample
+                        .values()
+                        .containsKey(
+                            new SignalID(SignalType.GYRO, OdometryThreadIO.GYRO_MODULE_ID)))) {
       usingSyncOdometryAlert.set(true);
       sampleStates = getSyncSamples();
     } else {
@@ -269,7 +277,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 new SignalID(SignalType.DRIVE, 3), modules[3].getPosition().distanceMeters,
                 new SignalID(SignalType.STEER, 3), modules[3].getPosition().angle.getRotations(),
                 new SignalID(SignalType.GYRO, PhoenixOdometryThread.GYRO_MODULE_ID),
-                    gyroInputs.yawPosition.getRotations())));
+                    gyroInputs.yawPosition.getDegrees())));
   }
 
   // private void updateVision() {
