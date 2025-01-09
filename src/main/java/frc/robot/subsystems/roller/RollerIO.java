@@ -2,10 +2,12 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.subsystems.genericRoller;
+package frc.robot.subsystems.roller;
 
 import java.util.function.Consumer;
 import org.littletonrobotics.junction.AutoLog;
+
+import frc.robot.subsystems.genericRoller.RollerIOInputsAutoLogged;
 
 public interface RollerIO {
   @AutoLog
