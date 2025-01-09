@@ -66,9 +66,7 @@ public class Autos {
     final var DtoPRO = routine.trajectory("DtoPRO");
     final var PROtoD = routine.trajectory("PROtoD");
 
-    routine
-        .active()
-        .whileTrue(Commands.sequence(startToD.resetOdometry(), startToD.cmd()));
+    routine.active().whileTrue(Commands.sequence(startToD.resetOdometry(), startToD.cmd()));
     routine
         .observe(startToD.done())
         .onTrue(

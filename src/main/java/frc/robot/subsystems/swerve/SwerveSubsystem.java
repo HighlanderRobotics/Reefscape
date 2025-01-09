@@ -12,6 +12,7 @@
 
 package frc.robot.subsystems.swerve;
 
+import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -40,8 +41,6 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
-
-import choreo.trajectory.SwerveSample;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final SwerveConstants constants;
@@ -444,7 +443,9 @@ public class SwerveSubsystem extends SubsystemBase {
               xController.calculate(pose.getX(), sample.x),
               yController.calculate(pose.getY(), sample.y),
               thetaController.calculate(pose.getRotation().getRadians(), sample.heading));
-      var speeds = ChassisSpeeds.fromFieldRelativeSpeeds(new ChassisSpeeds(sample.vx, sample.vy, sample.omega).plus(feedback), getRotation());
+      var speeds =
+          ChassisSpeeds.fromFieldRelativeSpeeds(
+              new ChassisSpeeds(sample.vx, sample.vy, sample.omega).plus(feedback), getRotation());
       Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
       this.drive(speeds, false, sample.moduleForcesX(), sample.moduleForcesY());
     };
@@ -462,12 +463,14 @@ public class SwerveSubsystem extends SubsystemBase {
           final var pose = getPose();
           final var target = targetSupplier.get();
           Logger.recordOutput("Swerve/Target Pose", target);
-          var speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-              new ChassisSpeeds(
-                  xController.calculate(pose.getX(), target.getX()),
-                  yController.calculate(pose.getY(), target.getY()),
-                  thetaController.calculate(
-                      pose.getRotation().getRadians(), target.getRotation().getRadians())), getRotation());
+          var speeds =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  new ChassisSpeeds(
+                      xController.calculate(pose.getX(), target.getX()),
+                      yController.calculate(pose.getY(), target.getY()),
+                      thetaController.calculate(
+                          pose.getRotation().getRadians(), target.getRotation().getRadians())),
+                  getRotation());
           Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
           this.drive(speeds, false, new double[4], new double[4]);
         });
