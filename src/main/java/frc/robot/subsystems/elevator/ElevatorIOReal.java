@@ -14,7 +14,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -30,6 +29,7 @@ public class ElevatorIOReal implements ElevatorIO {
   private final MotionMagicVoltage positionVoltage =
       new MotionMagicVoltage(0.0).withEnableFOC(true);
 
+  // misusing type system here - these correspond to linear meters, NOT rotations
   private final StatusSignal<Angle> position = motor.getPosition();
   private final StatusSignal<AngularVelocity> velocity = motor.getVelocity();
   private final StatusSignal<Voltage> voltage = motor.getMotorVoltage();
@@ -71,7 +71,8 @@ public class ElevatorIOReal implements ElevatorIO {
     follower.getConfigurator().apply(config);
     follower.setControl(new Follower(motor.getDeviceID(), true));
 
-    BaseStatusSignal.setUpdateFrequencyForAll(50.0, position, velocity, voltage, statorCurrent, supplyCurrent, temp);
+    BaseStatusSignal.setUpdateFrequencyForAll(
+        50.0, position, velocity, voltage, statorCurrent, supplyCurrent, temp);
     motor.optimizeBusUtilization();
     follower.optimizeBusUtilization();
   }
