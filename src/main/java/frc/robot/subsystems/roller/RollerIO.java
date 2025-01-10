@@ -7,8 +7,6 @@ package frc.robot.subsystems.roller;
 import java.util.function.Consumer;
 import org.littletonrobotics.junction.AutoLog;
 
-import frc.robot.subsystems.genericRoller.RollerIOInputsAutoLogged;
-
 public interface RollerIO {
   @AutoLog
   public static class RollerIOInputs {

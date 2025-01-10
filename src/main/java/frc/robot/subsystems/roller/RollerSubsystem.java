@@ -4,13 +4,10 @@
 
 package frc.robot.subsystems.roller;
 
-import java.util.function.DoubleSupplier;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.genericRoller.RollerIOInputsAutoLogged;
+import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.Logger;
 
 public class RollerSubsystem extends SubsystemBase {
   private final RollerIO io;
@@ -20,8 +17,9 @@ public class RollerSubsystem extends SubsystemBase {
 
   /**
    * Creates a new RollerSubsystem.
-   * 
-   * @param io an io impl for this subsystem to use. Should be RollerIOReal in all cases, use the callback to handle sim behavior.
+   *
+   * @param io an io impl for this subsystem to use. Should be RollerIOReal in all cases, use the
+   *     callback to handle sim behavior.
    * @param name a name to be used for logging this subsystem. Should be unique.
    */
   public RollerSubsystem(RollerIO io, String name) {

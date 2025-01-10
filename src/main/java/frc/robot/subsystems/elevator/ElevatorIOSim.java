@@ -58,6 +58,6 @@ public class ElevatorIOSim implements ElevatorIO {
 
   @Override
   public void resetEncoder(final double position) {
-    physicsSim.setState(position, 0.0);
+    // sim always has a perfectly accurate encoder
   }
 }

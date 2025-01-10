@@ -18,6 +18,8 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.roller.RollerIOReal;
+import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.subsystems.swerve.BansheeSwerveConstants;
 import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.GyroIOPigeon2;
@@ -63,7 +65,23 @@ public class Robot extends LoggedRobot {
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.BANSHEE;
 
+  public static enum ReefTarget {
+    L1(0.0),
+    L2(ElevatorSubsystem.L2_EXTENSION_METERS),
+    L3(ElevatorSubsystem.L3_EXTENSION_METERS),
+    L4(ElevatorSubsystem.L4_EXTENSION_METERS);
+
+    public final double elevatorHeight;
+
+    private ReefTarget(double elevatorHeight) {
+      this.elevatorHeight = elevatorHeight;
+    }
+  }
+
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
+  private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
+
+  private ReefTarget currentTarget = ReefTarget.L1;
 
   private final SwerveSubsystem swerve =
       new SwerveSubsystem(
@@ -115,9 +133,13 @@ public class Robot extends LoggedRobot {
                     ROBOT_HARDWARE.swerveConstants)
               },
           PhoenixOdometryThread.getInstance());
-  
-  private final ElevatorSubsystem elevator = new ElevatorSubsystem(ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
-  
+
+  private final ElevatorSubsystem elevator =
+      new ElevatorSubsystem(
+          ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
+  private final RollerSubsystem manipulator =
+      new RollerSubsystem(new RollerIOReal(10, RollerIOReal.DEFAULT_CONFIG), "Manipulator");
+  public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -187,6 +209,11 @@ public class Robot extends LoggedRobot {
     // Default Commands
 
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
+    operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
+
+    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+
+    manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
@@ -198,6 +225,20 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     modifyJoystick(driver.getRightX())
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
+
+    driver
+        .rightTrigger()
+        .whileTrue(
+            Commands.parallel(
+                elevator.setExtension(() -> currentTarget.elevatorHeight),
+                Commands.waitUntil(() -> elevator.isNearExtension(currentTarget.elevatorHeight))
+                    .andThen(manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))))
+        .onFalse(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)));
+
+    operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
+    operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
+    operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
+    operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
   }
 
   /** Scales a joystick value for teleop driving */
@@ -233,6 +274,8 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+
+    Logger.recordOutput("Target", currentTarget);
   }
 
   @Override

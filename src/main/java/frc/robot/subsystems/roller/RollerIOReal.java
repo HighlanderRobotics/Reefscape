@@ -23,8 +23,6 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.subsystems.genericRoller.RollerIOInputsAutoLogged;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 
