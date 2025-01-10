@@ -162,6 +162,7 @@ public class SwerveSubsystem extends SubsystemBase {
     if (sampleStates.size() == 0
         || sampleStates.get(0).values().isEmpty()
         || sampleStates.stream()
+        // if all samples do NOT have a gyro sample, use sync odometry.
             .allMatch(
                 (sample) ->
                     !sample
@@ -483,7 +484,7 @@ public class SwerveSubsystem extends SubsystemBase {
           final var pose = getPose();
           final var target = targetSupplier.get();
           Logger.recordOutput("Swerve/Target Pose", target);
-          var speeds =
+          final var speeds =
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   new ChassisSpeeds(
                       xController.calculate(pose.getX(), target.getX()),
