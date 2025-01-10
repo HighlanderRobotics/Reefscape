@@ -29,6 +29,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Samples;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalID;
@@ -161,14 +163,8 @@ public class SwerveSubsystem extends SubsystemBase {
     var sampleStates = odoThreadInputs.sampledStates;
     if (sampleStates.size() == 0
         || sampleStates.get(0).values().isEmpty()
-        || sampleStates.stream()
-        // if all samples do NOT have a gyro sample, use sync odometry.
-            .allMatch(
-                (sample) ->
-                    !sample
-                        .values()
-                        .containsKey(
-                            new SignalID(SignalType.GYRO, OdometryThreadIO.GYRO_MODULE_ID)))) {
+        // We don't simulate async odo rn
+        || Robot.ROBOT_TYPE == RobotType.SIM) {
       usingSyncOdometryAlert.set(true);
       sampleStates = getSyncSamples();
     } else {
