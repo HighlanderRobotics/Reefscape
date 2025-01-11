@@ -91,7 +91,10 @@ public class Robot extends LoggedRobot {
     }
   }
 
+  private ReefTarget currentTarget = ReefTarget.L1;
+
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
+  private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
 
   // Create and configure a drivetrain simulation configuration
   private Optional<DriveTrainSimulationConfig> driveTrainSimulationConfig =
