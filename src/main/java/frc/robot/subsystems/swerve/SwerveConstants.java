@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
@@ -113,4 +114,6 @@ public abstract class SwerveConstants {
   public double getVisionDistanceFactor() {
     return 0.5;
   }
+
+  public abstract Mass getMass();
 }

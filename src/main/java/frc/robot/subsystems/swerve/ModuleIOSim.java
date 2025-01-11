@@ -42,7 +42,7 @@ public class ModuleIOSim implements ModuleIO {
   private final TalonFX driveTalon;
   private final VoltageOut driveVoltage = new VoltageOut(0.0).withEnableFOC(true);
   private final VelocityTorqueCurrentFOC driveControlVelocity =
-      new VelocityTorqueCurrentFOC(0.0).withSlot(1);
+      new VelocityTorqueCurrentFOC(0.0).withSlot(0);
   private final DCMotorSim driveSim;
   private final DCMotorSim turnSim;
 

@@ -12,6 +12,8 @@
 
 package frc.robot.subsystems.swerve;
 
+import static edu.wpi.first.units.Units.Radian;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
@@ -22,10 +24,13 @@ import com.google.common.collect.ImmutableSet;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.Angle;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Registration;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
+import frc.robot.utils.MaplePhoenixUtil;
 import java.util.Optional;
+import org.ironmaple.simulation.drivesims.SwerveModuleSimulation;
 
 /**
  * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and
@@ -39,7 +44,7 @@ import java.util.Optional;
  * absolute encoders using AdvantageScope. These values are logged under
  * "/Swerve/ModuleX/TurnAbsolutePositionRad"
  */
-public class ModuleIOReal implements ModuleIO {
+public class ModuleIOMapleSim implements ModuleIO {
   private final ModuleConstants constants;
 
   // Hardware
@@ -68,7 +73,12 @@ public class ModuleIOReal implements ModuleIO {
       new VelocityTorqueCurrentFOC(0.0).withSlot(0);
   private final MotionMagicVoltage turnPID = new MotionMagicVoltage(0.0).withEnableFOC(true);
 
-  public ModuleIOReal(ModuleConstants moduleConstants, SwerveConstants swerveConstants) {
+  private final SwerveModuleSimulation simulation;
+
+  public ModuleIOMapleSim(
+      ModuleConstants moduleConstants,
+      SwerveConstants swerveConstants,
+      SwerveModuleSimulation simulation) {
     this.constants = moduleConstants;
 
     driveTalon = new TalonFX(moduleConstants.driveID(), "*");
@@ -123,6 +133,17 @@ public class ModuleIOReal implements ModuleIO {
     driveTalon.optimizeBusUtilization();
     turnTalon.optimizeBusUtilization();
     cancoder.optimizeBusUtilization();
+
+    this.simulation = simulation;
+    simulation.useDriveMotorController(
+        new MaplePhoenixUtil.TalonFXMotorControllerSim(driveTalon, true));
+    simulation.useSteerMotorController(
+        new MaplePhoenixUtil.TalonFXMotorControllerWithRemoteCancoderSim(
+            turnTalon,
+            swerveConstants.getTurnMotorInverted(),
+            cancoder,
+            false,
+            Angle.ofBaseUnits(moduleConstants.cancoderOffset().getRadians(), Radian)));
   }
 
   @Override
