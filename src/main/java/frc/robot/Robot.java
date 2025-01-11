@@ -4,10 +4,17 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.KilogramSquareMeters;
+import static edu.wpi.first.units.Units.Meter;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
@@ -16,19 +23,25 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.swerve.BansheeSwerveConstants;
-import frc.robot.subsystems.swerve.GyroIO;
 import frc.robot.subsystems.swerve.GyroIOPigeon2;
+import frc.robot.subsystems.swerve.GyroIOSim;
 import frc.robot.subsystems.swerve.ModuleIO;
+import frc.robot.subsystems.swerve.ModuleIOMapleSim;
 import frc.robot.subsystems.swerve.ModuleIOReal;
-import frc.robot.subsystems.swerve.ModuleIOSim;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread;
 import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.GyroSimulation;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -62,19 +75,54 @@ public class Robot extends LoggedRobot {
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
 
+  // Create and configure a drivetrain simulation configuration
+  private Optional<DriveTrainSimulationConfig> driveTrainSimulationConfig =
+      ROBOT_TYPE == RobotType.SIM
+          ? Optional.of(
+              DriveTrainSimulationConfig.Default()
+                  // Specify gyro type (for realistic gyro drifting and error simulation). i dont
+                  // wanna
+                  // deal w too much error lol
+                  .withGyro(() -> new GyroSimulation(0.01, 0.01))
+                  // Specify swerve module (for realistic swerve dynamics)
+                  .withSwerveModule(
+                      new SwerveModuleSimulationConfig(
+                          DCMotor.getKrakenX60Foc(1),
+                          DCMotor.getKrakenX60Foc(1),
+                          ROBOT_HARDWARE.swerveConstants.getDriveGearRatio(),
+                          ROBOT_HARDWARE.swerveConstants.getTurnGearRatio(),
+                          Volts.of(0.1),
+                          Volts.of(0.2),
+                          Meter.of(ROBOT_HARDWARE.swerveConstants.getWheelRadiusMeters()),
+                          KilogramSquareMeters.of(0.03),
+                          1.5))
+                  // Configures the track length and track width (spacing between swerve modules)
+                  .withTrackLengthTrackWidth(
+                      Meter.of(ROBOT_HARDWARE.swerveConstants.getTrackWidthX()),
+                      Meter.of(ROBOT_HARDWARE.swerveConstants.getTrackWidthY()))
+                  // Configures the bumper size (dimensions of the robot bumper)
+                  .withBumperSize(Inches.of(30), Inches.of(30))
+                  .withRobotMass(ROBOT_HARDWARE.swerveConstants.getMass())
+                  .withCustomModuleTranslations(
+                      ROBOT_HARDWARE.swerveConstants.getModuleTranslations()))
+          : Optional.empty();
+  /* Create a swerve drive simulation */
+  private Optional<SwerveDriveSimulation> swerveDriveSimulation =
+      ROBOT_TYPE == RobotType.SIM
+          ? Optional.of(
+              new SwerveDriveSimulation(
+                  // Specify Configuration
+                  driveTrainSimulationConfig.get(),
+                  // Specify starting pose
+                  new Pose2d(3, 3, new Rotation2d())))
+          : Optional.empty();
+
   private final SwerveSubsystem swerve =
       new SwerveSubsystem(
           ROBOT_HARDWARE.swerveConstants,
           ROBOT_TYPE == RobotType.REAL
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
-              : new GyroIO() {
-                // Blank impl in sim.
-                @Override
-                public void updateInputs(GyroIOInputs inputs) {}
-
-                @Override
-                public void setYaw(Rotation2d yaw) {}
-              },
+              : new GyroIOSim(swerveDriveSimulation.get().getGyroSimulation()),
           // Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
           //     .map(
           //         (constants) ->
@@ -98,20 +146,25 @@ public class Robot extends LoggedRobot {
                     ROBOT_HARDWARE.swerveConstants)
               }
               : new ModuleIO[] {
-                new ModuleIOSim(
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getFrontLeftModule(),
-                    ROBOT_HARDWARE.swerveConstants),
-                new ModuleIOSim(
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.get().getModules()[0]),
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getFrontRightModule(),
-                    ROBOT_HARDWARE.swerveConstants),
-                new ModuleIOSim(
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.get().getModules()[1]),
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getBackLeftModule(),
-                    ROBOT_HARDWARE.swerveConstants),
-                new ModuleIOSim(
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.get().getModules()[2]),
+                new ModuleIOMapleSim(
                     ROBOT_HARDWARE.swerveConstants.getBackRightModule(),
-                    ROBOT_HARDWARE.swerveConstants)
+                    ROBOT_HARDWARE.swerveConstants,
+                    swerveDriveSimulation.get().getModules()[3])
               },
-          PhoenixOdometryThread.getInstance());
+          PhoenixOdometryThread.getInstance(),
+          swerveDriveSimulation);
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -167,6 +220,8 @@ public class Robot extends LoggedRobot {
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
     // be added.
     SignalLogger.setPath("/media/sda1/");
+
+    SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
 
     autos = new Autos(swerve);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
@@ -227,6 +282,11 @@ public class Robot extends LoggedRobot {
   @Override
   public void robotPeriodic() {
     CommandScheduler.getInstance().run();
+    if (ROBOT_TYPE == RobotType.SIM) {
+      SimulatedArena.getInstance().simulationPeriodic();
+      Logger.recordOutput(
+          "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+    }
   }
 
   @Override
@@ -239,7 +299,11 @@ public class Robot extends LoggedRobot {
   public void disabledExit() {}
 
   @Override
-  public void autonomousInit() {}
+  public void autonomousInit() {
+    if (ROBOT_TYPE == RobotType.SIM) {
+      SimulatedArena.getInstance().resetFieldForAuto();
+    }
+  }
 
   @Override
   public void autonomousPeriodic() {}

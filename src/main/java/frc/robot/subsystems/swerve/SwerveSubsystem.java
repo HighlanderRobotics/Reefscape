@@ -29,6 +29,8 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Samples;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalID;
@@ -37,8 +39,10 @@ import frc.robot.utils.Tracer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -69,6 +73,8 @@ public class SwerveSubsystem extends SubsystemBase {
   private double lastEstTimestamp = 0.0;
   private double lastOdometryUpdateTimestamp = 0.0;
 
+  private final Optional<SwerveDriveSimulation> simulation;
+
   private Alert usingSyncOdometryAlert = new Alert("Using Sync Odometry", AlertType.kInfo);
   private Alert missingModuleData = new Alert("Missing Module Data", AlertType.kError);
   private Alert missingGyroData = new Alert("Missing Gyro Data", AlertType.kWarning);
@@ -78,7 +84,8 @@ public class SwerveSubsystem extends SubsystemBase {
       GyroIO gyroIO,
       // VisionIO[] visionIOs,
       ModuleIO[] moduleIOs,
-      OdometryThreadIO odoThread) {
+      OdometryThreadIO odoThread,
+      Optional<SwerveDriveSimulation> simulation) {
     this.constants = constants;
     this.kinematics = new SwerveDriveKinematics(constants.getModuleTranslations());
     this.estimator =
@@ -86,6 +93,7 @@ public class SwerveSubsystem extends SubsystemBase {
             kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
+    this.simulation = simulation;
     odoThread.start();
     // cameras = new Vision[visionIOs.length];
     modules = new Module[moduleIOs.length];
@@ -153,7 +161,10 @@ public class SwerveSubsystem extends SubsystemBase {
   private void updateOdometry() {
     Logger.recordOutput("Swerve/Updates Since Last", odoThreadInputs.sampledStates.size());
     var sampleStates = odoThreadInputs.sampledStates;
-    if (sampleStates.size() == 0 || sampleStates.get(0).values().isEmpty()) {
+    if (sampleStates.size() == 0
+        || sampleStates.get(0).values().isEmpty()
+        // We don't simulate async odo rn
+        || Robot.ROBOT_TYPE == RobotType.SIM) {
       usingSyncOdometryAlert.set(true);
       sampleStates = getSyncSamples();
     } else {
@@ -272,7 +283,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 new SignalID(SignalType.DRIVE, 3), modules[3].getPosition().distanceMeters,
                 new SignalID(SignalType.STEER, 3), modules[3].getPosition().angle.getRotations(),
                 new SignalID(SignalType.GYRO, PhoenixOdometryThread.GYRO_MODULE_ID),
-                    gyroInputs.yawPosition.getRotations())));
+                    gyroInputs.yawPosition.getDegrees())));
   }
 
   // private void updateVision() {
@@ -324,6 +335,10 @@ public class SwerveSubsystem extends SubsystemBase {
 
   public void resetPose(Pose2d pose) {
     estimator.resetPose(pose);
+    if (simulation.isPresent()) {
+      simulation.get().setSimulationWorldPose(pose);
+      simulation.get().setRobotSpeeds(new ChassisSpeeds());
+    }
   }
 
   /** Returns the module states (turn angles and drive velocitoes) for all of the modules. */
@@ -399,13 +414,15 @@ public class SwerveSubsystem extends SubsystemBase {
         // Use closed loop current control (automated actions)
         // Calculate robot forces
         var robotRelForceX =
-            moduleForcesX[i] * getRotation().getCos() - moduleForcesY[i] * getRotation().getSin();
+            moduleForcesX[i] * getRotation().unaryMinus().getCos()
+                - moduleForcesY[i] * getRotation().unaryMinus().getSin();
         var robotRelForceY =
-            moduleForcesX[i] * getRotation().getSin() + moduleForcesY[i] * getRotation().getCos();
+            moduleForcesX[i] * getRotation().unaryMinus().getSin()
+                + moduleForcesY[i] * getRotation().unaryMinus().getCos();
         forceSetpoints[i] =
             new SwerveModuleState(
-                Math.hypot(moduleForcesX[i], moduleForcesY[i]),
-                new Rotation2d(moduleForcesX[i], moduleForcesY[i]));
+                Math.hypot(robotRelForceX, robotRelForceY),
+                new Rotation2d(robotRelForceX, robotRelForceY));
         optimizedSetpointStates[i] =
             modules[i].runSetpoint(setpointStates[i], robotRelForceX, robotRelForceY);
       }
@@ -463,7 +480,7 @@ public class SwerveSubsystem extends SubsystemBase {
           final var pose = getPose();
           final var target = targetSupplier.get();
           Logger.recordOutput("Swerve/Target Pose", target);
-          var speeds =
+          final var speeds =
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   new ChassisSpeeds(
                       xController.calculate(pose.getX(), target.getX()),
