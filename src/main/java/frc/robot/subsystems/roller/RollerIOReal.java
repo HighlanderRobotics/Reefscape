@@ -52,7 +52,7 @@ public class RollerIOReal implements RollerIO {
   private Optional<Consumer<RollerIOInputsAutoLogged>> callback = Optional.empty();
 
   final InvertedDigitalInput firstBeambreak = new InvertedDigitalInput(0); // TODO channel #
-  final InvertedDigitalInput secondBeambreak = new InvertedDigitalInput(0); // TODO channel #
+  final InvertedDigitalInput secondBeambreak = new InvertedDigitalInput(1); // TODO channel #
 
   public RollerIOReal(final int motorID, final TalonFXConfiguration config) {
     this.motor = new TalonFX(motorID, "*");

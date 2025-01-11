@@ -14,6 +14,7 @@ public class RollerSubsystem extends SubsystemBase {
   private final RollerIOInputsAutoLogged inputs = new RollerIOInputsAutoLogged();
 
   private final String name;
+  public static final double INDEXING_VELOCITY = 0; // TODO
 
   /**
    * Creates a new RollerSubsystem.
@@ -39,6 +40,11 @@ public class RollerSubsystem extends SubsystemBase {
 
   public Command setVelocity(double vel) {
     return this.setVelocity(() -> vel);
+  }
+
+  public Command indexForwardCmd() {
+    return setVelocity(INDEXING_VELOCITY)
+        .until(() -> !inputs.firstBeambreak && inputs.secondBeambreak);
   }
 
   public boolean getFirstBeambreak() {
