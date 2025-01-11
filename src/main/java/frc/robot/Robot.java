@@ -12,7 +12,10 @@ import static edu.wpi.first.units.Units.Volts;
 import com.ctre.phoenix6.SignalLogger;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -336,6 +339,13 @@ public class Robot extends LoggedRobot {
     }
 
     Logger.recordOutput("Target", currentTarget);
+    Logger.recordOutput(
+        "Mechanism Poses",
+        new Pose3d[] {
+          new Pose3d(
+              new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
+          new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
+        });
   }
 
   @Override
