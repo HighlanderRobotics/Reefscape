@@ -15,8 +15,8 @@ public interface RollerIO {
     public double statorCurrentAmps = 0.0;
     public double supplyCurrentAmps = 0.0;
     public double tempCelsius = 0.0;
-    public boolean firstBeambreak = false; //closer to elevator
-    public boolean secondBeambreak = false; //closer to outtake
+    public boolean firstBeambreak = false; // closer to elevator
+    public boolean secondBeambreak = false; // closer to outtake
   }
 
   public void updateInputs(RollerIOInputsAutoLogged inputs);

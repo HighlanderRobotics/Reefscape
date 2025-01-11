@@ -24,7 +24,6 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import frc.robot.utils.InvertedDigitalInput;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -52,9 +51,8 @@ public class RollerIOReal implements RollerIO {
 
   private Optional<Consumer<RollerIOInputsAutoLogged>> callback = Optional.empty();
 
-  
-  final InvertedDigitalInput firstBeambreak = new InvertedDigitalInput(0); //TODO channel #
-  final InvertedDigitalInput secondBeambreak = new InvertedDigitalInput(0); //TODO channel #
+  final InvertedDigitalInput firstBeambreak = new InvertedDigitalInput(0); // TODO channel #
+  final InvertedDigitalInput secondBeambreak = new InvertedDigitalInput(0); // TODO channel #
 
   public RollerIOReal(final int motorID, final TalonFXConfiguration config) {
     this.motor = new TalonFX(motorID, "*");
