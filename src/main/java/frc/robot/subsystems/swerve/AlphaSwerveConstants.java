@@ -43,32 +43,34 @@ public class AlphaSwerveConstants extends SwerveConstants {
 
     @Override
     public double getHeadingVelocityKP() {
-        return 0;
+        // Copied from Banshee
+        return 4.0;
     }
 
     @Override
     public double getHeadingVoltageKP() {
-        return 0;
+        // Copied from Banshee
+        return 4.0;
     }
 
     @Override
     public Module.ModuleConstants getFrontLeftModule() {
-        return null;
+        return new Module.ModuleConstants(0, "Front Left", 0, 1, 0, Rotation2d.fromRotations(0.0));
     }
 
     @Override
     public Module.ModuleConstants getFrontRightModule() {
-        return null;
+        return new Module.ModuleConstants(1, "Front Right", 2, 3, 1, Rotation2d.fromRotations(0.0));
     }
 
     @Override
     public Module.ModuleConstants getBackLeftModule() {
-        return null;
+        return new Module.ModuleConstants(2, "Back Left", 4, 5, 2, Rotation2d.fromRotations(0.0));
     }
 
     @Override
     public Module.ModuleConstants getBackRightModule() {
-        return null;
+        return new Module.ModuleConstants(3, "Back Right", 6, 7, 3, Rotation2d.fromRotations(0.0));
     }
 
     @Override
