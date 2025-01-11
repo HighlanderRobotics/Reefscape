@@ -21,7 +21,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 public class ElevatorSubsystem extends SubsystemBase {
   // Constants
   // TODO find real values
-  public static final double GEAR_RATIO = 12.5 / 1.0;
+  public static final double GEAR_RATIO = 4.5 / 1.0;
   public static final double DRUM_RADIUS_METERS = Units.inchesToMeters(1.751 / 2.0);
   public static final Rotation2d ELEVATOR_ANGLE = Rotation2d.fromDegrees(90.0);
 

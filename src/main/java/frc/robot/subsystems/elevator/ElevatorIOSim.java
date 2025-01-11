@@ -15,20 +15,25 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 
 /** WPILib physics model based elevator sim. */
 public class ElevatorIOSim implements ElevatorIO {
-  ElevatorSim physicsSim =
+  private final ElevatorSim physicsSim =
       new ElevatorSim(
           DCMotor.getKrakenX60Foc(2),
           ElevatorSubsystem.GEAR_RATIO,
           // Add half of first stage mass bc its on a 2:1 ratio compared to carriage
-          Units.lbsToKilograms(10.8 + (2.5 / 2)),
+          Units.lbsToKilograms(7.0 + (3.25 / 2)),
           ElevatorSubsystem.DRUM_RADIUS_METERS,
           0.0,
           ElevatorSubsystem.MAX_EXTENSION_METERS,
           true,
           0.0);
-  double volts = 0.0;
-  ProfiledPIDController pid = new ProfiledPIDController(40.0, 0.0, 0.0, new Constraints(10.0, 5.0));
-  ElevatorFeedforward ff = new ElevatorFeedforward(0.0, 0.06, 12.6);
+  private double volts = 0.0;
+  private final ProfiledPIDController pid = new ProfiledPIDController(40.0, 0.0, 0.1, new Constraints(5.0, 10.0));
+  private final ElevatorFeedforward ff =
+      new ElevatorFeedforward(
+          0.0,
+          0.06,
+          (DCMotor.getKrakenX60Foc(1).KvRadPerSecPerVolt * ElevatorSubsystem.DRUM_RADIUS_METERS)
+              / ElevatorSubsystem.GEAR_RATIO);
 
   @Override
   public void updateInputs(final ElevatorIOInputsAutoLogged inputs) {
