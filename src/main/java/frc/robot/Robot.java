@@ -51,7 +51,7 @@ public class Robot extends LoggedRobot {
 
   public enum RobotHardware {
     BANSHEE(new BansheeSwerveConstants()),
-    ALPHA(new AlphaSwerveConstants()), // TODO Add swerve constants as appropriate
+    ALPHA(new AlphaSwerveConstants()),
     COMP(null); // TODO Add swerve constants as appropriate
 
     public final SwerveConstants swerveConstants;
