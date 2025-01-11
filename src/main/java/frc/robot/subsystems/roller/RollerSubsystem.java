@@ -40,4 +40,12 @@ public class RollerSubsystem extends SubsystemBase {
   public Command setVelocity(double vel) {
     return this.setVelocity(() -> vel);
   }
+
+  public boolean getFirstBeambreak() {
+    return inputs.firstBeambreak;
+  }
+
+  public boolean getSecondBeambreak() {
+    return inputs.secondBeambreak;
+  }
 }
