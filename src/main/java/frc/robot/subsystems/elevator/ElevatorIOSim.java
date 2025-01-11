@@ -27,7 +27,8 @@ public class ElevatorIOSim implements ElevatorIO {
           true,
           0.0);
   private double volts = 0.0;
-  private final ProfiledPIDController pid = new ProfiledPIDController(40.0, 0.0, 0.1, new Constraints(5.0, 10.0));
+  private final ProfiledPIDController pid =
+      new ProfiledPIDController(40.0, 0.0, 0.1, new Constraints(5.0, 10.0));
   private final ElevatorFeedforward ff =
       new ElevatorFeedforward(
           0.0,
