@@ -108,9 +108,9 @@ public class AlphaSwerveConstants extends SwerveConstants {
     driveConfig.Feedback.SensorToMechanismRatio = getDriveRotorToMeters();
 
     // Current control gains
-    driveConfig.Slot0.kV = (5800.0 / 60) / 12; // Motor free speed (Rots/sec) / 12 volts
+    driveConfig.Slot0.kV = 0.0;
     // kT (stall torque / stall current) converted to linear wheel frame
-    driveConfig.Slot0.kA = 0.0; // (9.37 / 483.0) / getDriveRotorToMeters(); // 3.07135116146;
+    driveConfig.Slot0.kA = 3.07135116146;
     driveConfig.Slot0.kS = 14.0;
     driveConfig.Slot0.kP = 100.0;
     driveConfig.Slot0.kD = 1.0;
@@ -127,8 +127,8 @@ public class AlphaSwerveConstants extends SwerveConstants {
     // Copied from Banshee
     final var turnConfig = new TalonFXConfiguration();
     // Current limits
-    turnConfig.CurrentLimits.StatorCurrentLimit = 40.0;
-    turnConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    turnConfig.CurrentLimits.SupplyCurrentLimit = 20.0;
+    turnConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     // Inverts
     turnConfig.MotorOutput.Inverted =
         getTurnMotorInverted()
@@ -142,7 +142,7 @@ public class AlphaSwerveConstants extends SwerveConstants {
     turnConfig.Feedback.SensorToMechanismRatio = 1.0;
     turnConfig.Feedback.FeedbackRotorOffset = 0.0;
     // Controls Gains
-    turnConfig.Slot0.kV = 2.7935;
+    turnConfig.Slot0.kV = 0.42962962963; // ((5800 / 60) / getTurnGearRatio()) / 12
     turnConfig.Slot0.kA = 0.031543;
     turnConfig.Slot0.kS = 0.28;
     turnConfig.Slot0.kP = 20.0;
