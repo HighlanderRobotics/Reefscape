@@ -16,7 +16,6 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
-
 import java.io.File;
 
 /**
@@ -29,7 +28,7 @@ public abstract class SwerveConstants {
   private static final Alert multipleInstancesAlert =
       new Alert("Multiple Swerve Constants Files", AlertType.kError);
   private static final Alert tagLoadFailureAlert =
-          new Alert("Failed to load custom tag map", AlertType.kWarning);
+      new Alert("Failed to load custom tag map", AlertType.kWarning);
   protected AprilTagFieldLayout fieldTags;
 
   public SwerveConstants() {
@@ -40,10 +39,10 @@ public abstract class SwerveConstants {
 
     try {
       fieldTags =
-              new AprilTagFieldLayout(
-                      Filesystem.getDeployDirectory()
-                              .toPath()
-                              .resolve("vision" + File.separator + "2025-reefscape.json"));
+          new AprilTagFieldLayout(
+              Filesystem.getDeployDirectory()
+                  .toPath()
+                  .resolve("vision" + File.separator + "2025-reefscape.json"));
       System.out.println("Successfully loaded tag map");
     } catch (Exception e) {
       System.err.println("Failed to load custom tag map");
