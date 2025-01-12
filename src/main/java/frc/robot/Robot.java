@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -186,7 +187,13 @@ public class Robot extends LoggedRobot {
       new ElevatorSubsystem(
           ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
   private final RollerSubsystem manipulator =
-      new RollerSubsystem(new RollerIOReal(10, RollerIOReal.DEFAULT_CONFIG), "Manipulator");
+      new RollerSubsystem(
+          new RollerIOReal(
+              10,
+              RollerIOReal.DEFAULT_CONFIG
+                  .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
+                  .withSlot0(RollerIOReal.DEFAULT_CONFIG.Slot0.withKV(0.24))),
+          "Manipulator");
   public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
 
   private final Autos autos;
