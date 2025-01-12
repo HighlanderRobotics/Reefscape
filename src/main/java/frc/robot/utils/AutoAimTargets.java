@@ -3,7 +3,7 @@ package frc.robot.utils;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
-public enum AutoAimTarget {
+public enum AutoAimTargets {
   // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls
   // were extended beyond the coral station
   // All angles from the center of the coral with 0° across the width of the field, counterclockwise
@@ -35,7 +35,7 @@ public enum AutoAimTarget {
 
   public final Pose2d location;
 
-  private AutoAimTarget(edu.wpi.first.math.geometry.Pose2d location) {
+  private AutoAimTargets(edu.wpi.first.math.geometry.Pose2d location) {
     this.location = location;
   }
 }
