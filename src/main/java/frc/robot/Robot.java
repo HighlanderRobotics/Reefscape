@@ -33,6 +33,8 @@ import frc.robot.subsystems.swerve.SwerveConstants;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
+import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.AutoAimTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -247,6 +249,7 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     modifyJoystick(driver.getRightX())
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
+    driver.a().whileTrue(AutoAim.translateToReef(swerve, AutoAimTargets.BLUE_A.location));
   }
 
   /** Scales a joystick value for teleop driving */
