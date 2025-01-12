@@ -110,7 +110,7 @@ public class AlphaSwerveConstants extends SwerveConstants {
     // Current control gains
     driveConfig.Slot0.kV = 0.0;
     // kT (stall torque / stall current) converted to linear wheel frame
-    driveConfig.Slot0.kA = (9.37 / 483.0) / getDriveRotorToMeters(); // 3.07135116146;
+    driveConfig.Slot0.kA = 0.0; // (9.37 / 483.0) / getDriveRotorToMeters(); // 3.07135116146;
     driveConfig.Slot0.kS = 14.0;
     driveConfig.Slot0.kP = 100.0;
     driveConfig.Slot0.kD = 1.0;
