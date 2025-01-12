@@ -2,9 +2,8 @@ package frc.robot.utils;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
 
-public enum AutoAimTargets {
+public enum AutoAimTarget {
     // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls were extended beyond the coral station
     // All angles from the center of the coral with 0° across the width of the field
     BLUE_A(new Pose2d(3.95, 4.20, Rotation2d.fromDegrees(90))),
@@ -35,7 +34,7 @@ public enum AutoAimTargets {
 
     public final Pose2d location;
 
-    private AutoAimTargets(edu.wpi.first.math.geometry.Pose2d location) {
+    private AutoAimTarget(edu.wpi.first.math.geometry.Pose2d location) {
         this.location = location;
     }
 
