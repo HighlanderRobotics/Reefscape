@@ -30,15 +30,7 @@ import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.roller.RollerSubsystem;
-import frc.robot.subsystems.swerve.BansheeSwerveConstants;
-import frc.robot.subsystems.swerve.GyroIOPigeon2;
-import frc.robot.subsystems.swerve.GyroIOSim;
-import frc.robot.subsystems.swerve.ModuleIO;
-import frc.robot.subsystems.swerve.ModuleIOMapleSim;
-import frc.robot.subsystems.swerve.ModuleIOReal;
-import frc.robot.subsystems.swerve.PhoenixOdometryThread;
-import frc.robot.subsystems.swerve.SwerveConstants;
-import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.subsystems.swerve.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
@@ -67,7 +59,7 @@ public class Robot extends LoggedRobot {
 
   public enum RobotHardware {
     BANSHEE(new BansheeSwerveConstants()),
-    ALPHA(null), // TODO Add swerve constants as appropriate
+    ALPHA(new AlphaSwerveConstants()),
     COMP(null); // TODO Add swerve constants as appropriate
 
     public final SwerveConstants swerveConstants;

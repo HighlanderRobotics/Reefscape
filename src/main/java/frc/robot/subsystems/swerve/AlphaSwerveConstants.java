@@ -1,6 +1,6 @@
 package frc.robot.subsystems.swerve;
 
-import static edu.wpi.first.units.Units.Kilogram;
+import static edu.wpi.first.units.Units.*;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -12,28 +12,28 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
-import frc.robot.subsystems.swerve.Module.ModuleConstants;
 
-public class BansheeSwerveConstants extends SwerveConstants {
-
+public class AlphaSwerveConstants extends SwerveConstants {
   @Override
   public double getMaxLinearSpeed() {
-    return Units.feetToMeters(16.0);
+    // (Max speed of motor (5800 rpm) in rads/sec / gear ratio) * radius of wheel (according to
+    // Google AI
+    return (Units.rotationsToRadians(5800.0 / 60) / getDriveGearRatio()) * getWheelRadiusMeters();
   }
 
   @Override
   public double getMaxLinearAcceleration() {
-    return 8.0;
+    return 14.0;
   }
 
   @Override
   public double getTrackWidthX() {
-    return Units.inchesToMeters(21.75);
+    return Units.inchesToMeters(23.75);
   }
 
   @Override
   public double getTrackWidthY() {
-    return Units.inchesToMeters(21.25);
+    return Units.inchesToMeters(23.75);
   }
 
   @Override
@@ -43,128 +43,57 @@ public class BansheeSwerveConstants extends SwerveConstants {
 
   @Override
   public double getHeadingVelocityKP() {
+    // Copied from Banshee
     return 4.0;
   }
 
   @Override
   public double getHeadingVoltageKP() {
+    // Copied from Banshee
     return 4.0;
   }
 
   @Override
-  public ModuleConstants getFrontLeftModule() {
-    return new ModuleConstants(0, "Front Left", 0, 1, 0, Rotation2d.fromRotations(0.377930));
+  public Module.ModuleConstants getFrontLeftModule() {
+    return new Module.ModuleConstants(0, "Front Left", 0, 1, 0, Rotation2d.fromRotations(0.0));
   }
 
   @Override
-  public ModuleConstants getFrontRightModule() {
-    return new ModuleConstants(1, "Front Right", 2, 3, 1, Rotation2d.fromRotations(-0.071289));
+  public Module.ModuleConstants getFrontRightModule() {
+    return new Module.ModuleConstants(1, "Front Right", 2, 3, 1, Rotation2d.fromRotations(0.0));
   }
 
   @Override
-  public ModuleConstants getBackLeftModule() {
-    return new ModuleConstants(2, "Back Left", 4, 5, 2, Rotation2d.fromRotations(0.550781));
+  public Module.ModuleConstants getBackLeftModule() {
+    return new Module.ModuleConstants(2, "Back Left", 4, 5, 2, Rotation2d.fromRotations(0.0));
   }
 
   @Override
-  public ModuleConstants getBackRightModule() {
-    return new ModuleConstants(3, "Back Right", 6, 7, 3, Rotation2d.fromRotations(-0.481689));
+  public Module.ModuleConstants getBackRightModule() {
+    return new Module.ModuleConstants(3, "Back Right", 6, 7, 3, Rotation2d.fromRotations(0.0));
   }
 
-  // Need this annotation so the alert doesn't get mad
-  @SuppressWarnings("resource")
   @Override
   public AprilTagFieldLayout getFieldTagLayout() {
     return fieldTags;
   }
 
-  // @Override
-  // public VisionConstants[] getVisionConstants() {
-  //   final Matrix<N3, N3> LEFT_CAMERA_MATRIX =
-  //       MatBuilder.fill(
-  //           Nat.N3(),
-  //           Nat.N3(),
-  //           915.2126592056358,
-  //           0.0,
-  //           841.560216921862,
-  //           0.0,
-  //           913.9556728013187,
-  //           648.2330358379004,
-  //           0.0,
-  //           0.0,
-  //           1.0);
-  //   final Matrix<N8, N1> LEFT_DIST_COEFFS =
-  //       MatBuilder.fill(
-  //           Nat.N8(),
-  //           Nat.N1(),
-  //           0.0576413369828492,
-  //           -0.07356597379196807,
-  //           -6.669129885790735E-4,
-  //           6.491281122640802E-4,
-  //           0.03731824873787814,
-  //           0,
-  //           0,
-  //           0);
-  //   final Matrix<N3, N3> RIGHT_CAMERA_MATRIX =
-  //       MatBuilder.fill(
-  //           Nat.N3(),
-  //           Nat.N3(),
-  //           902.0832829888818,
-  //           0.0,
-  //           611.9702186077134,
-  //           0.0,
-  //           902.2731968281233,
-  //           400.755534902121,
-  //           0.0,
-  //           0.0,
-  //           1.0);
-  //   final Matrix<N8, N1> RIGHT_DIST_COEFFS =
-  //       MatBuilder.fill(
-  //           Nat.N8(),
-  //           Nat.N1(),
-  //           0.05398335403070431,
-  //           -0.07589158973947994,
-  //           -0.003081304772847505,
-  //           -0.0010797674400397023,
-  //           0.015185486932866137,
-  //           0,
-  //           0,
-  //           0);
-  //   final VisionConstants leftCamConstants =
-  //       new VisionConstants(
-  //           "Left_Camera",
-  //           new Transform3d(
-  //               new Translation3d(
-  //                   Units.inchesToMeters(-10.386),
-  //                   Units.inchesToMeters(10.380),
-  //                   Units.inchesToMeters(7.381)),
-  //               new Rotation3d(
-  //                   Units.degreesToRadians(0.0),
-  //                   Units.degreesToRadians(-28.125),
-  //                   Units.degreesToRadians(120))),
-  //           LEFT_CAMERA_MATRIX,
-  //           LEFT_DIST_COEFFS);
-  //   final VisionConstants rightCamConstants =
-  //       new VisionConstants(
-  //           "Right_Camera",
-  //           new Transform3d(
-  //               new Translation3d(
-  //                   Units.inchesToMeters(-10.597),
-  //                   Units.inchesToMeters(-10.143),
-  //                   Units.inchesToMeters(7.384)),
-  //               new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
-  //           RIGHT_CAMERA_MATRIX,
-  //           RIGHT_DIST_COEFFS);
-  //   return new VisionConstants[] {leftCamConstants, rightCamConstants};
-  // }
-
   @Override
   public double getDriveGearRatio() {
-    return (50.0 / 14.0) * (16.0 / 28.0) * (45.0 / 15.0);
+    // Taken from https://www.swervedrivespecialties.com/products/mk4n-swerve-module, L2+
+    // configuration
+    return (50.0 / 16.0) * (17.0 / 27.0) * (45.0 / 15.0);
+  }
+
+  @Override
+  public double getTurnGearRatio() {
+    // For SDS Mk4n
+    return 18.75;
   }
 
   @Override
   public TalonFXConfiguration getDriveConfig() {
+    // Copied from Banshee
     final var driveConfig = new TalonFXConfiguration();
     // Current limits
     driveConfig.CurrentLimits.SupplyCurrentLimit = 60.0;
@@ -195,10 +124,11 @@ public class BansheeSwerveConstants extends SwerveConstants {
 
   @Override
   public TalonFXConfiguration getTurnConfig(int cancoderID) {
+    // Copied from Banshee
     final var turnConfig = new TalonFXConfiguration();
     // Current limits
-    turnConfig.CurrentLimits.StatorCurrentLimit = 40.0;
-    turnConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+    turnConfig.CurrentLimits.SupplyCurrentLimit = 20.0;
+    turnConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     // Inverts
     turnConfig.MotorOutput.Inverted =
         getTurnMotorInverted()
@@ -212,7 +142,7 @@ public class BansheeSwerveConstants extends SwerveConstants {
     turnConfig.Feedback.SensorToMechanismRatio = 1.0;
     turnConfig.Feedback.FeedbackRotorOffset = 0.0;
     // Controls Gains
-    turnConfig.Slot0.kV = 2.7935;
+    turnConfig.Slot0.kV = 0.42962962963; // ((5800 / 60) / getTurnGearRatio()) / 12
     turnConfig.Slot0.kA = 0.031543;
     turnConfig.Slot0.kS = 0.28;
     turnConfig.Slot0.kP = 20.0;
@@ -225,6 +155,7 @@ public class BansheeSwerveConstants extends SwerveConstants {
 
   @Override
   public CANcoderConfiguration getCancoderConfig(Rotation2d cancoderOffset) {
+    // Copied from Banshee
     final var cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.MagnetOffset = cancoderOffset.getRotations();
     cancoderConfig.MagnetSensor.SensorDirection =
@@ -236,6 +167,7 @@ public class BansheeSwerveConstants extends SwerveConstants {
 
   @Override
   public Mass getMass() {
-    return Kilogram.of(74.0);
+    // Onshape says some subsystems have no material. May need to be updated
+    return Pound.of(99.8 + 13);
   }
 }
