@@ -22,15 +22,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import frc.robot.subsystems.swerve.BansheeSwerveConstants;
-import frc.robot.subsystems.swerve.GyroIOPigeon2;
-import frc.robot.subsystems.swerve.GyroIOSim;
-import frc.robot.subsystems.swerve.ModuleIO;
-import frc.robot.subsystems.swerve.ModuleIOMapleSim;
-import frc.robot.subsystems.swerve.ModuleIOReal;
-import frc.robot.subsystems.swerve.PhoenixOdometryThread;
-import frc.robot.subsystems.swerve.SwerveConstants;
-import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.subsystems.swerve.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
@@ -59,7 +51,7 @@ public class Robot extends LoggedRobot {
 
   public enum RobotHardware {
     BANSHEE(new BansheeSwerveConstants()),
-    ALPHA(null), // TODO Add swerve constants as appropriate
+    ALPHA(new AlphaSwerveConstants()),
     COMP(null); // TODO Add swerve constants as appropriate
 
     public final SwerveConstants swerveConstants;
