@@ -42,12 +42,16 @@ public enum AutoAimTargets {
   }
 
   public static Pose2d getRobotTargetLocation(Pose2d original) {
-    // 0.305 for trough
-    double requiredTranslation = 0.305 + (RobotConstants.BUMPER_SIZE / 2);
-    double rotationRads = original.getRotation().getRadians();
-    double xTranslation = requiredTranslation * Math.cos(rotationRads);
-    double yTranslation = requiredTranslation * Math.sin(rotationRads);
-    return new Pose2d(
-        original.getX() + xTranslation, original.getY() + yTranslation, original.getRotation());
+    // 0.248 for trough
+    return offsetPose(
+        original,
+        new Transform2d(
+            0.248 + ((RobotConstants.LENGTH / 2)) + RobotConstants.BUMPER_SIZE,
+            0,
+            new Rotation2d(0)));
+  }
+
+  public static Pose2d offsetPose(Pose2d original, Transform2d offset) {
+    return original.transformBy(offset);
   }
 }
