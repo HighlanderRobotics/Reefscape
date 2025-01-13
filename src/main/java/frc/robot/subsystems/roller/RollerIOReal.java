@@ -23,20 +23,10 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
-import frc.robot.utils.InvertedDigitalInput;
 import java.util.Optional;
 import java.util.function.Consumer;
 
 public class RollerIOReal implements RollerIO {
-  public static final TalonFXConfiguration DEFAULT_CONFIG =
-      new TalonFXConfiguration()
-          .withCurrentLimits(
-              new CurrentLimitsConfigs()
-                  .withSupplyCurrentLimit(15.0)
-                  .withSupplyCurrentLimitEnable(true))
-          .withSlot0(new Slot0Configs().withKV(0.12).withKP(1.0))
-          .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
-
   private final TalonFX motor;
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
@@ -50,9 +40,6 @@ public class RollerIOReal implements RollerIO {
   private final StatusSignal<Temperature> temp;
 
   private Optional<Consumer<RollerIOInputsAutoLogged>> callback = Optional.empty();
-
-  final InvertedDigitalInput firstBeambreak = new InvertedDigitalInput(0); // TODO channel #
-  final InvertedDigitalInput secondBeambreak = new InvertedDigitalInput(1); // TODO channel #
 
   public RollerIOReal(final int motorID, final TalonFXConfiguration config) {
     this.motor = new TalonFX(motorID, "*");
@@ -71,6 +58,16 @@ public class RollerIOReal implements RollerIO {
     motor.optimizeBusUtilization();
   }
 
+  public static TalonFXConfiguration getDefaultConfig() {
+    return new TalonFXConfiguration()
+    .withCurrentLimits(
+        new CurrentLimitsConfigs()
+            .withSupplyCurrentLimit(15.0)
+            .withSupplyCurrentLimitEnable(true))
+    .withSlot0(new Slot0Configs().withKV(0.12).withKP(1.0))
+    .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+  }
+
   @Override
   public void updateInputs(RollerIOInputsAutoLogged inputs) {
     inputs.velocityRotationsPerSec = velocity.getValue().in(RotationsPerSecond);
@@ -80,8 +77,6 @@ public class RollerIOReal implements RollerIO {
     inputs.tempCelsius = temp.getValue().in(Celsius);
 
     callback.ifPresent((cb) -> cb.accept(inputs));
-    inputs.firstBeambreak = firstBeambreak.get();
-    inputs.secondBeambreak = secondBeambreak.get();
   }
 
   @Override

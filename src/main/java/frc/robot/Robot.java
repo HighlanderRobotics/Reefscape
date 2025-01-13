@@ -11,6 +11,8 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -26,6 +28,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
@@ -186,14 +190,15 @@ public class Robot extends LoggedRobot {
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
           ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
-  private final RollerSubsystem manipulator =
-      new RollerSubsystem(
+  private final ManipulatorSubsystem manipulator =
+      new ManipulatorSubsystem(
           new RollerIOReal(
               10,
-              RollerIOReal.DEFAULT_CONFIG
+              RollerIOReal.getDefaultConfig()
                   .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                  .withSlot0(RollerIOReal.DEFAULT_CONFIG.Slot0.withKV(0.24))),
-          "Manipulator");
+                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(1.0))),
+          new BeambreakIOReal(0, false),
+          new BeambreakIOReal(1, false));
   public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
 
   private final Autos autos;
