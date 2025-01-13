@@ -328,30 +328,9 @@ public class Robot extends LoggedRobot {
   @Override
   public void teleopInit() {
     // Log locations of all autoaim targets
-    Logger.recordOutput("Targets/BlueA", AutoAimTargets.BLUE_A.location);
-    Logger.recordOutput("Targets/BlueB", AutoAimTargets.BLUE_B.location);
-    Logger.recordOutput("Targets/BlueC", AutoAimTargets.BLUE_C.location);
-    Logger.recordOutput("Targets/BlueD", AutoAimTargets.BLUE_D.location);
-    Logger.recordOutput("Targets/BlueE", AutoAimTargets.BLUE_E.location);
-    Logger.recordOutput("Targets/BlueF", AutoAimTargets.BLUE_F.location);
-    Logger.recordOutput("Targets/BlueG", AutoAimTargets.BLUE_G.location);
-    Logger.recordOutput("Targets/BlueH", AutoAimTargets.BLUE_H.location);
-    Logger.recordOutput("Targets/BlueI", AutoAimTargets.BLUE_I.location);
-    Logger.recordOutput("Targets/BlueJ", AutoAimTargets.BLUE_J.location);
-    Logger.recordOutput("Targets/BlueK", AutoAimTargets.BLUE_K.location);
-    Logger.recordOutput("Targets/BlueL", AutoAimTargets.BLUE_L.location);
-    Logger.recordOutput("Targets/RedA", AutoAimTargets.RED_A.location);
-    Logger.recordOutput("Targets/RedB", AutoAimTargets.RED_B.location);
-    Logger.recordOutput("Targets/RedC", AutoAimTargets.RED_C.location);
-    Logger.recordOutput("Targets/RedD", AutoAimTargets.RED_D.location);
-    Logger.recordOutput("Targets/RedE", AutoAimTargets.RED_E.location);
-    Logger.recordOutput("Targets/RedF", AutoAimTargets.RED_F.location);
-    Logger.recordOutput("Targets/RedG", AutoAimTargets.RED_G.location);
-    Logger.recordOutput("Targets/RedH", AutoAimTargets.RED_H.location);
-    Logger.recordOutput("Targets/RedI", AutoAimTargets.RED_I.location);
-    Logger.recordOutput("Targets/RedJ", AutoAimTargets.RED_J.location);
-    Logger.recordOutput("Targets/RedK", AutoAimTargets.RED_K.location);
-    Logger.recordOutput("Targets/RedL", AutoAimTargets.RED_L.location);
+    for (AutoAimTargets target : AutoAimTargets.values()) {
+      Logger.recordOutput("Targets/" + target, target.location);
+    }
   }
 
   @Override
