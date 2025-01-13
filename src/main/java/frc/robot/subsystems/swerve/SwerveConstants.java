@@ -116,4 +116,10 @@ public abstract class SwerveConstants {
   }
 
   public abstract Mass getMass();
+
+  public abstract double getBumperSize();
+
+  public abstract double getFrameWidth();
+
+  public abstract double getFrameLength();
 }

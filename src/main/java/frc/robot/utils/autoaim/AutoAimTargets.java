@@ -3,7 +3,7 @@ package frc.robot.utils.autoaim;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import frc.robot.utils.RobotConstants;
+import frc.robot.Robot;
 
 public enum AutoAimTargets {
   // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls
@@ -46,7 +46,7 @@ public enum AutoAimTargets {
     return offsetPose(
         original,
         new Transform2d(
-            0.248 + ((RobotConstants.LENGTH / 2)) + RobotConstants.BUMPER_SIZE,
+            0.248 + ((Robot.ROBOT_HARDWARE.swerveConstants.getFrameLength() / 2)) + Robot.ROBOT_HARDWARE.swerveConstants.getBumperSize(),
             0,
             new Rotation2d(0)));
   }

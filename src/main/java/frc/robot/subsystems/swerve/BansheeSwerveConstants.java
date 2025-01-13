@@ -263,4 +263,19 @@ public class BansheeSwerveConstants extends SwerveConstants {
   public Mass getMass() {
     return Kilogram.of(74.0);
   }
+
+  @Override
+  public double getBumperSize() {
+    return Units.inchesToMeters(3.68);
+  }
+
+  @Override
+  public double getFrameWidth() {
+    return Units.inchesToMeters(27.5);
+  }
+
+  @Override
+  public double getFrameLength() {
+    return Units.inchesToMeters(31.5);
+  }
 }
