@@ -60,12 +60,12 @@ public class RollerIOReal implements RollerIO {
 
   public static TalonFXConfiguration getDefaultConfig() {
     return new TalonFXConfiguration()
-    .withCurrentLimits(
-        new CurrentLimitsConfigs()
-            .withSupplyCurrentLimit(15.0)
-            .withSupplyCurrentLimitEnable(true))
-    .withSlot0(new Slot0Configs().withKV(0.12).withKP(1.0))
-    .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+        .withCurrentLimits(
+            new CurrentLimitsConfigs()
+                .withSupplyCurrentLimit(15.0)
+                .withSupplyCurrentLimitEnable(true))
+        .withSlot0(new Slot0Configs().withKV(0.12).withKP(1.0))
+        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
   }
 
   @Override

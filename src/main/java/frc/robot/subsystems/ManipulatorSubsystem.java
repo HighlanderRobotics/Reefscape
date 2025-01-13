@@ -4,14 +4,13 @@
 
 package frc.robot.subsystems;
 
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerSubsystem;
+import org.littletonrobotics.junction.Logger;
 
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
@@ -19,7 +18,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private final RollerIO rollerIO;
   private final RollerIOInputsAutoLogged rollerInputs = new RollerIOInputsAutoLogged();
   private final BeambreakIO firstBBIO, secondBBIO;
-  private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(), secondBBInputs = new BeambreakIOInputsAutoLogged();
+  private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
+      secondBBInputs = new BeambreakIOInputsAutoLogged();
 
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
