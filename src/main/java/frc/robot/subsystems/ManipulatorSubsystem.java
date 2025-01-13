@@ -42,10 +42,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public Command indexCmd() {
-    return Commands.sequence(setVelocity(INDEXING_VELOCITY)
-      .until(() -> firstBBInputs.get),
-      setVelocity(10.0)
-        .until(() -> !firstBBInputs.get && secondBBInputs.get),
+    return Commands.sequence(
+        setVelocity(INDEXING_VELOCITY).until(() -> firstBBInputs.get),
+        setVelocity(10.0).until(() -> !firstBBInputs.get && secondBBInputs.get),
         setVelocity(0));
   }
 
