@@ -40,7 +40,7 @@ public enum AutoAimTargets {
     this.location = location;
   }
 
-  public Pose2d getRobotTargetLocation(Pose2d original) {
+  public static Pose2d getRobotTargetLocation(Pose2d original) {
     // 0.305 for trough
     double requiredTranslation = 0.305 + (RobotConstants.BUMPER_SIZE / 2);
     double rotationRads = original.getRotation().getRadians();

@@ -39,6 +39,8 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+
+import org.dyn4j.geometry.Transform;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -249,7 +251,9 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     modifyJoystick(driver.getRightX())
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
-    driver.a().whileTrue(AutoAim.translateToReef(swerve, AutoAimTargets.BLUE_A.location));
+    driver.a().whileTrue(AutoAim.translateToReef(swerve, AutoAimTargets.getRobotTargetLocation(AutoAimTargets.BLUE_A.location)));
+    Logger.recordOutput("AutoAim/target", AutoAimTargets.getRobotTargetLocation(AutoAimTargets.BLUE_A.location));
+    driver.b().onTrue(Commands.runOnce(() -> swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose())));
   }
 
   /** Scales a joystick value for teleop driving */
