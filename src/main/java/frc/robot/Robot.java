@@ -12,7 +12,6 @@ import static edu.wpi.first.units.Units.Volts;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -34,7 +33,6 @@ import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
-import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
