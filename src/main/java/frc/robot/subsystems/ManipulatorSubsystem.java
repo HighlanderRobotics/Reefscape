@@ -7,6 +7,7 @@ package frc.robot.subsystems;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
@@ -41,9 +42,11 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public Command indexCmd() {
-    return setVelocity(INDEXING_VELOCITY)
-        .until(() -> !firstBBInputs.get && secondBBInputs.get)
-        .andThen(setVelocity(0));
+    return Commands.sequence(setVelocity(INDEXING_VELOCITY)
+      .until(() -> firstBBInputs.get),
+      setVelocity(10.0)
+        .until(() -> !firstBBInputs.get && secondBBInputs.get),
+        setVelocity(0));
   }
 
   public boolean getFirstBeambreak() {
