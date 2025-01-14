@@ -10,23 +10,25 @@ import frc.robot.subsystems.swerve.SwerveSubsystem;
 
 public class AutoAim {
   static double MAX_ANGULAR_SPEED = 1.0;
+  static double MAX_ANGULAR_ACCELERATION = 1.0;
   static double MAX_AUTOAIM_SPEED = 1.0;
+  static double MAX_AUTOAIM_ACCELERATION = 1.0;
 
-  public static Command translateToReef(SwerveSubsystem swerve, Pose2d target) {
+  public static final Command translateToReef(SwerveSubsystem swerve, Pose2d target) {
     ProfiledPIDController headingController =
         // assume we can accelerate to max in 2/3 of a second
         new ProfiledPIDController(
             0.5,
             0.0,
             0.0,
-            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED / 2, MAX_ANGULAR_SPEED));
+            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED / 2, MAX_ANGULAR_ACCELERATION));
     headingController.enableContinuousInput(-Math.PI, Math.PI);
     ProfiledPIDController vxController =
         new ProfiledPIDController(
-            0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_SPEED));
+            0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     ProfiledPIDController vyController =
         new ProfiledPIDController(
-            0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_SPEED));
+            0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.sequence(
             swerve.driveVelocityFieldRelative(
                 () ->
