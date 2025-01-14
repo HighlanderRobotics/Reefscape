@@ -25,10 +25,16 @@ public class AutoAim {
     headingController.enableContinuousInput(-Math.PI, Math.PI);
     ProfiledPIDController vxController =
         new ProfiledPIDController(
-            0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+            0.5,
+            0.0,
+            0.0,
+            new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     ProfiledPIDController vyController =
         new ProfiledPIDController(
-            0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+            0.5,
+            0.0,
+            0.0,
+            new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.sequence(
             swerve.driveVelocityFieldRelative(
                 () ->
