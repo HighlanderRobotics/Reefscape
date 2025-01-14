@@ -3,6 +3,7 @@ package frc.robot.subsystems.swerve;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,7 +14,9 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
+import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
+import java.io.File;
 
 /**
  * A template for constants for a swerve drivetrain. This template presumes rectangular modules that
@@ -24,12 +27,28 @@ public abstract class SwerveConstants {
   private static boolean instantiated = false;
   private static final Alert multipleInstancesAlert =
       new Alert("Multiple Swerve Constants Files", AlertType.kError);
+  private static final Alert tagLoadFailureAlert =
+      new Alert("Failed to load custom tag map", AlertType.kWarning);
+  protected AprilTagFieldLayout fieldTags;
 
   public SwerveConstants() {
     if (instantiated) {
       multipleInstancesAlert.set(true);
     }
     instantiated = true;
+
+    try {
+      fieldTags =
+          new AprilTagFieldLayout(
+              Filesystem.getDeployDirectory()
+                  .toPath()
+                  .resolve("vision" + File.separator + "2025-reefscape.json"));
+      System.out.println("Successfully loaded tag map");
+    } catch (Exception e) {
+      System.err.println("Failed to load custom tag map");
+      tagLoadFailureAlert.set(true);
+      fieldTags = AprilTagFieldLayout.loadField(AprilTagFields.kDefaultField);
+    }
   }
 
   // Drivebase Constants

@@ -9,37 +9,12 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
-import edu.wpi.first.wpilibj.Alert;
-import edu.wpi.first.wpilibj.Alert.AlertType;
-import edu.wpi.first.wpilibj.Filesystem;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
-import java.io.File;
 
 public class BansheeSwerveConstants extends SwerveConstants {
-  private AprilTagFieldLayout fieldTags;
-  private static Alert tagLoadFailureAlert =
-      new Alert("Failed to load custom tag map", AlertType.kWarning);
-
-  public BansheeSwerveConstants() {
-    super();
-    // TODO: update to 2025 field
-    try {
-      fieldTags =
-          new AprilTagFieldLayout(
-              Filesystem.getDeployDirectory()
-                  .toPath()
-                  .resolve("vision" + File.separator + "2024-crescendo.json"));
-      System.out.println("Successfully loaded tag map");
-    } catch (Exception e) {
-      System.err.println("Failed to load custom tag map");
-      tagLoadFailureAlert.set(true);
-      fieldTags = AprilTagFieldLayout.loadField(AprilTagFields.k2024Crescendo);
-    }
-  }
 
   @Override
   public double getMaxLinearSpeed() {
