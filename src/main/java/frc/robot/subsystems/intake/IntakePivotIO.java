@@ -1,0 +1,23 @@
+package frc.robot.subsystems.intake;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Temperature;
+import org.littletonrobotics.junction.AutoLog;
+
+public interface IntakePivotIO {
+    @AutoLog
+    public static class IntakePivotIOInputs {
+        public double angularVelocityRotsPerSec = 0.0;
+        public Rotation2d pivotPosition = new Rotation2d();
+        public double tempDegreesC = 0.0;
+        public double supplyCurrentAmps = 0.0;
+        public double currentAmps = 0.0;
+    }
+
+    void updateInputs(IntakePivotIOInputs inputs);
+
+    void setMotorVoltage(double voltage);
+
+    void setMotorPosition(Rotation2d targetPosition);
+
+}
