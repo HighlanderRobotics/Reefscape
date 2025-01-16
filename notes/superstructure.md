@@ -69,8 +69,8 @@ INTAKE_CORAL_GROUND --> ANTI_JAM
 READY_CORAL --> ANTI_JAM
 
 IDLE --> PRE_CLIMB
-PRE_CLIMB ---> IDLE
-CLIMB --"?"---> IDLE
+PRE_CLIMB -------> IDLE
+CLIMB --"?"-----> IDLE
 
 subgraph climb [CLIMB]
 
