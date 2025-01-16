@@ -70,7 +70,7 @@ READY_CORAL --> ANTI_JAM
 
 IDLE --> PRE_CLIMB
 PRE_CLIMB --> IDLE
-CLIMB --"?"--> IDLE
+CLIMB --"?"---> IDLE
 
 subgraph climb [CLIMB]
 
