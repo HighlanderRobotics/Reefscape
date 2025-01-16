@@ -240,12 +240,12 @@ public class BansheeSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public double getTotalWidth() {
+  public double getBumperWidth() {
     return Units.inchesToMeters(35.16);
   }
 
   @Override
-  public double getTotalLength() {
+  public double getBumperLength() {
     return Units.inchesToMeters(39.66);
   }
 }

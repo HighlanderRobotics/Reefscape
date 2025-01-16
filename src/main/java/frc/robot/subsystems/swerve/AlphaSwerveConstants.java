@@ -172,12 +172,12 @@ public class AlphaSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public double getTotalWidth() {
+  public double getBumperWidth() {
     return Units.inchesToMeters(36.1);
   }
 
   @Override
-  public double getTotalLength() {
+  public double getBumperLength() {
     return Units.inchesToMeters(36.1);
   }
 }

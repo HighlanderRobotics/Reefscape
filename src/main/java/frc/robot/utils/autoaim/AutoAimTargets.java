@@ -47,7 +47,7 @@ public enum AutoAimTargets {
     return offsetPose(
         original,
         new Transform2d(
-            0.248 + (Robot.ROBOT_HARDWARE.swerveConstants.getTotalLength() / 2),
+            0.248 + (Robot.ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
             0,
             new Rotation2d(0)));
   }
