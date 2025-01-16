@@ -48,8 +48,7 @@ public enum AutoAimTargets {
         original,
         new Transform2d(
             0.248
-                + ((Robot.ROBOT_HARDWARE.swerveConstants.getFrameLength() / 2))
-                + Robot.ROBOT_HARDWARE.swerveConstants.getBumperSize(),
+                + (Robot.ROBOT_HARDWARE.swerveConstants.getTotalLength() / 2),
             0,
             new Rotation2d(0)));
   }
