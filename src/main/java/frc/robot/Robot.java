@@ -163,6 +163,8 @@ public class Robot extends LoggedRobot {
   // option isn't akit friendly
   // Main benefit to that is reducing startup time, which idt we care about too much
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
+  
+  private LoggedDashboardChooser<Command> pitChecker = new LoggedDashboardChooser<>("Pit Checker");
 
   public Robot() {
     SignalLogger.enableAutoLogging(false);
@@ -239,6 +241,7 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     modifyJoystick(driver.getRightX())
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
+    addPitChecks();
   }
 
   /** Scales a joystick value for teleop driving */
@@ -322,4 +325,8 @@ public class Robot extends LoggedRobot {
 
   @Override
   public void testExit() {}
+
+  public void addPitChecks() {
+    //TODO 
+  }
 }
