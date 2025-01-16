@@ -1,7 +1,7 @@
 # Superstructure Graph
 
 ```mermaid
-%%{ init: { 'flowchart': { 'curve': 'linear' } } }%%
+%%{init: {"flowchart": {"defaultRenderer": "elk"}} }%%
 graph TD;
 
 IDLE
