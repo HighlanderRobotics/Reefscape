@@ -10,8 +10,8 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class RollerSubsystem extends SubsystemBase {
-  private final RollerIO io;
-  private final RollerIOInputsAutoLogged inputs = new RollerIOInputsAutoLogged();
+  protected final RollerIO io;
+  protected final RollerIOInputsAutoLogged inputs = new RollerIOInputsAutoLogged();
 
   private final String name;
   public static final double INDEXING_VELOCITY = 40; // TODO
