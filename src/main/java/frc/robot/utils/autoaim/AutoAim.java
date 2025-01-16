@@ -9,12 +9,12 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 
 public class AutoAim {
-  static double MAX_ANGULAR_SPEED = 1.0;
-  static double MAX_ANGULAR_ACCELERATION = 1.0;
-  static double MAX_AUTOAIM_SPEED = 1.0;
-  static double MAX_AUTOAIM_ACCELERATION = 1.0;
+  static final double MAX_ANGULAR_SPEED = 1.0;
+  static final  double MAX_ANGULAR_ACCELERATION = 1.0;
+  static final double MAX_AUTOAIM_SPEED = 1.0;
+  static final double MAX_AUTOAIM_ACCELERATION = 1.0;
 
-  public static final Command translateToReef(SwerveSubsystem swerve, Pose2d target) {
+  public static Command translateToReef(SwerveSubsystem swerve, Pose2d target) {
     ProfiledPIDController headingController =
         // assume we can accelerate to max in 2/3 of a second
         new ProfiledPIDController(
