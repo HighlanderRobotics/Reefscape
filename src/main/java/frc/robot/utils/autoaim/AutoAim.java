@@ -10,7 +10,7 @@ import frc.robot.subsystems.swerve.SwerveSubsystem;
 
 public class AutoAim {
   static final double MAX_ANGULAR_SPEED = 1.0;
-  static final  double MAX_ANGULAR_ACCELERATION = 1.0;
+  static final double MAX_ANGULAR_ACCELERATION = 1.0;
   static final double MAX_AUTOAIM_SPEED = 1.0;
   static final double MAX_AUTOAIM_ACCELERATION = 1.0;
 
