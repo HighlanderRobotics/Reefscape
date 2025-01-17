@@ -8,6 +8,8 @@ IDLE
 
 IDLE --> INTAKE_CORAL_HP
 IDLE --> INTAKE_CORAL_GROUND
+INTAKE_CORAL_HP --> IDLE
+INTAKE_CORAL_GROUND --> IDLE
 SCORE_CORAL --> IDLE
 SPIT_CORAL --> IDLE
 
@@ -44,6 +46,11 @@ IDLE --> INTAKE_ALGAE_GROUND
 IDLE --> INTAKE_ALGAE_STACK
 IDLE --> INTAKE_ALGAE_LOW
 IDLE --> INTAKE_ALGAE_HIGH
+
+INTAKE_ALGAE_GROUND --> IDLE
+INTAKE_ALGAE_STACK --> IDLE
+INTAKE_ALGAE_LOW --> IDLE
+INTAKE_ALGAE_HIGH --> IDLE
 
 SCORE_ALGAE --> IDLE
 
@@ -89,8 +96,8 @@ end
 | State | Description | End |
 | ----- | ----------- | --- |
 | IDLE  | The robot has no game pieces, the elevator, intake, and manipulators are retracted | An intake or climb request is triggered. |
-| INTAKE_CORAL_HP | The robot has no game pieces, the elvator and manipulator are in position to intake coral directly form the hp chute. The manipulator is running. | The relevant intake request ends or a game piece enters the manipulator. |
-| INTAKE_CORAL_GROUND | The robot has no game pieces, the elvator, manipulator, and intake are in position to intake coral from the intake. The manipulator and intake are running. | The relevant intake request ends or a game piece enters the manipulator. |
+| INTAKE_CORAL_HP | The robot has no game pieces, the elevator and manipulator are in position to intake coral directly form the hp chute. The manipulator is running. | The relevant intake request ends or a game piece enters the manipulator. |
+| INTAKE_CORAL_GROUND | The robot has no game pieces, the elevator, manipulator, and intake are in position to intake coral from the intake. The manipulator and intake are running. | The relevant intake request ends or a game piece enters the manipulator. |
 | READY_CORAL | The robot has a coral in the manipulator. The elevator, intake, and manipulator are retracted. | A scoring, prescoring, or spit request is triggered. |
 | SPIT_CORAL | The robot ejects a piece of coral from the manipulator onto the ground. | No game piece is detected and a timer passes. |
 | PRE_{L1-4} | Move the manipulator and elevator to the corresponding position in preparation for scoring. | The manipulator and elevator are in the correct position, the score request is triggered, and the drivebase is in the right location (if pose est is good enough to validate this). |
