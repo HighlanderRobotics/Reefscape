@@ -36,18 +36,7 @@ public class AutoAim {
             0.0,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.sequence(
-            swerve.driveVelocityFieldRelative(
-                () ->
-                    new ChassisSpeeds(
-                        vxController.calculate(swerve.getPose().getX(), target.getX())
-                            + vxController.getSetpoint().velocity,
-                        vyController.calculate(swerve.getPose().getY(), target.getY())
-                            + vyController.getSetpoint().velocity,
-                        headingController.calculate(
-                                swerve.getPose().getRotation().getRadians(),
-                                target.getRotation().getRadians())
-                            + headingController.getSetpoint().velocity)))
-        .beforeStarting(
+        Commands.runOnce(
             () -> {
               vxController.setConstraints(
                   new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, MAX_AUTOAIM_SPEED));
@@ -63,7 +52,19 @@ public class AutoAim {
               vyController.reset(
                   new TrapezoidProfile.State(
                       swerve.getPose().getY(), swerve.getVelocity().vyMetersPerSecond));
-            });
+            },
+            swerve),
+        swerve.driveVelocityFieldRelative(
+            () ->
+                new ChassisSpeeds(
+                    vxController.calculate(swerve.getPose().getX(), target.getX())
+                        + vxController.getSetpoint().velocity,
+                    vyController.calculate(swerve.getPose().getY(), target.getY())
+                        + vyController.getSetpoint().velocity,
+                    headingController.calculate(
+                            swerve.getPose().getRotation().getRadians(),
+                            target.getRotation().getRadians())
+                        + headingController.getSetpoint().velocity)));
   }
 
   public static Command translateToReef(SwerveSubsystem swerve, AutoAimTargets target) {
