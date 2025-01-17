@@ -9,7 +9,7 @@ public class IntakePivotSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-      io.updateInputs(inputs);
-      Logger.processInputs("Intake/Pivot", inputs);
+    io.updateInputs(inputs);
+    Logger.processInputs("Intake/Pivot", inputs);
   }
 }
