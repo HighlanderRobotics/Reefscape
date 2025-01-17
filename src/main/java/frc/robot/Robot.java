@@ -169,6 +169,7 @@ public class Robot extends LoggedRobot {
   // Main benefit to that is reducing startup time, which idt we care about too much
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
 
+  @SuppressWarnings("resource")
   public Robot() {
     SignalLogger.enableAutoLogging(false);
     RobotController.setBrownoutVoltage(6.0);

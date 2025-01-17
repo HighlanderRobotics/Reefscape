@@ -30,6 +30,10 @@ public class VisionIOInputsLogged extends VisionIO.VisionIOInputs
     table.put("Pose", coprocPNPTransform);
     table.put("Target Pose3ds", targetPose3ds);
     VisionHelper.Logging.logVisionConstants(constants, table);
+    table.put("SequenceID", sequenceID);
+    table.put("Capture Timestamp Micros", captureTimestampMicros);
+    table.put("Publish Timestamp Micros", publishTimestampMicros);
+    table.put("Time Since Last Pong", timeSinceLastPong);
   }
 
   @Override
@@ -43,6 +47,10 @@ public class VisionIOInputsLogged extends VisionIO.VisionIOInputs
     coprocPNPTransform = table.get("Pose", coprocPNPTransform);
     targetPose3ds = table.get("Target Pose3ds", targetPose3ds);
     constants = VisionHelper.Logging.getLoggedVisionConstants(table);
+    sequenceID = table.get("SequenceID", sequenceID);
+    captureTimestampMicros = table.get("Capture Timestamp Micros", captureTimestampMicros);
+    publishTimestampMicros = table.get("Publish Timestamp Micros", publishTimestampMicros);
+    timeSinceLastPong = table.get("Time Since Last Pong", timeSinceLastPong);
   }
 
   public VisionIOInputsLogged clone() {

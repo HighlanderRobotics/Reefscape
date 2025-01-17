@@ -49,6 +49,10 @@ public class VisionIOReal implements VisionIO {
     inputs.constants = constants;
     inputs.coprocPNPTransform =
         result.getMultiTagResult().get().estimatedPose.best; // TODO worried about this .get()
+    inputs.sequenceID = result.metadata.getSequenceID();
+    inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
+    inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
+    inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
   }
 
   @Override

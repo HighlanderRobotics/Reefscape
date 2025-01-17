@@ -33,6 +33,10 @@ public interface VisionIO {
             new Transform3d(),
             Matrix.eye(Nat.N3()),
             MatBuilder.fill(Nat.N8(), Nat.N1(), 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0));
+    public long sequenceID = 0;
+    public long captureTimestampMicros = 0;
+    public long publishTimestampMicros = 0;
+    public long timeSinceLastPong = 0;
   }
 
   public void updateInputs(VisionIOInputs inputs);

@@ -70,6 +70,10 @@ public class VisionIOSim implements VisionIO {
     inputs.latency = result.metadata.getLatencyMillis();
     inputs.targets = result.targets; // TODO aaaaaaa
     inputs.constants = constants;
+    inputs.sequenceID = result.metadata.getSequenceID();
+    inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
+    inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
+    inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
   }
 
   @Override
