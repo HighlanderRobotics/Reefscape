@@ -10,9 +10,14 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.Slot0Configs;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -22,6 +27,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.beambreak.BeambreakIOReal;
+import frc.robot.subsystems.elevator.ElevatorIOReal;
+import frc.robot.subsystems.elevator.ElevatorIOSim;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
@@ -67,7 +78,23 @@ public class Robot extends LoggedRobot {
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.BANSHEE;
 
+  public static enum ReefTarget {
+    L1(0.0),
+    L2(ElevatorSubsystem.L2_EXTENSION_METERS),
+    L3(ElevatorSubsystem.L3_EXTENSION_METERS),
+    L4(ElevatorSubsystem.L4_EXTENSION_METERS);
+
+    public final double elevatorHeight;
+
+    private ReefTarget(double elevatorHeight) {
+      this.elevatorHeight = elevatorHeight;
+    }
+  }
+
+  private ReefTarget currentTarget = ReefTarget.L1;
+
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
+  private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
 
   // Create and configure a drivetrain simulation configuration
   private Optional<DriveTrainSimulationConfig> driveTrainSimulationConfig =
@@ -160,6 +187,20 @@ public class Robot extends LoggedRobot {
           PhoenixOdometryThread.getInstance(),
           swerveDriveSimulation);
 
+  private final ElevatorSubsystem elevator =
+      new ElevatorSubsystem(
+          ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
+  private final ManipulatorSubsystem manipulator =
+      new ManipulatorSubsystem(
+          new RollerIOReal(
+              10,
+              RollerIOReal.getDefaultConfig()
+                  .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
+                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(1.0))),
+          new BeambreakIOReal(0, false),
+          new BeambreakIOReal(1, false));
+  public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
+
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
@@ -230,6 +271,11 @@ public class Robot extends LoggedRobot {
     // Default Commands
 
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
+    operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
+
+    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+
+    manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
@@ -241,6 +287,7 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     modifyJoystick(driver.getRightX())
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
+
     driver
         .leftTrigger()
         .whileTrue(
@@ -257,6 +304,20 @@ public class Robot extends LoggedRobot {
         .onTrue(
             Commands.runOnce(
                 () -> swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose())));
+
+    driver
+        .rightTrigger()
+        .whileTrue(
+            Commands.parallel(
+                elevator.setExtension(() -> currentTarget.elevatorHeight),
+                Commands.waitUntil(() -> elevator.isNearExtension(currentTarget.elevatorHeight))
+                    .andThen(manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))))
+        .onFalse(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)));
+
+    operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
+    operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
+    operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
+    operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
   }
 
   /** Scales a joystick value for teleop driving */
@@ -297,6 +358,15 @@ public class Robot extends LoggedRobot {
       Logger.recordOutput(
           "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
+
+    Logger.recordOutput("Target", currentTarget);
+    Logger.recordOutput(
+        "Mechanism Poses",
+        new Pose3d[] {
+          new Pose3d(
+              new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
+          new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
+        });
   }
 
   @Override
