@@ -14,12 +14,13 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 public class IntakePivotIOSim implements IntakePivotIO {
   // TODO: SET TO ACTUAL VALUES WHEN CAD IS FINISHED
+  // Taken from Citrus circuits 2024 CAD
   SingleJointedArmSim intakePivotSim =
       new SingleJointedArmSim(
           DCMotor.getKrakenX60(1),
           IntakePivotSubsystem.PIVOT_RATIO,
-          0.5,
-          0.2,
+          0.07,
+          edu.wpi.first.math.util.Units.inchesToMeters(108.5),
           0.0,
           0.5,
           true,
