@@ -7,6 +7,9 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
 public class IntakePivotSubsystem extends SubsystemBase {
+  // TODO: SET TO ACTUAL RATIO WHEN CAD IS FINISHED
+  public static double PIVOT_RATIO = 1.0;
+
   private IntakePivotIO io;
   private IntakePivotIOInputsAutoLogged inputs;
 
