@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.vision;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -224,8 +223,7 @@ public class VisionHelper {
                 Optional.of(distCoeffs),
                 robotToCamera,
                 PoseStrategy.LOWEST_AMBIGUITY,
-                bestTF,
-                fieldTags);
+                bestTF);
         break;
       default:
         DriverStation.reportError(
@@ -257,7 +255,6 @@ public class VisionHelper {
       PhotonPipelineResult result,
       Optional<Matrix<N3, N3>> cameraMatrix,
       Optional<Matrix<N8, N1>> distCoeffs, // TODO FIX THE 5 VS 8 THING!!
-      AprilTagFieldLayout fieldTags,
       PoseStrategy multiTagFallbackStrategy,
       Transform3d robotToCamera) {
     boolean hasCalibData = cameraMatrix.isPresent() && distCoeffs.isPresent();
@@ -269,8 +266,7 @@ public class VisionHelper {
           distCoeffs.get(),
           multiTagFallbackStrategy,
           robotToCamera,
-          new Transform3d(),
-          fieldTags);
+          new Transform3d());
     }
 
     var pnpResult =
@@ -278,7 +274,7 @@ public class VisionHelper {
             cameraMatrix.get(),
             distCoeffs.get(),
             result.getTargets(),
-            fieldTags,
+            Robot.ROBOT_HARDWARE.swerveConstants.getFieldTagLayout(),
             TargetModel.kAprilTag36h11);
     // try fallback strategy if solvePNP fails for some reason
     if (!pnpResult.isPresent())
@@ -288,8 +284,7 @@ public class VisionHelper {
           distCoeffs.get(),
           multiTagFallbackStrategy,
           robotToCamera,
-          new Transform3d(),
-          fieldTags);
+          new Transform3d());
     var best =
         new Pose3d()
             .plus(pnpResult.get().best) // field-to-camera
@@ -326,14 +321,13 @@ public class VisionHelper {
       Optional<Matrix<N8, N1>> distCoeffs,
       Transform3d robotToCamera,
       PoseStrategy multiTagFallbackStrategy,
-      Transform3d bestTF,
-      AprilTagFieldLayout fieldTags) {
+      Transform3d bestTF) {
     if (!bestTF.equals(new Transform3d())) {
       var best_tf = bestTF;
       var best =
           new Pose3d()
               .plus(best_tf) // field-to-camera
-              .relativeTo(fieldTags.getOrigin())
+              .relativeTo(Robot.ROBOT_HARDWARE.swerveConstants.getFieldTagLayout().getOrigin())
               .plus(robotToCamera.inverse()); // field-to-robot
       return Optional.of(
           new EstimatedRobotPose(
@@ -348,8 +342,7 @@ public class VisionHelper {
           distCoeffs.get(),
           multiTagFallbackStrategy,
           robotToCamera,
-          new Transform3d(),
-          fieldTags);
+          new Transform3d());
     }
   }
 
@@ -362,7 +355,7 @@ public class VisionHelper {
    *     estimation.
    */
   private static Optional<EstimatedRobotPose> lowestAmbiguityStrategy(
-      PhotonPipelineResult result, Transform3d robotToCamera, AprilTagFieldLayout fieldTags) {
+      PhotonPipelineResult result, Transform3d robotToCamera) {
     PhotonTrackedTarget lowestAmbiguityTarget = null;
 
     double lowestAmbiguityScore = 10;
@@ -386,7 +379,7 @@ public class VisionHelper {
     if (lowestAmbiguityTarget == null) return Optional.empty();
     int targetFiducialId = lowestAmbiguityTarget.getFiducialId();
 
-    Optional<Pose3d> targetPosition = fieldTags.getTagPose(targetFiducialId);
+    Optional<Pose3d> targetPosition = Robot.ROBOT_HARDWARE.swerveConstants.getFieldTagLayout().getTagPose(targetFiducialId);
 
     if (targetPosition.isEmpty()) {
       DriverStation.reportError(
