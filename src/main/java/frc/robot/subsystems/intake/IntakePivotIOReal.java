@@ -27,7 +27,11 @@ public class IntakePivotIOReal implements IntakePivotIO {
   @Override
   public void updateInputs(IntakePivotIOInputs inputs) {
     BaseStatusSignal.refreshAll(
-        angularVelocityRotsPerSec, temp, supplyCurrentAmps, statorCurrentAmps, motorPositionRotations);
+        angularVelocityRotsPerSec,
+        temp,
+        supplyCurrentAmps,
+        statorCurrentAmps,
+        motorPositionRotations);
 
     inputs.angularVelocityRotsPerSec = angularVelocityRotsPerSec.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
