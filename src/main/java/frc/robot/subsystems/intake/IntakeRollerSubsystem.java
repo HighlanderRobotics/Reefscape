@@ -13,13 +13,23 @@ public class IntakeRollerSubsystem extends RollerSubsystem {
     super(io, "Intake/Roller");
   }
 
+  // Runs intake
   public Command intake() {
-    // This 2 secs is arbitrary
-    return setVelocity(INTAKE_VELOCITY).withTimeout(2);
+    return intake(INTAKE_VELOCITY);
   }
 
-  public Command intake(Time timeout) {
-    // This 2 secs is arbitrary
-    return setVelocity(INTAKE_VELOCITY).withTimeout(timeout);
+  // Runs intake at specified velocity
+  public Command intake(double velocity) {
+    return setVelocity(velocity);
+  }
+
+  // Runs intake in reverse
+  public Command outtake() {
+    return intake(-INTAKE_VELOCITY);
+  }
+
+  // Runs intake in reverse at the specified velocity
+  public Command outtake(double velocity) {
+    return intake(-velocity);
   }
 }
