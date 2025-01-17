@@ -242,14 +242,18 @@ public class Robot extends LoggedRobot {
                     modifyJoystick(driver.getRightX())
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
     driver
-        .a()
+        .leftTrigger()
         .whileTrue(
             AutoAim.translateToReef(
-                swerve, AutoAimTargets.getRobotTargetLocation(AutoAimTargets.BLUE_A.location)));
+                swerve,
+                AutoAimTargets.getRobotTargetLocation(
+                    AutoAimTargets.getClosestTarget(() -> swerve.getPose()))));
     Logger.recordOutput(
-        "AutoAim/target", AutoAimTargets.getRobotTargetLocation(AutoAimTargets.BLUE_A.location));
+        "AutoAim/target",
+        AutoAimTargets.getRobotTargetLocation(
+            AutoAimTargets.getClosestTarget(() -> swerve.getPose())));
     driver
-        .b()
+        .rightTrigger()
         .onTrue(
             Commands.runOnce(
                 () -> swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose())));

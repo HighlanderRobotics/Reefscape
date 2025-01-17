@@ -45,13 +45,15 @@ public class AutoAim {
               headingController.reset(
                   new TrapezoidProfile.State(
                       swerve.getPose().getRotation().getRadians(),
-                      swerve.getVelocity().omegaRadiansPerSecond));
+                      swerve.getVelocityFieldRelative().omegaRadiansPerSecond));
               vxController.reset(
                   new TrapezoidProfile.State(
-                      swerve.getPose().getX(), swerve.getVelocity().vxMetersPerSecond));
+                      swerve.getPose().getX(),
+                      swerve.getVelocityFieldRelative().vxMetersPerSecond));
               vyController.reset(
                   new TrapezoidProfile.State(
-                      swerve.getPose().getY(), swerve.getVelocity().vyMetersPerSecond));
+                      swerve.getPose().getY(),
+                      swerve.getVelocityFieldRelative().vyMetersPerSecond));
             },
             swerve),
         swerve.driveVelocityFieldRelative(
