@@ -24,6 +24,7 @@ public class IntakePivotSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngle(Rotation2d target) {
-    return Commands.runOnce(() -> Logger.recordOutput("Intake/PivotSetpoint", target)).andThen(() -> io.setMotorPosition(target));
+    return Commands.runOnce(() -> Logger.recordOutput("Intake/PivotSetpoint", target))
+        .andThen(() -> io.setMotorPosition(target));
   }
 }
