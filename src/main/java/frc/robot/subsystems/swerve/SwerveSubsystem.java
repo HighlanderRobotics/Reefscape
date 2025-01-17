@@ -35,6 +35,9 @@ import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Samples;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalID;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOSim;
+import frc.robot.subsystems.vision.Vision;
 import frc.robot.utils.Tracer;
 import java.util.Arrays;
 import java.util.List;
@@ -69,6 +72,9 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private Rotation2d rawGyroRotation = new Rotation2d();
   private Rotation2d lastGyroRotation = new Rotation2d();
+
+  private final Vision[] cameras;
+
   private SwerveDrivePoseEstimator estimator;
   private double lastEstTimestamp = 0.0;
   private double lastOdometryUpdateTimestamp = 0.0;
@@ -82,7 +88,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveSubsystem(
       SwerveConstants constants,
       GyroIO gyroIO,
-      // VisionIO[] visionIOs,
+      VisionIO[] visionIOs,
       ModuleIO[] moduleIOs,
       OdometryThreadIO odoThread,
       Optional<SwerveDriveSimulation> simulation) {
@@ -95,18 +101,18 @@ public class SwerveSubsystem extends SubsystemBase {
     this.odoThread = odoThread;
     this.simulation = simulation;
     odoThread.start();
-    // cameras = new Vision[visionIOs.length];
+    cameras = new Vision[visionIOs.length];
     modules = new Module[moduleIOs.length];
 
     for (int i = 0; i < moduleIOs.length; i++) {
       modules[i] = new Module(moduleIOs[i]);
     }
-    // for (int i = 0; i < visionIOs.length; i++) {
-    //   cameras[i] = new Vision(visionIOs[i]);
-    // }
+    for (int i = 0; i < visionIOs.length; i++) {
+      cameras[i] = new Vision(visionIOs[i]);
+    }
 
     // global static is mildly questionable
-    // VisionIOSim.pose = this::getPose3d;
+    VisionIOSim.pose = this::getPose3d;
   }
 
   public void periodic() {

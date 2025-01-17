@@ -12,6 +12,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
+import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class AlphaSwerveConstants extends SwerveConstants {
   @Override
@@ -169,5 +170,11 @@ public class AlphaSwerveConstants extends SwerveConstants {
   public Mass getMass() {
     // Onshape says some subsystems have no material. May need to be updated
     return Pound.of(99.8 + 13);
+  }
+
+  @Override
+  //TODO !!!
+  public VisionConstants[] getVisionConstants() {
+    return null;
   }
 }

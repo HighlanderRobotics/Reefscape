@@ -9,10 +9,20 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
+import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class BansheeSwerveConstants extends SwerveConstants {
 
@@ -78,85 +88,85 @@ public class BansheeSwerveConstants extends SwerveConstants {
     return fieldTags;
   }
 
-  // @Override
-  // public VisionConstants[] getVisionConstants() {
-  //   final Matrix<N3, N3> LEFT_CAMERA_MATRIX =
-  //       MatBuilder.fill(
-  //           Nat.N3(),
-  //           Nat.N3(),
-  //           915.2126592056358,
-  //           0.0,
-  //           841.560216921862,
-  //           0.0,
-  //           913.9556728013187,
-  //           648.2330358379004,
-  //           0.0,
-  //           0.0,
-  //           1.0);
-  //   final Matrix<N8, N1> LEFT_DIST_COEFFS =
-  //       MatBuilder.fill(
-  //           Nat.N8(),
-  //           Nat.N1(),
-  //           0.0576413369828492,
-  //           -0.07356597379196807,
-  //           -6.669129885790735E-4,
-  //           6.491281122640802E-4,
-  //           0.03731824873787814,
-  //           0,
-  //           0,
-  //           0);
-  //   final Matrix<N3, N3> RIGHT_CAMERA_MATRIX =
-  //       MatBuilder.fill(
-  //           Nat.N3(),
-  //           Nat.N3(),
-  //           902.0832829888818,
-  //           0.0,
-  //           611.9702186077134,
-  //           0.0,
-  //           902.2731968281233,
-  //           400.755534902121,
-  //           0.0,
-  //           0.0,
-  //           1.0);
-  //   final Matrix<N8, N1> RIGHT_DIST_COEFFS =
-  //       MatBuilder.fill(
-  //           Nat.N8(),
-  //           Nat.N1(),
-  //           0.05398335403070431,
-  //           -0.07589158973947994,
-  //           -0.003081304772847505,
-  //           -0.0010797674400397023,
-  //           0.015185486932866137,
-  //           0,
-  //           0,
-  //           0);
-  //   final VisionConstants leftCamConstants =
-  //       new VisionConstants(
-  //           "Left_Camera",
-  //           new Transform3d(
-  //               new Translation3d(
-  //                   Units.inchesToMeters(-10.386),
-  //                   Units.inchesToMeters(10.380),
-  //                   Units.inchesToMeters(7.381)),
-  //               new Rotation3d(
-  //                   Units.degreesToRadians(0.0),
-  //                   Units.degreesToRadians(-28.125),
-  //                   Units.degreesToRadians(120))),
-  //           LEFT_CAMERA_MATRIX,
-  //           LEFT_DIST_COEFFS);
-  //   final VisionConstants rightCamConstants =
-  //       new VisionConstants(
-  //           "Right_Camera",
-  //           new Transform3d(
-  //               new Translation3d(
-  //                   Units.inchesToMeters(-10.597),
-  //                   Units.inchesToMeters(-10.143),
-  //                   Units.inchesToMeters(7.384)),
-  //               new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
-  //           RIGHT_CAMERA_MATRIX,
-  //           RIGHT_DIST_COEFFS);
-  //   return new VisionConstants[] {leftCamConstants, rightCamConstants};
-  // }
+  @Override
+  public VisionConstants[] getVisionConstants() {
+    final Matrix<N3, N3> LEFT_CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(),
+            Nat.N3(),
+            915.2126592056358,
+            0.0,
+            841.560216921862,
+            0.0,
+            913.9556728013187,
+            648.2330358379004,
+            0.0,
+            0.0,
+            1.0);
+    final Matrix<N8, N1> LEFT_DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(),
+            Nat.N1(),
+            0.0576413369828492,
+            -0.07356597379196807,
+            -6.669129885790735E-4,
+            6.491281122640802E-4,
+            0.03731824873787814,
+            0,
+            0,
+            0);
+    final Matrix<N3, N3> RIGHT_CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(),
+            Nat.N3(),
+            902.0832829888818,
+            0.0,
+            611.9702186077134,
+            0.0,
+            902.2731968281233,
+            400.755534902121,
+            0.0,
+            0.0,
+            1.0);
+    final Matrix<N8, N1> RIGHT_DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(),
+            Nat.N1(),
+            0.05398335403070431,
+            -0.07589158973947994,
+            -0.003081304772847505,
+            -0.0010797674400397023,
+            0.015185486932866137,
+            0,
+            0,
+            0);
+    final VisionConstants leftCamConstants =
+        new VisionConstants(
+            "Left_Camera",
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(-10.386),
+                    Units.inchesToMeters(10.380),
+                    Units.inchesToMeters(7.381)),
+                new Rotation3d(
+                    Units.degreesToRadians(0.0),
+                    Units.degreesToRadians(-28.125),
+                    Units.degreesToRadians(120))),
+            LEFT_CAMERA_MATRIX,
+            LEFT_DIST_COEFFS);
+    final VisionConstants rightCamConstants =
+        new VisionConstants(
+            "Right_Camera",
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(-10.597),
+                    Units.inchesToMeters(-10.143),
+                    Units.inchesToMeters(7.384)),
+                new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
+            RIGHT_CAMERA_MATRIX,
+            RIGHT_DIST_COEFFS);
+    return new VisionConstants[] {leftCamConstants, rightCamConstants};
+  }
 
   @Override
   public double getDriveGearRatio() {

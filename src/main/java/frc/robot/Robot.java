@@ -23,12 +23,17 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.swerve.*;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOReal;
+import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
+
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -115,13 +120,13 @@ public class Robot extends LoggedRobot {
           ROBOT_TYPE == RobotType.REAL
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
               : new GyroIOSim(swerveDriveSimulation.get().getGyroSimulation()),
-          // Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
-          //     .map(
-          //         (constants) ->
-          //             ROBOT_TYPE == RobotType.REAL
-          //                 ? new VisionIOReal(constants)
-          //                 : new VisionIOSim(constants))
-          //     .toArray(VisionIO[]::new),
+          Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
+              .map(
+                  (constants) ->
+                      ROBOT_TYPE == RobotType.REAL
+                          ? new VisionIOReal(constants)
+                          : new VisionIOSim(constants))
+              .toArray(VisionIO[]::new),
           ROBOT_TYPE == RobotType.REAL
               ? new ModuleIO[] {
                 new ModuleIOReal(
