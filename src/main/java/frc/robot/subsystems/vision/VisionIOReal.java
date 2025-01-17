@@ -13,6 +13,7 @@ import frc.robot.subsystems.vision.Vision.VisionConstants;
 import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 /** Add your docs here. */
 public class VisionIOReal implements VisionIO {
@@ -41,7 +42,9 @@ public class VisionIOReal implements VisionIO {
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    var result = camera.getLatestResult();
+    var results = camera.getAllUnreadResults();
+    var result = new PhotonPipelineResult();
+    if (results.size() > 0) result = results.get(results.size() - 1); //TODO check if this works irl
     inputs.timestamp = result.getTimestampSeconds();
     inputs.latency = result.metadata.getLatencyMillis();
     inputs.targets = result.targets;

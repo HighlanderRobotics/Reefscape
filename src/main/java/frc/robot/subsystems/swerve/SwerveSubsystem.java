@@ -35,10 +35,9 @@ import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Samples;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalID;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
-import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionHelper;
+import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.utils.Tracer;
 import java.util.Arrays;
 import java.util.List;
@@ -111,9 +110,6 @@ public class SwerveSubsystem extends SubsystemBase {
     for (int i = 0; i < visionIOs.length; i++) {
       cameras[i] = new Vision(visionIOs[i]);
     }
-
-    // global static is mildly questionable
-    VisionIOSim.pose = this::getPose3d;
   }
 
   public void periodic() {
@@ -121,8 +117,8 @@ public class SwerveSubsystem extends SubsystemBase {
         "SwervePeriodic",
         () -> {
           for (var camera : cameras) {
-          Tracer.trace("Update cam inputs", camera::updateInputs);
-          Tracer.trace("Process cam inputs", camera::processInputs);
+            Tracer.trace("Update cam inputs", camera::updateInputs);
+            Tracer.trace("Process cam inputs", camera::processInputs);
           }
           Tracer.trace(
               "Update odo inputs",
@@ -276,11 +272,11 @@ public class SwerveSubsystem extends SubsystemBase {
     for (var camera : cameras) {
       PhotonPipelineResult result =
           new PhotonPipelineResult(
-            camera.inputs.sequenceID, 
-            camera.inputs.captureTimestampMicros, 
-            camera.inputs.publishTimestampMicros, 
-            camera.inputs.timeSinceLastPong, 
-            camera.inputs.targets);
+              camera.inputs.sequenceID,
+              camera.inputs.captureTimestampMicros,
+              camera.inputs.publishTimestampMicros,
+              camera.inputs.timeSinceLastPong,
+              camera.inputs.targets);
       boolean newResult = Math.abs(camera.inputs.timestamp - lastEstTimestamp) > 1e-5;
       try {
         var estPose = camera.update(result);

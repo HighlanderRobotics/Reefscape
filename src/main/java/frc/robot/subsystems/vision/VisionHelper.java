@@ -379,7 +379,8 @@ public class VisionHelper {
     if (lowestAmbiguityTarget == null) return Optional.empty();
     int targetFiducialId = lowestAmbiguityTarget.getFiducialId();
 
-    Optional<Pose3d> targetPosition = Robot.ROBOT_HARDWARE.swerveConstants.getFieldTagLayout().getTagPose(targetFiducialId);
+    Optional<Pose3d> targetPosition =
+        Robot.ROBOT_HARDWARE.swerveConstants.getFieldTagLayout().getTagPose(targetFiducialId);
 
     if (targetPosition.isEmpty()) {
       DriverStation.reportError(

@@ -33,7 +33,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Stream;
-
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -245,6 +244,8 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     modifyJoystick(driver.getRightX())
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
+    // global static is mildly questionable
+    VisionIOSim.pose = () -> swerveDriveSimulation.get().getSimulatedDriveTrainPose();
   }
 
   /** Scales a joystick value for teleop driving */

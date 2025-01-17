@@ -47,8 +47,7 @@ public class Vision {
     Logger.processInputs("Apriltag Vision/" + io.getName(), inputs);
   }
 
-  public Optional<EstimatedRobotPose> update(
-      PhotonPipelineResult result) {
+  public Optional<EstimatedRobotPose> update(PhotonPipelineResult result) {
     // Skip if we have no targets (could/should switch to 1?)
     if (result.getTargets().size() < 1) {
       return Optional.empty();

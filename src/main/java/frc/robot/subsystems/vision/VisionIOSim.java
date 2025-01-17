@@ -4,9 +4,10 @@
 
 package frc.robot.subsystems.vision;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Pose2d;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -15,6 +16,7 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 /** Add your docs here. */
 public class VisionIOSim implements VisionIO {
@@ -22,7 +24,7 @@ public class VisionIOSim implements VisionIO {
   private final PhotonCamera camera;
   private final PhotonCameraSim simCamera;
   private final VisionConstants constants;
-  public static Supplier<Pose3d> pose;
+  public static Supplier<Pose2d> pose;
 
   public VisionIOSim(VisionConstants constants) {
     this.sim = new VisionSystemSim(constants.cameraName());
@@ -41,7 +43,7 @@ public class VisionIOSim implements VisionIO {
     sim.addCamera(simCamera, constants.robotToCamera());
 
     try {
-      var field = AprilTagFields.k2024Crescendo.loadAprilTagLayoutField();
+      var field = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
       field.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
       sim.addAprilTags(field);
     } catch (Exception e) {
@@ -64,8 +66,10 @@ public class VisionIOSim implements VisionIO {
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    var result = camera.getAllUnreadResults().get(0); //TODO this is sketchy at best and breaking at worst!
-    sim.update(pose.get().toPose2d());
+    var results = camera.getAllUnreadResults();
+    var result = new PhotonPipelineResult();
+    if (results.size() > 0) result = results.get(results.size() - 1);
+    sim.update(pose.get());
     inputs.timestamp = result.getTimestampSeconds();
     inputs.latency = result.metadata.getLatencyMillis();
     inputs.targets = result.targets; // TODO aaaaaaa
