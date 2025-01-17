@@ -5,6 +5,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
+import java.util.function.Supplier;
+
 public class IntakePivotSubsystem extends SubsystemBase {
   // TODO: SET TO ACTUAL RATIO WHEN CAD IS FINISHED
   public static double PIVOT_RATIO = 1.0;
@@ -25,5 +27,10 @@ public class IntakePivotSubsystem extends SubsystemBase {
   public Command setTargetAngle(Rotation2d target) {
     return this.runOnce(() -> Logger.recordOutput("Intake/PivotSetpoint", target))
         .andThen(() -> io.setMotorPosition(target));
+  }
+
+  public Command setTargetAngle(Supplier<Rotation2d> target) {
+    return this.runOnce(() -> Logger.recordOutput("Intake/PivotSetpoint", target.get()))
+        .andThen(() -> io.setMotorPosition(target.get()));
   }
 }

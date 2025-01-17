@@ -26,9 +26,4 @@ public class IntakeRollerSubsystem extends RollerSubsystem {
   public Command outtake() {
     return intake(-INTAKE_VELOCITY);
   }
-
-  // Runs intake in reverse at the specified velocity
-  public Command outtake(double velocity) {
-    return intake(-velocity);
-  }
 }

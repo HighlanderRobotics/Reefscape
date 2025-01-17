@@ -12,12 +12,12 @@ import edu.wpi.first.units.measure.Temperature;
 
 public class IntakePivotIOReal implements IntakePivotIO {
   // TODO: SET DEVICE ID
-  private final TalonFX pivotMotor = new TalonFX(0, "*");
+  private final TalonFX pivotMotor = new TalonFX(10, "*");
 
   private final StatusSignal<AngularVelocity> angularVelocityRotsPerSec = pivotMotor.getVelocity();
   private final StatusSignal<Temperature> temp = pivotMotor.getDeviceTemp();
   private final StatusSignal<Current> supplyCurrentAmps = pivotMotor.getSupplyCurrent();
-  private final StatusSignal<Current> currentAmps = pivotMotor.getStatorCurrent();
+  private final StatusSignal<Current> statorCurrentAmps = pivotMotor.getStatorCurrent();
   private final StatusSignal<Angle> motorPositionRotations = pivotMotor.getPosition();
 
   public IntakePivotIOReal() {
@@ -27,12 +27,12 @@ public class IntakePivotIOReal implements IntakePivotIO {
   @Override
   public void updateInputs(IntakePivotIOInputs inputs) {
     BaseStatusSignal.refreshAll(
-        angularVelocityRotsPerSec, temp, supplyCurrentAmps, currentAmps, motorPositionRotations);
+        angularVelocityRotsPerSec, temp, supplyCurrentAmps, statorCurrentAmps, motorPositionRotations);
 
     inputs.angularVelocityRotsPerSec = angularVelocityRotsPerSec.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
-    inputs.currentAmps = currentAmps.getValueAsDouble();
+    inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.pivotPosition = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
   }
 

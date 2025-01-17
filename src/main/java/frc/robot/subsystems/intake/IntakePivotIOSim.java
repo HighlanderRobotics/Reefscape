@@ -38,7 +38,7 @@ public class IntakePivotIOSim implements IntakePivotIO {
     inputs.pivotPosition = Rotation2d.fromRadians(intakePivotSim.getAngleRads());
     inputs.angularVelocityRotsPerSec =
         RadiansPerSecond.of(intakePivotSim.getVelocityRadPerSec()).in(RotationsPerSecond);
-    inputs.currentAmps = intakePivotSim.getCurrentDrawAmps();
+    inputs.statorCurrentAmps = intakePivotSim.getCurrentDrawAmps();
     inputs.supplyCurrentAmps = 0.0;
     inputs.tempDegreesC = 0.0;
   }
