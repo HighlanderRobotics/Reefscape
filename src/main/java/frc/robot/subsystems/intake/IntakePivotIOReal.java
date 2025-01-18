@@ -49,7 +49,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
     config.CurrentLimits.SupplyCurrentLimit = 20.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
-    config.Feedback.SensorToMechanismRatio = 1.0;
+    config.Feedback.SensorToMechanismRatio = IntakePivotSubsystem.PIVOT_RATIO;
 
     motor.getConfigurator().apply(config);
     motor.optimizeBusUtilization();
