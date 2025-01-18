@@ -196,8 +196,8 @@ public class Robot extends LoggedRobot {
               RollerIOReal.getDefaultConfig()
                   .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
                   .withSlot0(new Slot0Configs().withKV(0.24).withKP(1.0))),
-          new BeambreakIOReal(0, false),
-          new BeambreakIOReal(1, false));
+          new BeambreakIOReal(0, true),
+          new BeambreakIOReal(1, true));
   public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
 
   private final Autos autos;
@@ -292,10 +292,13 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightTrigger()
-        .whileTrue(
-                elevator.setExtension(() -> currentTarget.elevatorHeight))
-        .onFalse(Commands.race(Commands.waitUntil(() -> !manipulator.getSecondBeambreak()), manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY)).withTimeout(0.25)
-        .andThen(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0))));
+        .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
+        .onFalse(
+            Commands.race(
+                    Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+                    manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))
+                .withTimeout(0.25)
+                .andThen(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0))));
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
