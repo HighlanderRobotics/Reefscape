@@ -21,15 +21,15 @@ public class IntakePivotIOSim implements IntakePivotIO {
           0.07,
           edu.wpi.first.math.util.Units.inchesToMeters(108.5),
           0.0,
-          0.5,
+          1.5,
           true,
           0.0);
 
   // TODO: TUNE
   ProfiledPIDController pivotPid =
-      new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(10.0, 0.0, 2.6, new TrapezoidProfile.Constraints(10.0, 10.0));
   // TODO: TUNE
-  ArmFeedforward pivotFf = new ArmFeedforward(0.0, 0.0, 0.0);
+  ArmFeedforward pivotFf = new ArmFeedforward(0.0, 0.3856, 0.543);
 
   @Override
   public void updateInputs(IntakePivotIOInputs inputs) {
@@ -53,5 +53,9 @@ public class IntakePivotIOSim implements IntakePivotIO {
     setMotorVoltage(
         pivotPid.calculate(intakePivotSim.getAngleRads(), targetPosition.getRadians())
             + pivotFf.calculate(pivotPid.getSetpoint().position, pivotPid.getSetpoint().velocity));
+  }
+
+  public void setResetSimState() {
+    intakePivotSim.setState(0.0, 0.0);
   }
 }

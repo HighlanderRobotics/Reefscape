@@ -279,7 +279,7 @@ public class Robot extends LoggedRobot {
 
     elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
 
-    intakePivot.setDefaultCommand(intakePivot.setTargetAngle(Rotation2d.fromRotations(0.0)));
+    intakePivot.setDefaultCommand(intakePivot.setTargetAngle(Rotation2d.fromRadians(0.0)));
 
     manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
 
@@ -307,6 +307,8 @@ public class Robot extends LoggedRobot {
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
     operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
     operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
+    // TODO: REMOVE AFTER TESTING
+    driver.x().whileTrue(intakePivot.setTargetAngle(Rotation2d.fromRadians(1.0)));
   }
 
   /** Scales a joystick value for teleop driving */
@@ -381,7 +383,13 @@ public class Robot extends LoggedRobot {
   public void autonomousExit() {}
 
   @Override
-  public void teleopInit() {}
+  public void teleopInit() {
+
+    // TODO: REMOVE AFTER TESTING
+    if (intakePivot.getIo() instanceof IntakePivotIOSim) {
+      ((IntakePivotIOSim) intakePivot.getIo()).setResetSimState();
+    }
+  }
 
   @Override
   public void teleopPeriodic() {}
