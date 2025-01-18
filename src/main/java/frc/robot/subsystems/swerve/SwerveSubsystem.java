@@ -270,30 +270,32 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private void updateVision() {
     for (var camera : cameras) {
-      PhotonPipelineResult result =
+      final PhotonPipelineResult result =
           new PhotonPipelineResult(
               camera.inputs.sequenceID,
               camera.inputs.captureTimestampMicros,
               camera.inputs.publishTimestampMicros,
               camera.inputs.timeSinceLastPong,
               camera.inputs.targets);
-      boolean newResult = Math.abs(camera.inputs.timestamp - lastEstTimestamp) > 1e-5;
       try {
-        var estPose = camera.update(result);
-        var visionPose = estPose.get().estimatedPose;
-        // Sets the pose on the sim field
-        camera.setSimPose(estPose, camera, newResult);
-        Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-        Logger.recordOutput("Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
-        estimator.addVisionMeasurement(
-            visionPose.toPose2d(),
-            camera.inputs.timestamp,
-            VisionHelper.findVisionMeasurementStdDevs(estPose.get()));
-        if (newResult) lastEstTimestamp = camera.inputs.timestamp;
+        if (!camera.inputs.stale) {
+          var estPose = camera.update(result);
+          var visionPose = estPose.get().estimatedPose;
+          // Sets the pose on the sim field
+          camera.setSimPose(estPose, camera, !camera.inputs.stale);
+          Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
+          Logger.recordOutput("Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+          estimator.addVisionMeasurement(
+              visionPose.toPose2d(),
+              camera.inputs.captureTimestampMicros / 1e6,
+              VisionHelper.findVisionMeasurementStdDevs(estPose.get()));
+              lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
+        }
       } catch (NoSuchElementException e) {
       }
     }
   }
+  
   /**
    * Generates a set of samples without using the async thread. Makes lots of Objects, so be careful
    * when using it irl!

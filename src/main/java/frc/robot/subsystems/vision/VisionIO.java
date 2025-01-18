@@ -19,7 +19,6 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 public interface VisionIO {
 
   public static class VisionIOInputs {
-    public double timestamp = 0.0;
     // latency could just be calculated from the timestamp, do we need it as an input or could it be
     // an output?
     public double latency = 0.0;
@@ -39,6 +38,7 @@ public interface VisionIO {
     public long captureTimestampMicros = 0;
     public long publishTimestampMicros = 0;
     public long timeSinceLastPong = 0;
+    public boolean stale = true;
   }
 
   public void updateInputs(VisionIOInputs inputs);

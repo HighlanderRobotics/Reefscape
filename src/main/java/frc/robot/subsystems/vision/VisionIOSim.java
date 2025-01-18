@@ -73,14 +73,17 @@ public class VisionIOSim implements VisionIO {
     var results = camera.getAllUnreadResults();
     if (results.size() > 0) {
       final var result = results.get(results.size() - 1);
-      inputs.timestamp = result.getTimestampSeconds();
       inputs.latency = result.metadata.getLatencyMillis();
-      inputs.targets = result.targets; // TODO aaaaaaa
+      inputs.targets = result.targets;
       inputs.constants = constants;
       inputs.sequenceID = result.metadata.getSequenceID();
       inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
       inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
       inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
+      inputs.stale = false;
+    } else {
+      // else leave stale data
+      inputs.stale = true;
     }
   }
 
