@@ -14,7 +14,7 @@ public class RollerSubsystem extends SubsystemBase {
   protected final RollerIOInputsAutoLogged inputs = new RollerIOInputsAutoLogged();
 
   private final String name;
-  public static final double INDEXING_VELOCITY = 40; // TODO
+  public static final double INDEXING_VELOCITY = 10; // TODO
 
   /**
    * Creates a new RollerSubsystem.

@@ -198,7 +198,7 @@ public class Robot extends LoggedRobot {
                   .withSlot0(new Slot0Configs().withKV(0.24).withKP(1.0))),
           new BeambreakIOReal(0, true),
           new BeambreakIOReal(1, true));
-  public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
+  public static final double MANIPULATOR_INDEXING_VELOCITY = -100.0;
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
