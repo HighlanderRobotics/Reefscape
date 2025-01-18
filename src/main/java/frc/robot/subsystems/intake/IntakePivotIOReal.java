@@ -30,7 +30,6 @@ public class IntakePivotIOReal implements IntakePivotIO {
   private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
 
   public IntakePivotIOReal() {
-    // TODO: MOTOR CONFIGURATION
     var config = new TalonFXConfiguration();
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
