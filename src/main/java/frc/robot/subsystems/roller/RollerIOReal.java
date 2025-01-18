@@ -64,7 +64,7 @@ public class RollerIOReal implements RollerIO {
             new CurrentLimitsConfigs()
                 .withSupplyCurrentLimit(15.0)
                 .withSupplyCurrentLimitEnable(true))
-        .withSlot0(new Slot0Configs().withKV(0.12).withKP(1.0))
+        .withSlot0(new Slot0Configs().withKV(0.12).withKP(0.8).withKD(0.1))
         .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
   }
 
