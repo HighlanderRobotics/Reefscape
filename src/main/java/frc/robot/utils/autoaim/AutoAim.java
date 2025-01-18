@@ -7,34 +7,35 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Robot;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class AutoAim {
-  static final double MAX_ANGULAR_SPEED = 1.0;
-  static final double MAX_ANGULAR_ACCELERATION = 1.0;
-  static final double MAX_AUTOAIM_SPEED = 1.0;
-  static final double MAX_AUTOAIM_ACCELERATION = 1.0;
+  static final double MAX_ANGULAR_SPEED = 10.0;
+  static final double MAX_ANGULAR_ACCELERATION = 5.0;
+  static final double MAX_AUTOAIM_SPEED = 3.0;
+  static final double MAX_AUTOAIM_ACCELERATION = 5.0;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     final ProfiledPIDController headingController =
         // assume we can accelerate to max in 2/3 of a second
         new ProfiledPIDController(
-            0.5,
+            Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(),
             0.0,
             0.0,
-            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED / 2, MAX_ANGULAR_ACCELERATION));
+            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION));
     headingController.enableContinuousInput(-Math.PI, Math.PI);
     final ProfiledPIDController vxController =
         new ProfiledPIDController(
-            0.5,
+            4.0,
             0.0,
             0.0,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     final ProfiledPIDController vyController =
         new ProfiledPIDController(
-            0.5,
+            4.0,
             0.0,
             0.0,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
