@@ -277,7 +277,7 @@ public class Robot extends LoggedRobot {
 
     elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
 
-    manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
+    manipulator.setDefaultCommand(manipulator.indexCmd());
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
@@ -293,11 +293,9 @@ public class Robot extends LoggedRobot {
     driver
         .rightTrigger()
         .whileTrue(
-            Commands.parallel(
-                elevator.setExtension(() -> currentTarget.elevatorHeight),
-                Commands.waitUntil(() -> elevator.isNearExtension(currentTarget.elevatorHeight))
-                    .andThen(manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))))
-        .onFalse(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)));
+                elevator.setExtension(() -> currentTarget.elevatorHeight))
+        .onFalse(Commands.race(Commands.waitUntil(() -> !manipulator.getSecondBeambreak()), manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY)).withTimeout(0.25)
+        .andThen(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0))));
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
