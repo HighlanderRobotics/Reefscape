@@ -177,9 +177,8 @@ public class AlphaSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  // TODO !!!
   public VisionConstants[] getVisionConstants() {
-    return null;
+    return new VisionConstants[0];
   }
 
   @Override

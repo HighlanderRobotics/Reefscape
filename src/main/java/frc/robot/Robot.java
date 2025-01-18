@@ -266,6 +266,11 @@ public class Robot extends LoggedRobot {
     if (ROBOT_TYPE == RobotType.SIM) {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
       swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+      // global static is mildly questionable
+      VisionIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+    } else {
+      // this should never be called?
+      VisionIOSim.pose = () -> new Pose3d();
     }
 
     autos = new Autos(swerve);
@@ -334,8 +339,6 @@ public class Robot extends LoggedRobot {
         Stream.of(AutoAimTargets.values())
             .map((target) -> AutoAimTargets.getRobotTargetLocation(target.location))
             .toArray(Pose2d[]::new));
-    // global static is mildly questionable
-    VisionIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
   }
 
   /** Scales a joystick value for teleop driving */
