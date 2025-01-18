@@ -42,6 +42,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -257,6 +258,9 @@ public class Robot extends LoggedRobot {
     SignalLogger.setPath("/media/sda1/");
 
     SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
+    if (ROBOT_TYPE == RobotType.SIM) {
+      swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+    }
 
     autos = new Autos(swerve);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
@@ -292,10 +296,7 @@ public class Robot extends LoggedRobot {
         .rightBumper()
         .whileTrue(
             AutoAim.translateToPose(
-                swerve,
-                () ->
-                    AutoAimTargets.getRobotTargetLocation(
-                        AutoAimTargets.getClosestTarget(swerve.getPose()))));
+                swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())));
 
     driver
         .start()
@@ -322,9 +323,11 @@ public class Robot extends LoggedRobot {
     operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
 
     // Log locations of all autoaim targets
-    for (AutoAimTargets target : AutoAimTargets.values()) {
-      Logger.recordOutput("Targets/" + target, target.location);
-    }
+    Logger.recordOutput(
+        "AutoAim/Targets",
+        Stream.of(AutoAimTargets.values())
+            .map((target) -> AutoAimTargets.getRobotTargetLocation(target.location))
+            .toArray(Pose2d[]::new));
   }
 
   /** Scales a joystick value for teleop driving */
@@ -374,9 +377,7 @@ public class Robot extends LoggedRobot {
               new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
           new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
         });
-    Logger.recordOutput(
-        "AutoAim/Target",
-        AutoAimTargets.getRobotTargetLocation(AutoAimTargets.getClosestTarget(swerve.getPose())));
+    Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
   }
 
   @Override

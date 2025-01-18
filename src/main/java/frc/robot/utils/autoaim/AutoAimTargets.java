@@ -45,18 +45,14 @@ public enum AutoAimTargets {
 
   public static Pose2d getRobotTargetLocation(Pose2d original) {
     // 0.248 for trough
-    return offsetPose(
-        original,
+    return original.transformBy(
         new Transform2d(
             0.248 + (Robot.ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
             0,
-            new Rotation2d(0)));
+            Rotation2d.fromDegrees(180.0)));
   }
 
-  public static Pose2d offsetPose(Pose2d original, Transform2d offset) {
-    return original.transformBy(offset);
-  }
-
+  /** Gets the closest offset target to the given pose. */
   public static Pose2d getClosestTarget(Pose2d pose) {
     return pose.nearest(
         Arrays.stream(values())
