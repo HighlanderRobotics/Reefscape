@@ -17,8 +17,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 
 public class IntakePivotIOReal implements IntakePivotIO {
-  // TODO: SET DEVICE ID
-  private final TalonFX motor = new TalonFX(10, "*");
+  private final TalonFX motor = new TalonFX(14, "*");
 
   private final StatusSignal<AngularVelocity> angularVelocityRotsPerSec = motor.getVelocity();
   private final StatusSignal<Temperature> temp = motor.getDeviceTemp();
