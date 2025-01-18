@@ -200,6 +200,7 @@ public class Robot extends LoggedRobot {
           new BeambreakIOReal(1, true));
   public static final double MANIPULATOR_INDEXING_VELOCITY = -100.0;
 
+
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
