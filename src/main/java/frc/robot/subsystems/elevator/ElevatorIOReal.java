@@ -45,8 +45,8 @@ public class ElevatorIOReal implements ElevatorIO {
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-    config.Slot0.kG = 0.11591;
-    config.Slot0.kS = 0.16898;
+    config.Slot0.kG = 0.3;
+    config.Slot0.kS = 0.15;
     config.Slot0.kV = 0;
     config.Slot0.kA = 0.0;
     config.Slot0.kP = 10.0;

@@ -82,6 +82,17 @@ public class ElevatorSubsystem extends SubsystemBase {
         .finallyDo(() -> io.resetEncoder(0.0));
   }
 
+  public Command setVoltage(double voltage) {
+    return this.run(
+        () -> {
+          io.setVoltage(voltage);
+        });
+  }
+
+  public Command setVoltage(DoubleSupplier voltage) {
+    return this.setVoltage(voltage.getAsDouble());
+  }
+
   public Pose3d getCarriagePose() {
     return new Pose3d(
         Units.inchesToMeters(4.5) + carriage.getLength() * ELEVATOR_ANGLE.getCos(),

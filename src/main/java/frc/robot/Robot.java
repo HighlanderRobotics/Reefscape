@@ -200,7 +200,6 @@ public class Robot extends LoggedRobot {
           new BeambreakIOReal(1, true));
   public static final double MANIPULATOR_INDEXING_VELOCITY = -100.0;
 
-
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
@@ -276,8 +275,8 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
-
+    // elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+    elevator.setDefaultCommand(elevator.setVoltage(0.15));
     manipulator.setDefaultCommand(manipulator.indexCmd());
 
     swerve.setDefaultCommand(
@@ -300,6 +299,7 @@ public class Robot extends LoggedRobot {
                     manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))
                 .withTimeout(0.25)
                 .andThen(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0))));
+    driver.rightBumper().whileTrue(elevator.setVoltage(0.45));
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
