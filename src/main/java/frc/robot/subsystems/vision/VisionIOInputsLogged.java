@@ -1,7 +1,5 @@
 package frc.robot.subsystems.vision;
 
-import edu.wpi.first.math.geometry.Pose3d;
-import frc.robot.Robot;
 import org.littletonrobotics.junction.LogTable;
 import org.littletonrobotics.junction.inputs.LoggableInputs;
 
@@ -16,24 +14,12 @@ public class VisionIOInputsLogged extends VisionIO.VisionIOInputs
     table.put("Timestamp", timestamp);
     table.put("Latency", latency);
 
-    targetPose3ds = new Pose3d[targets.size()];
     for (int i = 0; i < targets.size(); i++) {
       VisionHelper.Logging.logPhotonTrackedTarget(targets.get(i), table, String.valueOf(i));
-      targetPose3ds[i] =
-          Robot.ROBOT_HARDWARE
-              .swerveConstants
-              .getFieldTagLayout()
-              .getTagPose(targets.get(i).getFiducialId())
-              .get();
     }
     table.put("NumTags", targets.size());
     table.put("Pose", coprocPNPTransform);
-    table.put("Target Pose3ds", targetPose3ds);
     VisionHelper.Logging.logVisionConstants(constants, table);
-    table.put("SequenceID", sequenceID);
-    table.put("Capture Timestamp Micros", captureTimestampMicros);
-    table.put("Publish Timestamp Micros", publishTimestampMicros);
-    table.put("Time Since Last Pong", timeSinceLastPong);
   }
 
   @Override
@@ -45,7 +31,6 @@ public class VisionIOInputsLogged extends VisionIO.VisionIOInputs
     }
     numTags = table.get("NumTags", numTags);
     coprocPNPTransform = table.get("Pose", coprocPNPTransform);
-    targetPose3ds = table.get("Target Pose3ds", targetPose3ds);
     constants = VisionHelper.Logging.getLoggedVisionConstants(table);
     sequenceID = table.get("SequenceID", sequenceID);
     captureTimestampMicros = table.get("Capture Timestamp Micros", captureTimestampMicros);
@@ -60,7 +45,10 @@ public class VisionIOInputsLogged extends VisionIO.VisionIOInputs
     copy.targets = this.targets;
     copy.numTags = this.numTags;
     copy.coprocPNPTransform = this.coprocPNPTransform;
-    copy.targetPose3ds = this.targetPose3ds;
+    copy.sequenceID = this.sequenceID;
+    copy.captureTimestampMicros = this.captureTimestampMicros;
+    copy.publishTimestampMicros = this.publishTimestampMicros;
+    copy.timeSinceLastPong = this.timeSinceLastPong;
     return copy;
   }
 }

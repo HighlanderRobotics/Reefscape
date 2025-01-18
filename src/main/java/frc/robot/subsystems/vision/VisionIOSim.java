@@ -7,7 +7,9 @@ package frc.robot.subsystems.vision;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.wpilibj.RobotController;
+import frc.robot.Robot;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -24,7 +26,8 @@ public class VisionIOSim implements VisionIO {
   private final PhotonCamera camera;
   private final PhotonCameraSim simCamera;
   private final VisionConstants constants;
-  public static Supplier<Pose2d> pose;
+
+  public static Supplier<Pose3d> pose;
 
   public VisionIOSim(VisionConstants constants) {
     this.sim = new VisionSystemSim(constants.cameraName());
@@ -43,7 +46,7 @@ public class VisionIOSim implements VisionIO {
     sim.addCamera(simCamera, constants.robotToCamera());
 
     try {
-      var field = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+      final var field = Robot.ROBOT_HARDWARE.swerveConstants.getFieldTagLayout();
       field.setOrigin(OriginPosition.kBlueAllianceWallRightSide);
       sim.addAprilTags(field);
     } catch (Exception e) {
@@ -66,18 +69,19 @@ public class VisionIOSim implements VisionIO {
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
-    var results = camera.getAllUnreadResults();
-    var result = new PhotonPipelineResult();
-    if (results.size() > 0) result = results.get(results.size() - 1);
     sim.update(pose.get());
-    inputs.timestamp = result.getTimestampSeconds();
-    inputs.latency = result.metadata.getLatencyMillis();
-    inputs.targets = result.targets; // TODO aaaaaaa
-    inputs.constants = constants;
-    inputs.sequenceID = result.metadata.getSequenceID();
-    inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
-    inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
-    inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
+    var results = camera.getAllUnreadResults();
+    if (results.size() > 0) {
+      final var result = results.get(results.size() - 1);
+      inputs.timestamp = result.getTimestampSeconds();
+      inputs.latency = result.metadata.getLatencyMillis();
+      inputs.targets = result.targets; // TODO aaaaaaa
+      inputs.constants = constants;
+      inputs.sequenceID = result.metadata.getSequenceID();
+      inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
+      inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
+      inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
+    }
   }
 
   @Override

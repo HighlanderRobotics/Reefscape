@@ -9,11 +9,11 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
+import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PhotonPipelineResult;
 
 /** Add your docs here. */
 public class VisionIOReal implements VisionIO {
@@ -43,19 +43,20 @@ public class VisionIOReal implements VisionIO {
   @Override
   public void updateInputs(VisionIOInputs inputs) {
     var results = camera.getAllUnreadResults();
-    var result = new PhotonPipelineResult();
-    if (results.size() > 0) result = results.get(results.size() - 1); //TODO check if this works irl
-    inputs.timestamp = result.getTimestampSeconds();
-    inputs.latency = result.metadata.getLatencyMillis();
-    inputs.targets = result.targets;
-    inputs.numTags = result.targets.size();
-    inputs.constants = constants;
-    inputs.coprocPNPTransform =
-        result.getMultiTagResult().get().estimatedPose.best; // TODO worried about this .get()
-    inputs.sequenceID = result.metadata.getSequenceID();
-    inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
-    inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
-    inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
+    if (results.size() > 0) {
+      var result = results.get(0);
+      inputs.timestamp = result.getTimestampSeconds();
+      inputs.latency = (RobotController.getFPGATime() / 1e6) - result.getTimestampSeconds();
+      inputs.targets = result.targets;
+      inputs.numTags = result.targets.size();
+      inputs.constants = constants;
+      // TODO: make this cleaner and use an optional instead of kZero
+      inputs.coprocPNPTransform =
+          result.getMultiTagResult().isPresent()
+              ? result.getMultiTagResult().get().estimatedPose.best
+              : Transform3d.kZero;
+    }
+    // else leave stale data, which is the user's responsibility to handle.
   }
 
   @Override
