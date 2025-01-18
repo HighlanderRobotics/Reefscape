@@ -21,8 +21,8 @@ public class IntakePivotIOSim implements IntakePivotIO {
           IntakePivotSubsystem.PIVOT_RATIO,
           0.07,
           Units.inchesToMeters(11.5),
-          0.0,
-          1.8,
+          IntakePivotSubsystem.MIN_ANGLE.getRadians(),
+          IntakePivotSubsystem.MAX_ANGLE.getRadians(),
           true,
           0.0);
 

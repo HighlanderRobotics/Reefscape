@@ -10,6 +10,8 @@ public class IntakePivotSubsystem extends SubsystemBase {
   // TODO: SET TO ACTUAL RATIO WHEN CAD IS FINISHED
   public static double PIVOT_RATIO = 20.0;
   public static Rotation2d RETRACTED_ANGLE = Rotation2d.fromDegrees(90);
+  public static Rotation2d MAX_ANGLE = Rotation2d.fromDegrees(120);
+  public static Rotation2d MIN_ANGLE = Rotation2d.fromDegrees(0);
 
   private IntakePivotIO io;
   private IntakePivotIOInputsAutoLogged inputs = new IntakePivotIOInputsAutoLogged();
