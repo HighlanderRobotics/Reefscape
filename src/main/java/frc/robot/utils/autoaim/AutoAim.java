@@ -19,6 +19,9 @@ public class AutoAim {
   static final double MAX_AUTOAIM_ACCELERATION = 5.0;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
+    // This feels like a horrible way of getting around lambda final requirements
+    // Is there a cleaner way of doing this?
+    final Pose2d cachedTarget[] = {new Pose2d()};
     final ProfiledPIDController headingController =
         // assume we can accelerate to max in 2/3 of a second
         new ProfiledPIDController(
@@ -41,6 +44,8 @@ public class AutoAim {
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.runOnce(
             () -> {
+              cachedTarget[0] = target.get();
+              Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
               headingController.reset(
                   swerve.getPose().getRotation().getRadians(),
                   swerve.getVelocityFieldRelative().omegaRadiansPerSecond);
@@ -54,13 +59,13 @@ public class AutoAim {
                 () -> {
                   final var speeds =
                       new ChassisSpeeds(
-                          vxController.calculate(swerve.getPose().getX(), target.get().getX())
+                          vxController.calculate(swerve.getPose().getX(), cachedTarget[0].getX())
                               + vxController.getSetpoint().velocity,
-                          vyController.calculate(swerve.getPose().getY(), target.get().getY())
+                          vyController.calculate(swerve.getPose().getY(), cachedTarget[0].getY())
                               + vyController.getSetpoint().velocity,
                           headingController.calculate(
                                   swerve.getPose().getRotation().getRadians(),
-                                  target.get().getRotation().getRadians())
+                                  cachedTarget[0].getRotation().getRadians())
                               + headingController.getSetpoint().velocity);
                   Logger.recordOutput(
                       "AutoAim/Target Pose",
