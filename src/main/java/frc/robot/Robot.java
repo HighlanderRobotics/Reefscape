@@ -33,6 +33,9 @@ import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.intake.IntakePivotIOReal;
+import frc.robot.subsystems.intake.IntakePivotIOSim;
+import frc.robot.subsystems.intake.IntakePivotSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
@@ -192,6 +195,9 @@ public class Robot extends LoggedRobot {
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
           ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
+  private final IntakePivotSubsystem intakePivot =
+      new IntakePivotSubsystem(
+          ROBOT_TYPE == RobotType.REAL ? new IntakePivotIOReal() : new IntakePivotIOSim());
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
           new RollerIOReal(
@@ -280,6 +286,8 @@ public class Robot extends LoggedRobot {
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
     elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+
+    intakePivot.setDefaultCommand(intakePivot.setTargetAngle(IntakePivotSubsystem.RETRACTED_ANGLE));
 
     manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
 
