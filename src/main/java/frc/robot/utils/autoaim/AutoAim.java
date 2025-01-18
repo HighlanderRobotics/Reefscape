@@ -77,8 +77,4 @@ public class AutoAim {
                   return speeds;
                 }));
   }
-
-  public static Command translateToReef(SwerveSubsystem swerve, Supplier<AutoAimTargets> target) {
-    return translateToPose(swerve, () -> target.get().location);
-  }
 }
