@@ -315,6 +315,11 @@ public class Robot extends LoggedRobot {
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
     operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
     operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
+
+    // Log locations of all autoaim targets
+    for (AutoAimTargets target : AutoAimTargets.values()) {
+      Logger.recordOutput("Targets/" + target, target.location);
+    }
   }
 
   /** Scales a joystick value for teleop driving */
@@ -393,12 +398,7 @@ public class Robot extends LoggedRobot {
   public void autonomousExit() {}
 
   @Override
-  public void teleopInit() {
-    // Log locations of all autoaim targets
-    for (AutoAimTargets target : AutoAimTargets.values()) {
-      Logger.recordOutput("Targets/" + target, target.location);
-    }
-  }
+  public void teleopInit() {}
 
   @Override
   public void teleopPeriodic() {}
