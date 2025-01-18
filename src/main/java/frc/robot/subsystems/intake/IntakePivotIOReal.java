@@ -7,6 +7,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
@@ -34,6 +35,8 @@ public class IntakePivotIOReal implements IntakePivotIO {
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
+    config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+
     config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
     // Gains currently from the sim. Need to be updated with our own robot's
     config.Slot0.kV = 0.543;
@@ -43,9 +46,10 @@ public class IntakePivotIOReal implements IntakePivotIO {
     config.Slot0.kI = 0.0;
     config.Slot0.kD = 2.6;
 
-    // Does this limit make sense??
-    config.CurrentLimits.SupplyCurrentLimit = 40.0;
+    config.CurrentLimits.SupplyCurrentLimit = 20.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
+
+    config.Feedback.SensorToMechanismRatio = 1.0;
 
     motor.getConfigurator().apply(config);
     motor.optimizeBusUtilization();
