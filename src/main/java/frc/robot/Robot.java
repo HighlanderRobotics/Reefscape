@@ -277,7 +277,7 @@ public class Robot extends LoggedRobot {
 
     elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
 
-    manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
+    manipulator.setDefaultCommand(manipulator.indexCmd());
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
