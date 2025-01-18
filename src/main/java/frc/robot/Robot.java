@@ -195,7 +195,7 @@ public class Robot extends LoggedRobot {
               10,
               RollerIOReal.getDefaultConfig()
                   .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(1.0))),
+                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.1))),
           new BeambreakIOReal(0, false),
           new BeambreakIOReal(1, false));
   public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
