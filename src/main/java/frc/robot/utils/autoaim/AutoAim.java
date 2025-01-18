@@ -1,5 +1,7 @@
 package frc.robot.utils.autoaim;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -14,7 +16,7 @@ public class AutoAim {
   static final double MAX_AUTOAIM_SPEED = 1.0;
   static final double MAX_AUTOAIM_ACCELERATION = 1.0;
 
-  public static Command translateToReef(SwerveSubsystem swerve, Pose2d target) {
+  public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     ProfiledPIDController headingController =
         // assume we can accelerate to max in 2/3 of a second
         new ProfiledPIDController(
@@ -59,17 +61,17 @@ public class AutoAim {
         swerve.driveVelocityFieldRelative(
             () ->
                 new ChassisSpeeds(
-                    vxController.calculate(swerve.getPose().getX(), target.getX())
+                    vxController.calculate(swerve.getPose().getX(), target.get().getX())
                         + vxController.getSetpoint().velocity,
-                    vyController.calculate(swerve.getPose().getY(), target.getY())
+                    vyController.calculate(swerve.getPose().getY(), target.get().getY())
                         + vyController.getSetpoint().velocity,
                     headingController.calculate(
                             swerve.getPose().getRotation().getRadians(),
-                            target.getRotation().getRadians())
+                            target.get().getRotation().getRadians())
                         + headingController.getSetpoint().velocity)));
   }
 
-  public static Command translateToReef(SwerveSubsystem swerve, AutoAimTargets target) {
-    return translateToReef(swerve, target.location);
+  public static Command translateToReef(SwerveSubsystem swerve, Supplier<AutoAimTargets> target) {
+    return translateToPose(swerve, () -> target.get().location);
   }
 }

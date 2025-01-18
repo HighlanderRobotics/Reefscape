@@ -289,21 +289,18 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
 
     driver
-        .leftTrigger()
+        .rightBumper()
         .whileTrue(
-            AutoAim.translateToReef(
+            AutoAim.translateToPose(
                 swerve,
-                AutoAimTargets.getRobotTargetLocation(
-                    AutoAimTargets.getClosestTarget(() -> swerve.getPose()))));
-    Logger.recordOutput(
-        "AutoAim/target",
-        AutoAimTargets.getRobotTargetLocation(
-            AutoAimTargets.getClosestTarget(() -> swerve.getPose())));
+                () -> AutoAimTargets.getRobotTargetLocation(
+                    AutoAimTargets.getClosestTarget(swerve.getPose()))));
+    
     driver
-        .rightTrigger()
+        .start()
         .onTrue(
             Commands.runOnce(
-                () -> swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose())));
+                () -> {if (ROBOT_TYPE == RobotType.SIM) {swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());}}));
 
     driver
         .rightTrigger()
@@ -367,6 +364,10 @@ public class Robot extends LoggedRobot {
               new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
           new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
         });
+    Logger.recordOutput(
+      "AutoAim/Target",
+      AutoAimTargets.getRobotTargetLocation(
+          AutoAimTargets.getClosestTarget(swerve.getPose())));
   }
 
   @Override

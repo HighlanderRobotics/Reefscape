@@ -58,8 +58,8 @@ public enum AutoAimTargets {
     return original.transformBy(offset);
   }
 
-  public static Pose2d getClosestTarget(Supplier<Pose2d> pose) {
-    return pose.get()
+  public static Pose2d getClosestTarget(Pose2d pose) {
+    return pose
         .nearest(
             Arrays.stream(values())
                 .map(
