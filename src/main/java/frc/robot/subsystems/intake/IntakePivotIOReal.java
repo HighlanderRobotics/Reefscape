@@ -2,9 +2,12 @@ package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -14,19 +17,40 @@ import edu.wpi.first.units.measure.Temperature;
 
 public class IntakePivotIOReal implements IntakePivotIO {
   // TODO: SET DEVICE ID
-  private final TalonFX pivotMotor = new TalonFX(10, "*");
+  private final TalonFX motor = new TalonFX(10, "*");
 
-  private final StatusSignal<AngularVelocity> angularVelocityRotsPerSec = pivotMotor.getVelocity();
-  private final StatusSignal<Temperature> temp = pivotMotor.getDeviceTemp();
-  private final StatusSignal<Current> supplyCurrentAmps = pivotMotor.getSupplyCurrent();
-  private final StatusSignal<Current> statorCurrentAmps = pivotMotor.getStatorCurrent();
-  private final StatusSignal<Angle> motorPositionRotations = pivotMotor.getPosition();
+  private final StatusSignal<AngularVelocity> angularVelocityRotsPerSec = motor.getVelocity();
+  private final StatusSignal<Temperature> temp = motor.getDeviceTemp();
+  private final StatusSignal<Current> supplyCurrentAmps = motor.getSupplyCurrent();
+  private final StatusSignal<Current> statorCurrentAmps = motor.getStatorCurrent();
+  private final StatusSignal<Angle> motorPositionRotations = motor.getPosition();
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
   private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
 
   public IntakePivotIOReal() {
     // TODO: MOTOR CONFIGURATION
+    var config = new TalonFXConfiguration();
+
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+
+    config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
+    // Gains currently from the sim. Need to be updated with our own robot's
+    config.Slot0.kV = 0.543;
+    config.Slot0.kG = 0.3856;
+    config.Slot0.kS = 0.0;
+    config.Slot0.kP = 5.0;
+    config.Slot0.kI = 0.0;
+    config.Slot0.kD = 2.6;
+
+    // Does this limit make sense??
+    config.CurrentLimits.SupplyCurrentLimit = 40.0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+
+    motor.getConfigurator().apply(config);
+    motor.optimizeBusUtilization();
+
+    BaseStatusSignal.setUpdateFrequencyForAll(50.0, angularVelocityRotsPerSec, temp, supplyCurrentAmps, statorCurrentAmps, motorPositionRotations);
   }
 
   @Override
@@ -47,11 +71,11 @@ public class IntakePivotIOReal implements IntakePivotIO {
 
   @Override
   public void setMotorVoltage(double voltage) {
-    pivotMotor.setControl(voltageOut.withOutput(voltage));
+    motor.setControl(voltageOut.withOutput(voltage));
   }
 
   @Override
   public void setMotorPosition(Rotation2d targetPosition) {
-    pivotMotor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
+    motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 }
