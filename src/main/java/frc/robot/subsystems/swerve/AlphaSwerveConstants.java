@@ -174,4 +174,14 @@ public class AlphaSwerveConstants extends SwerveConstants {
     // Onshape says some subsystems have no material. May need to be updated
     return Pound.of(99.8 + 13);
   }
+
+  @Override
+  public double getBumperWidth() {
+    return Units.inchesToMeters(36.1);
+  }
+
+  @Override
+  public double getBumperLength() {
+    return Units.inchesToMeters(36.1);
+  }
 }
