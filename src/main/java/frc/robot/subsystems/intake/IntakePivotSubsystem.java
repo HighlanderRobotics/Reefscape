@@ -8,7 +8,8 @@ import org.littletonrobotics.junction.Logger;
 
 public class IntakePivotSubsystem extends SubsystemBase {
   // TODO: SET TO ACTUAL RATIO WHEN CAD IS FINISHED
-  public static double PIVOT_RATIO = 1.0;
+  public static double PIVOT_RATIO = 20.0;
+  public static Rotation2d RETRACTED_ANGLE = Rotation2d.fromDegrees(90);
 
   private IntakePivotIO io;
   private IntakePivotIOInputsAutoLogged inputs = new IntakePivotIOInputsAutoLogged();
@@ -24,16 +25,11 @@ public class IntakePivotSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngle(Rotation2d target) {
-    return this.runOnce(() -> Logger.recordOutput("Intake/PivotSetpoint", target))
-        .andThen(this.run(() -> io.setMotorPosition(target)));
+    return setTargetAngle(() -> target);
   }
 
   public Command setTargetAngle(Supplier<Rotation2d> target) {
     return this.runOnce(() -> Logger.recordOutput("Intake/PivotSetpoint", target.get()))
         .andThen(this.run(() -> io.setMotorPosition(target.get())));
-  }
-
-  public IntakePivotIO getIo() {
-    return io;
   }
 }

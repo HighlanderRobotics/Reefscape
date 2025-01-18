@@ -2,6 +2,8 @@ package frc.robot.subsystems.intake;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
@@ -20,6 +22,9 @@ public class IntakePivotIOReal implements IntakePivotIO {
   private final StatusSignal<Current> statorCurrentAmps = pivotMotor.getStatorCurrent();
   private final StatusSignal<Angle> motorPositionRotations = pivotMotor.getPosition();
 
+  private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
+  private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
+
   public IntakePivotIOReal() {
     // TODO: MOTOR CONFIGURATION
   }
@@ -37,16 +42,16 @@ public class IntakePivotIOReal implements IntakePivotIO {
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
-    inputs.pivotPosition = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
+    inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
   }
 
   @Override
   public void setMotorVoltage(double voltage) {
-    pivotMotor.setVoltage(voltage);
+    pivotMotor.setControl(voltageOut.withOutput(voltage));
   }
 
   @Override
   public void setMotorPosition(Rotation2d targetPosition) {
-    pivotMotor.setPosition(targetPosition.getRotations());
+    pivotMotor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 }
