@@ -293,14 +293,19 @@ public class Robot extends LoggedRobot {
         .whileTrue(
             AutoAim.translateToPose(
                 swerve,
-                () -> AutoAimTargets.getRobotTargetLocation(
-                    AutoAimTargets.getClosestTarget(swerve.getPose()))));
-    
+                () ->
+                    AutoAimTargets.getRobotTargetLocation(
+                        AutoAimTargets.getClosestTarget(swerve.getPose()))));
+
     driver
         .start()
         .onTrue(
             Commands.runOnce(
-                () -> {if (ROBOT_TYPE == RobotType.SIM) {swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());}}));
+                () -> {
+                  if (ROBOT_TYPE == RobotType.SIM) {
+                    swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
+                  }
+                }));
 
     driver
         .rightTrigger()
@@ -370,9 +375,8 @@ public class Robot extends LoggedRobot {
           new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
         });
     Logger.recordOutput(
-      "AutoAim/Target",
-      AutoAimTargets.getRobotTargetLocation(
-          AutoAimTargets.getClosestTarget(swerve.getPose())));
+        "AutoAim/Target",
+        AutoAimTargets.getRobotTargetLocation(AutoAimTargets.getClosestTarget(swerve.getPose())));
   }
 
   @Override

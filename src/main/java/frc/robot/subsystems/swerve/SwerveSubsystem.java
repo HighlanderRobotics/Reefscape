@@ -355,16 +355,17 @@ public class SwerveSubsystem extends SubsystemBase {
     var speeds =
         kinematics.toChassisSpeeds(
             Arrays.stream(modules).map((m) -> m.getState()).toArray(SwerveModuleState[]::new));
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation());
     return new ChassisSpeeds(
         speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond);
   }
 
   /** Get the drivebase's field relative chassis speeds */
+  @AutoLogOutput(key = "Odometry/Velocity Field Relative")
   public ChassisSpeeds getVelocityFieldRelative() {
     var speeds =
         kinematics.toChassisSpeeds(
             Arrays.stream(modules).map(m -> m.getState()).toArray(SwerveModuleState[]::new));
+    speeds = ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation());
     return speeds;
   }
 
