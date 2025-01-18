@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
@@ -74,7 +75,7 @@ public class Robot extends LoggedRobot {
 
   public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
-  public static final RobotHardware ROBOT_HARDWARE = RobotHardware.BANSHEE;
+  public static final RobotHardware ROBOT_HARDWARE = RobotHardware.ALPHA;
 
   public static enum ReefTarget {
     L1(0.0),
@@ -206,6 +207,7 @@ public class Robot extends LoggedRobot {
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
 
   public Robot() {
+    DriverStation.silenceJoystickConnectionWarning(true);
     SignalLogger.enableAutoLogging(false);
     RobotController.setBrownoutVoltage(6.0);
     // Metadata about the current code running on the robot
@@ -231,7 +233,7 @@ public class Robot extends LoggedRobot {
 
     switch (ROBOT_TYPE) {
       case REAL:
-        Logger.addDataReceiver(new WPILOGWriter("/U")); // Log to a USB stick
+        // Logger.addDataReceiver(new WPILOGWriter("/U")); // Log to a USB stick
         Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
         new PowerDistribution(1, ModuleType.kRev); // Enables power distribution logging
         break;
@@ -254,7 +256,9 @@ public class Robot extends LoggedRobot {
     // be added.
     SignalLogger.setPath("/media/sda1/");
 
-    SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
+    if (ROBOT_TYPE == RobotType.SIM) {
+      SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
+    }
 
     autos = new Autos(swerve);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
