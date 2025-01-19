@@ -22,7 +22,7 @@ public class ArmIOSim implements ArmIO {
           ArmSubsystem.MIN_ARM_ROTATION.getRadians(),
           ArmSubsystem.MAX_ARM_ROTATION.getRadians(),
           true,
-          1.0);
+          0.0);
 
   private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 1.31085, 0.278);
   private final ProfiledPIDController pid =

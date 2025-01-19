@@ -46,7 +46,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
 
-    root.append(carriage);
+    // root.append(carriage);
   }
 
   @Override
@@ -55,7 +55,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     Logger.processInputs("Elevator", inputs);
 
     carriage.setLength(inputs.positionMeters);
-    Logger.recordOutput("Elevator/Mechanism2d", mech2d);
+    //    Logger.recordOutput("Elevator/Mechanism2d", mech2d);
 
     Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
   }
