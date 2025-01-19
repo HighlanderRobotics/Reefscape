@@ -78,7 +78,7 @@ public class ElevatorSubsystem extends SubsystemBase {
               io.setVoltage(-0.5);
               Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> inputs.statorCurrentAmps > 45.0)
+        .until(() -> inputs.statorCurrentAmps > 20.0)
         .finallyDo(() -> io.resetEncoder(0.0));
   }
 
