@@ -188,7 +188,7 @@ public class AlphaSwerveConstants extends SwerveConstants {
   @Override
   public VisionConstants[] getVisionConstants() {
     // Stolen from banshee for now for testing, fix later once alphabot camera config is known
-    final Matrix<N3, N3> RIGHT_CAMERA_MATRIX =
+    final Matrix<N3, N3> CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(),
             Nat.N3(),
@@ -201,7 +201,7 @@ public class AlphaSwerveConstants extends SwerveConstants {
             0.0,
             0.0,
             1.0);
-    final Matrix<N8, N1> RIGHT_DIST_COEFFS =
+    final Matrix<N8, N1> DIST_COEFFS =
         MatBuilder.fill(
             Nat.N8(),
             Nat.N1(),
@@ -216,15 +216,15 @@ public class AlphaSwerveConstants extends SwerveConstants {
 
     return new VisionConstants[] {
       new VisionConstants(
-          "Right_Camera",
+          "Camera",
           new Transform3d(
               new Translation3d(
-                  Units.inchesToMeters(-10.597),
-                  Units.inchesToMeters(-10.143),
-                  Units.inchesToMeters(7.384)),
-              new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
-          RIGHT_CAMERA_MATRIX,
-          RIGHT_DIST_COEFFS)
+                  Units.inchesToMeters(-9.250),
+                  Units.inchesToMeters(2.000),
+                  Units.inchesToMeters(12.7500)),
+              new Rotation3d(0, 0, 0)),
+          CAMERA_MATRIX,
+          DIST_COEFFS)
     };
   }
 

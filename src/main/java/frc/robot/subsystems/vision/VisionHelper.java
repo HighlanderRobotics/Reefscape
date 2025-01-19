@@ -363,7 +363,7 @@ public class VisionHelper {
     for (PhotonTrackedTarget target : result.targets) {
       double targetPoseAmbiguity = target.getPoseAmbiguity();
 
-      if (target.getFiducialId() < 1 || target.getFiducialId() > 16) continue;
+      if (target.getFiducialId() < 1 || target.getFiducialId() > 22) continue;
 
       if (target.getBestCameraToTarget().getTranslation().getNorm() > 5) continue;
 
