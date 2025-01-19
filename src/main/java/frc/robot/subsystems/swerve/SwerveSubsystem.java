@@ -300,6 +300,17 @@ public class SwerveSubsystem extends SubsystemBase {
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
           cameraPoses[i] = visionPose;
+          Pose3d[] targetPose3ds = new Pose3d[result.targets.size()];
+          for (int j = 0; j < result.targets.size(); j++) {
+            targetPose3ds[j] =
+                Robot.ROBOT_HARDWARE
+                    .swerveConstants
+                    .getFieldTagLayout()
+                    .getTagPose(result.targets.get(j).getFiducialId())
+                    .get();
+          }
+          Logger.recordOutput("Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
+
         } else {
           Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
         }
