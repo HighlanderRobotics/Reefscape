@@ -78,6 +78,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private SwerveDrivePoseEstimator estimator;
   private double lastEstTimestamp = 0.0;
   private double lastOdometryUpdateTimestamp = 0.0;
+  final Pose3d[] cameraPoses;
 
   private final Optional<SwerveDriveSimulation> simulation;
 
@@ -109,6 +110,11 @@ public class SwerveSubsystem extends SubsystemBase {
     }
     for (int i = 0; i < visionIOs.length; i++) {
       cameras[i] = new Vision(visionIOs[i]);
+    }
+
+    cameraPoses = new Pose3d[cameras.length];
+    for (int i = 0; i < cameras.length; i++) {
+      cameraPoses[i] = Pose3d.kZero;
     }
   }
 
@@ -269,6 +275,7 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   private void updateVision() {
+    var i = 0;
     for (var camera : cameras) {
       final PhotonPipelineResult result =
           new PhotonPipelineResult(
@@ -292,13 +299,16 @@ public class SwerveSubsystem extends SubsystemBase {
               visionPose.toPose2d(), camera.inputs.captureTimestampMicros / 1.0e6, deviations);
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
+          cameraPoses[i] = visionPose;
         } else {
           Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
         }
       } catch (NoSuchElementException e) {
         Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
       }
+      i++;
     }
+    Logger.recordOutput("Vision/Camera Poses", cameraPoses);
   }
 
   /**

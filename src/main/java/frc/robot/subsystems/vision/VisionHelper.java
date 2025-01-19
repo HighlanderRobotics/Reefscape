@@ -363,8 +363,10 @@ public class VisionHelper {
     for (PhotonTrackedTarget target : result.targets) {
       double targetPoseAmbiguity = target.getPoseAmbiguity();
 
+      // reject if not a tag on this field
       if (target.getFiducialId() < 1 || target.getFiducialId() > 22) continue;
 
+      // reject if too far
       if (target.getBestCameraToTarget().getTranslation().getNorm() > 5) continue;
 
       // Make sure the target is a Fiducial target.
