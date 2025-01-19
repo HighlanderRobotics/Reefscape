@@ -20,6 +20,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -288,7 +289,13 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+    elevator.setDefaultCommand(
+        Commands.sequence(
+            elevator
+                .setExtension(Units.inchesToMeters(2.0))
+                .until(() -> elevator.isNearExtension(Units.inchesToMeters(2.0))),
+            elevator.runCurrentZeroing(),
+            elevator.setExtension(0.0)));
     // elevator.setDefaultCommand(elevator.setVoltage(0.15));
     // elevator.setDefaultCommand(elevator.setExtension(0));
     driver.leftBumper().whileTrue(elevator.runCurrentZeroing());

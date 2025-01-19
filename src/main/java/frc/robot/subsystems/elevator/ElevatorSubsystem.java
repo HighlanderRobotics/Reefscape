@@ -86,7 +86,7 @@ public class ElevatorSubsystem extends SubsystemBase {
                 .until(() -> currentFilter.calculate(inputs.statorCurrentAmps) > 20.0)
                 .finallyDo(
                     (interrupted) -> {
-                      if (!interrupted) io.resetEncoder(Units.inchesToMeters(-0.125));
+                      if (!interrupted) io.resetEncoder(0.0);
                     }));
   }
 
