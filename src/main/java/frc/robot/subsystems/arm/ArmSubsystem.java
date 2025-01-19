@@ -9,9 +9,9 @@ import org.littletonrobotics.junction.Logger;
 public class ArmSubsystem extends SubsystemBase {
   // TODO: UPDATE WITH CAD
   public static final double ARM_GEAR_RATIO = 1.0;
-  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(180);
-  public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(0.0);
-  public static final Rotation2d ARM_RETRACTED_POS = Rotation2d.fromDegrees(0.0);
+  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(220);
+  public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-20.0);
+  public static final Rotation2d ARM_RETRACTED_POS = Rotation2d.fromDegrees(95.0);
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
