@@ -47,6 +47,11 @@ public class VisionIOReal implements VisionIO {
       inputs.latency = result.metadata.getLatencyMillis();
       inputs.targets = result.targets;
       inputs.constants = constants;
+      inputs.coprocPNPTransform =
+          result
+              .multitagResult
+              .map((pnpResult) -> pnpResult.estimatedPose.best)
+              .orElse(Transform3d.kZero);
       inputs.sequenceID = result.metadata.getSequenceID();
       inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
       inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
