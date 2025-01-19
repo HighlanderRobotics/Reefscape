@@ -220,8 +220,8 @@ public class AlphaSwerveConstants extends SwerveConstants {
           new Transform3d(
               new Translation3d(
                   Units.inchesToMeters(-9.250),
-                  Units.inchesToMeters(2.000),
-                  Units.inchesToMeters(12.7500)),
+                  Units.inchesToMeters(2.200),
+                  Units.inchesToMeters(17.750)),
               new Rotation3d(0, 0, 0)),
           CAMERA_MATRIX,
           DIST_COEFFS)
