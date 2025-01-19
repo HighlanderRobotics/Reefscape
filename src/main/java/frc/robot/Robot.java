@@ -217,20 +217,24 @@ public class Robot extends LoggedRobot {
 
   private final ShoulderSubsystem shoulder =
       new ShoulderSubsystem(
-          ROBOT_TYPE == RobotType.REAL ?
-              new ArmIOReal(
+          ROBOT_TYPE == RobotType.REAL
+              ? new ArmIOReal(
                   11,
                   ArmIOReal.getDefaultConfiguration()
-                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO))
-              ) : new ShoulderIOSim());
+                      .withFeedback(
+                          new FeedbackConfigs()
+                              .withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO)))
+              : new ShoulderIOSim());
   private final WristSubsystem wrist =
       new WristSubsystem(
-          ROBOT_TYPE == RobotType.REAL ?
-              new ArmIOReal(
+          ROBOT_TYPE == RobotType.REAL
+              ? new ArmIOReal(
                   12,
                   ArmIOReal.getDefaultConfiguration()
-                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO))
-              ) : new WristIOSim());
+                      .withFeedback(
+                          new FeedbackConfigs()
+                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
+              : new WristIOSim());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -250,9 +254,9 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismLigament2d shoulderLigament =
       new LoggedMechanismLigament2d(
           "Arm", Units.inchesToMeters(15.7), ShoulderSubsystem.SHOULDER_RETRACTED_POS.getDegrees());
-  private final LoggedMechanismLigament2d wristLigament = new LoggedMechanismLigament2d(
-      "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
-  )
+  private final LoggedMechanismLigament2d wristLigament =
+      new LoggedMechanismLigament2d(
+          "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
 
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);

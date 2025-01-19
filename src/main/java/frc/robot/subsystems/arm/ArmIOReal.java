@@ -75,7 +75,10 @@ public class ArmIOReal implements ArmIO {
 
   public static TalonFXConfiguration getDefaultConfiguration() {
     return new TalonFXConfiguration()
-        .withCurrentLimits(new CurrentLimitsConfigs().withSupplyCurrentLimit(20.0).withSupplyCurrentLimitEnable(true))
+        .withCurrentLimits(
+            new CurrentLimitsConfigs()
+                .withSupplyCurrentLimit(20.0)
+                .withSupplyCurrentLimitEnable(true))
         .withSlot0(new Slot0Configs().withGravityType(GravityTypeValue.Arm_Cosine))
         .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
   }
