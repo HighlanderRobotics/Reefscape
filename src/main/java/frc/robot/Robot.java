@@ -31,9 +31,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.ManipulatorSubsystem;
-import frc.robot.subsystems.arm.ArmIOReal;
-import frc.robot.subsystems.arm.ArmIOSim;
-import frc.robot.subsystems.arm.ArmSubsystem;
+import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
@@ -216,8 +214,23 @@ public class Robot extends LoggedRobot {
           new BeambreakIOReal(0, false),
           new BeambreakIOReal(1, false));
   public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
-  private final ArmSubsystem arm =
-      new ArmSubsystem(ROBOT_TYPE == RobotType.REAL ? new ArmIOReal() : new ArmIOSim());
+
+  private final ShoulderSubsystem shoulder =
+      new ShoulderSubsystem(
+          ROBOT_TYPE == RobotType.REAL ?
+              new ArmIOReal(
+                  11,
+                  ArmIOReal.getDefaultConfiguration()
+                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO))
+              ) : new ShoulderIOSim());
+  private final WristSubsystem wrist =
+      new WristSubsystem(
+          ROBOT_TYPE == RobotType.REAL ?
+              new ArmIOReal(
+                  12,
+                  ArmIOReal.getDefaultConfiguration()
+                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO))
+              ) : new WristIOSim());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -234,9 +247,12 @@ public class Robot extends LoggedRobot {
               "Elevator", (3.0 / 2.0) + Units.inchesToMeters(9.053), Units.inchesToMeters(12.689));
   private final LoggedMechanismLigament2d carriageLigament =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
-  private final LoggedMechanismLigament2d armLigament =
+  private final LoggedMechanismLigament2d shoulderLigament =
       new LoggedMechanismLigament2d(
-          "Arm", Units.inchesToMeters(15.7), ArmSubsystem.ARM_RETRACTED_POS.getDegrees());
+          "Arm", Units.inchesToMeters(15.7), ShoulderSubsystem.SHOULDER_RETRACTED_POS.getDegrees());
+  private final LoggedMechanismLigament2d wristLigament = new LoggedMechanismLigament2d(
+      "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
+  )
 
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -294,7 +310,7 @@ public class Robot extends LoggedRobot {
     }
     // Add the arms and stuff
     elevatorRoot.append(carriageLigament);
-    carriageLigament.append(armLigament);
+    carriageLigament.append(shoulderLigament);
 
     autos = new Autos(swerve);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
@@ -317,7 +333,7 @@ public class Robot extends LoggedRobot {
 
     manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
 
-    arm.setDefaultCommand(arm.setTargetAngle(ArmSubsystem.ARM_RETRACTED_POS));
+    shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
@@ -419,7 +435,7 @@ public class Robot extends LoggedRobot {
 
     carriageLigament.setLength(elevator.getExtensionMeters());
     // Minus 90 to make it relative to horizontal
-    armLigament.setAngle(arm.getAngle().getDegrees() - 90);
+    shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
   }
 

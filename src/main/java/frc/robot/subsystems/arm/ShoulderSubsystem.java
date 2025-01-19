@@ -1,0 +1,42 @@
+package frc.robot.subsystems.arm;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
+import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
+
+public class ShoulderSubsystem extends SubsystemBase {
+  // TODO: UPDATE WITH CAD
+  public static final double SHOULDER_GEAR_RATIO = 1.0;
+  public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(185.0);
+  public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
+  public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(104.95);
+
+  private final ArmIO io;
+  private final JointIOInputsAutoLogged inputs = new JointIOInputsAutoLogged();
+
+  public ShoulderSubsystem(ArmIO io) {
+    this.io = io;
+  }
+
+  @Override
+  public void periodic() {
+    io.updateInputs(inputs);
+    Logger.processInputs("Carriage/Arm", inputs);
+  }
+
+  public Command setTargetAngle(Supplier<Rotation2d> target) {
+    return this.runOnce(() -> Logger.recordOutput("Arm/Setpoint", target.get()))
+        .andThen(this.run(() -> io.setMotorPosition(target.get())));
+  }
+
+  public Command setTargetAngle(Rotation2d target) {
+    return setTargetAngle(() -> target);
+  }
+
+  public Rotation2d getAngle() {
+    return inputs.position;
+  }
+}

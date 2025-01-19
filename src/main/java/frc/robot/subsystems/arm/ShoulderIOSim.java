@@ -11,16 +11,16 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-public class ArmIOSim implements ArmIO {
+public class ShoulderIOSim implements ArmIO {
   // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
-          ArmSubsystem.ARM_GEAR_RATIO,
+          ShoulderSubsystem.SHOULDER_GEAR_RATIO,
           0.05,
           Units.inchesToMeters(26.04),
-          ArmSubsystem.MIN_ARM_ROTATION.getRadians(),
-          ArmSubsystem.MAX_ARM_ROTATION.getRadians(),
+          ShoulderSubsystem.MIN_SHOULDER_ROTATION.getRadians(),
+          ShoulderSubsystem.MAX_SHOULDER_ROTATION.getRadians(),
           true,
           0.0);
 
@@ -29,7 +29,7 @@ public class ArmIOSim implements ArmIO {
       new ProfiledPIDController(10.0, 0.0, 3.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   @Override
-  public void updateInputs(ArmIOInputs inputs) {
+  public void updateInputs(JointIOInputs inputs) {
     armSim.update(0.02);
 
     inputs.angularVelocityRPS =
