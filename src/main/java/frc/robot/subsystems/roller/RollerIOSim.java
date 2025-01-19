@@ -6,7 +6,6 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -18,8 +17,16 @@ public class RollerIOSim implements RollerIO {
 
   private Optional<Consumer<RollerIOInputsAutoLogged>> callback = Optional.empty();
 
-  public RollerIOSim(double jKgMetersSquared, double gearRatio, SimpleMotorFeedforward feedforward, PIDController pid) {
-    this.motorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(DCMotor.getKrakenX60Foc(1), jKgMetersSquared, gearRatio), DCMotor.getKrakenX60Foc(1));
+  public RollerIOSim(
+      double jKgMetersSquared,
+      double gearRatio,
+      SimpleMotorFeedforward feedforward,
+      PIDController pid) {
+    this.motorSim =
+        new DCMotorSim(
+            LinearSystemId.createDCMotorSystem(
+                DCMotor.getKrakenX60Foc(1), jKgMetersSquared, gearRatio),
+            DCMotor.getKrakenX60Foc(1));
     this.feedforward = feedforward;
     this.pid = pid;
   }
@@ -43,7 +50,9 @@ public class RollerIOSim implements RollerIO {
 
   @Override
   public void setVelocity(double velocityRPS) {
-    setVoltage(feedforward.calculate(velocityRPS) + pid.calculate(motorSim.getAngularVelocityRPM() / 60, velocityRPS));
+    setVoltage(
+        feedforward.calculate(velocityRPS)
+            + pid.calculate(motorSim.getAngularVelocityRPM() / 60, velocityRPS));
   }
 
   @Override
