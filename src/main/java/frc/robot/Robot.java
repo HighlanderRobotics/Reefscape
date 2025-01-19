@@ -275,8 +275,9 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    // elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
-    elevator.setDefaultCommand(elevator.setVoltage(0.15));
+    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+    // elevator.setDefaultCommand(elevator.setVoltage(0.15));
+    // elevator.setDefaultCommand(elevator.setExtension(1));
     manipulator.setDefaultCommand(manipulator.indexCmd());
 
     swerve.setDefaultCommand(
@@ -297,9 +298,9 @@ public class Robot extends LoggedRobot {
             Commands.race(
                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
                     manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))
-                .withTimeout(0.25)
-                .andThen(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0))));
-    driver.rightBumper().whileTrue(elevator.setVoltage(0.45));
+                .andThen(Commands.waitSeconds(0.2)));
+    // .andThen(elevator.setExtension(0.3).until(() -> elevator.isNearExtension(0.3))));
+    driver.rightBumper().whileTrue(elevator.setExtension(1));
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));

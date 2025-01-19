@@ -75,10 +75,10 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command runCurrentZeroing() {
     return this.run(
             () -> {
-              io.setVoltage(-1.0);
+              io.setVoltage(-0.5);
               Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> inputs.statorCurrentAmps > 40.0)
+        .until(() -> inputs.statorCurrentAmps > 45.0)
         .finallyDo(() -> io.resetEncoder(0.0));
   }
 
