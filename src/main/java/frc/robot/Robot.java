@@ -201,7 +201,7 @@ public class Robot extends LoggedRobot {
               10,
               RollerIOReal.getDefaultConfig()
                   .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(1.0))),
+                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))),
           new BeambreakIOReal(0, true),
           new BeambreakIOReal(1, true));
   public static final double MANIPULATOR_INDEXING_VELOCITY = -100.0;
@@ -288,21 +288,23 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+    // elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
     // elevator.setDefaultCommand(elevator.setVoltage(0.15));
-    // elevator.setDefaultCommand(elevator.setExtension(1));
+    elevator.setDefaultCommand(elevator.setExtension(0));
+    driver.leftBumper().whileTrue(elevator.runCurrentZeroing());
     manipulator.setDefaultCommand(manipulator.indexCmd());
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
             () ->
                 new ChassisSpeeds(
-                    modifyJoystick(driver.getLeftY())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                    modifyJoystick(driver.getLeftX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                    modifyJoystick(driver.getRightX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
+                        modifyJoystick(driver.getLeftY() * -1)
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                        modifyJoystick(driver.getLeftX() * -1)
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                        modifyJoystick(driver.getRightX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
+                    .times(-1)));
 
     driver
         .rightBumper()
@@ -327,7 +329,8 @@ public class Robot extends LoggedRobot {
             Commands.race(
                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
                     manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))
-                .andThen(Commands.waitSeconds(0.2)));
+                .andThen(Commands.waitSeconds(0.5))
+                .andThen(manipulator.setVelocity(0).withTimeout(1)));
     // .andThen(elevator.setExtension(0.3).until(() -> elevator.isNearExtension(0.3))));
     driver.rightBumper().whileTrue(elevator.setExtension(1));
 
