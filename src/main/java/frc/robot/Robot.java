@@ -29,6 +29,9 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.arm.ArmIOReal;
+import frc.robot.subsystems.arm.ArmIOSim;
+import frc.robot.subsystems.arm.ArmSubsystem;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
@@ -208,6 +211,8 @@ public class Robot extends LoggedRobot {
           new BeambreakIOReal(0, false),
           new BeambreakIOReal(1, false));
   public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
+  private final ArmSubsystem arm =
+      new ArmSubsystem(ROBOT_TYPE == RobotType.REAL ? new ArmIOReal() : new ArmIOSim());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -290,6 +295,8 @@ public class Robot extends LoggedRobot {
     intakePivot.setDefaultCommand(intakePivot.setTargetAngle(IntakePivotSubsystem.RETRACTED_ANGLE));
 
     manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
+
+    arm.setDefaultCommand(arm.setTargetAngle(ArmSubsystem.ARM_RETRACTED_POS));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(

@@ -19,14 +19,14 @@ public class ArmIOSim implements ArmIO {
           ArmSubsystem.ARM_GEAR_RATIO,
           0.05,
           Units.inchesToMeters(26.04),
-          0.0,
-          Units.degreesToRadians(180),
+          ArmSubsystem.MIN_ARM_ROTATION.getRadians(),
+          ArmSubsystem.MAX_ARM_ROTATION.getRadians(),
           true,
-          0.0);
+          1.0);
 
-  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 1.31085, 0.278);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(10.0, 0.0, 3.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   @Override
   public void updateInputs(ArmIOInputs inputs) {
