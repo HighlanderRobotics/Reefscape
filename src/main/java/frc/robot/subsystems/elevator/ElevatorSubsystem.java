@@ -34,7 +34,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
 
-  private final LinearFilter currentFilter = LinearFilter.movingAverage(10);
+  private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -84,7 +84,10 @@ public class ElevatorSubsystem extends SubsystemBase {
                       Logger.recordOutput("Elevator/Setpoint", Double.NaN);
                     })
                 .until(() -> currentFilter.calculate(inputs.statorCurrentAmps) > 20.0)
-                .finallyDo(() -> io.resetEncoder(-0.125)));
+                .finallyDo(
+                    (interrupted) -> {
+                      if (!interrupted) io.resetEncoder(Units.inchesToMeters(-0.125));
+                    }));
   }
 
   public Command setVoltage(double voltage) {
