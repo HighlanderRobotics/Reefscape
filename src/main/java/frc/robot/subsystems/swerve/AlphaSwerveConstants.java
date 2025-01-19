@@ -9,9 +9,19 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
+import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class AlphaSwerveConstants extends SwerveConstants {
   @Override
@@ -173,5 +183,58 @@ public class AlphaSwerveConstants extends SwerveConstants {
   public Mass getMass() {
     // Onshape says some subsystems have no material. May need to be updated
     return Pound.of(99.8 + 13);
+  }
+
+  @Override
+  public VisionConstants[] getVisionConstants() {
+    // Stolen from banshee for now for testing, fix later once alphabot camera config is known
+    final Matrix<N3, N3> CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(),
+            Nat.N3(),
+            902.0832829888818,
+            0.0,
+            611.9702186077134,
+            0.0,
+            902.2731968281233,
+            400.755534902121,
+            0.0,
+            0.0,
+            1.0);
+    final Matrix<N8, N1> DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(),
+            Nat.N1(),
+            0.05398335403070431,
+            -0.07589158973947994,
+            -0.003081304772847505,
+            -0.0010797674400397023,
+            0.015185486932866137,
+            0,
+            0,
+            0);
+
+    return new VisionConstants[] {
+      new VisionConstants(
+          "Camera",
+          new Transform3d(
+              new Translation3d(
+                  Units.inchesToMeters(-9.250),
+                  Units.inchesToMeters(2.200),
+                  Units.inchesToMeters(17.750)),
+              new Rotation3d(0, 0, 0)),
+          CAMERA_MATRIX,
+          DIST_COEFFS)
+    };
+  }
+
+  @Override
+  public double getBumperWidth() {
+    return Units.inchesToMeters(36.1);
+  }
+
+  @Override
+  public double getBumperLength() {
+    return Units.inchesToMeters(36.1);
   }
 }

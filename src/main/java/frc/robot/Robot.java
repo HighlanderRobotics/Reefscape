@@ -35,12 +35,18 @@ import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.swerve.*;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOReal;
+import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
+import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.AutoAimTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Stream;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -143,13 +149,13 @@ public class Robot extends LoggedRobot {
           ROBOT_TYPE == RobotType.REAL
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
               : new GyroIOSim(swerveDriveSimulation.get().getGyroSimulation()),
-          // Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
-          //     .map(
-          //         (constants) ->
-          //             ROBOT_TYPE == RobotType.REAL
-          //                 ? new VisionIOReal(constants)
-          //                 : new VisionIOSim(constants))
-          //     .toArray(VisionIO[]::new),
+          Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
+              .map(
+                  (constants) ->
+                      ROBOT_TYPE == RobotType.REAL
+                          ? new VisionIOReal(constants)
+                          : new VisionIOSim(constants))
+              .toArray(VisionIO[]::new),
           ROBOT_TYPE == RobotType.REAL
               ? new ModuleIO[] {
                 new ModuleIOReal(
@@ -206,6 +212,7 @@ public class Robot extends LoggedRobot {
   // Main benefit to that is reducing startup time, which idt we care about too much
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
 
+  @SuppressWarnings("resource")
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
     SignalLogger.enableAutoLogging(false);
@@ -258,6 +265,12 @@ public class Robot extends LoggedRobot {
 
     if (ROBOT_TYPE == RobotType.SIM) {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
+      swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+      // global static is mildly questionable
+      VisionIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+    } else {
+      // this should never be called?
+      VisionIOSim.pose = () -> new Pose3d();
     }
 
     autos = new Autos(swerve);
@@ -292,6 +305,22 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
 
     driver
+        .rightBumper()
+        .whileTrue(
+            AutoAim.translateToPose(
+                swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())));
+
+    driver
+        .start()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (ROBOT_TYPE == RobotType.SIM) {
+                    swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
+                  }
+                }));
+
+    driver
         .rightTrigger()
         .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
         .onFalse(
@@ -306,6 +335,13 @@ public class Robot extends LoggedRobot {
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
     operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
     operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
+
+    // Log locations of all autoaim targets
+    Logger.recordOutput(
+        "AutoAim/Targets",
+        Stream.of(AutoAimTargets.values())
+            .map((target) -> AutoAimTargets.getRobotTargetLocation(target.location))
+            .toArray(Pose2d[]::new));
   }
 
   /** Scales a joystick value for teleop driving */
@@ -355,6 +391,7 @@ public class Robot extends LoggedRobot {
               new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
           new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
         });
+    Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
   }
 
   @Override

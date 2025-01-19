@@ -35,16 +35,21 @@ import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Samples;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalID;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
+import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.VisionHelper;
+import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.utils.Tracer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final SwerveConstants constants;
@@ -56,7 +61,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private SwerveDriveKinematics kinematics;
 
-  // private final Vision[] cameras;
+  private final Vision[] cameras;
 
   /** For delta tracking with PhoenixOdometryThread* */
   private SwerveModulePosition[] lastModulePositions =
@@ -69,6 +74,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private Rotation2d rawGyroRotation = new Rotation2d();
   private Rotation2d lastGyroRotation = new Rotation2d();
+
   private SwerveDrivePoseEstimator estimator;
   private double lastEstTimestamp = 0.0;
   private double lastOdometryUpdateTimestamp = 0.0;
@@ -82,7 +88,7 @@ public class SwerveSubsystem extends SubsystemBase {
   public SwerveSubsystem(
       SwerveConstants constants,
       GyroIO gyroIO,
-      // VisionIO[] visionIOs,
+      VisionIO[] visionIOs,
       ModuleIO[] moduleIOs,
       OdometryThreadIO odoThread,
       Optional<SwerveDriveSimulation> simulation) {
@@ -95,28 +101,25 @@ public class SwerveSubsystem extends SubsystemBase {
     this.odoThread = odoThread;
     this.simulation = simulation;
     odoThread.start();
-    // cameras = new Vision[visionIOs.length];
+    cameras = new Vision[visionIOs.length];
     modules = new Module[moduleIOs.length];
 
     for (int i = 0; i < moduleIOs.length; i++) {
       modules[i] = new Module(moduleIOs[i]);
     }
-    // for (int i = 0; i < visionIOs.length; i++) {
-    //   cameras[i] = new Vision(visionIOs[i]);
-    // }
-
-    // global static is mildly questionable
-    // VisionIOSim.pose = this::getPose3d;
+    for (int i = 0; i < visionIOs.length; i++) {
+      cameras[i] = new Vision(visionIOs[i]);
+    }
   }
 
   public void periodic() {
     Tracer.trace(
         "SwervePeriodic",
         () -> {
-          // for (var camera : cameras) {
-          // Tracer.trace("Update cam inputs", camera::updateInputs);
-          // Tracer.trace("Process cam inputs", camera::processInputs);
-          // }
+          for (var camera : cameras) {
+            Tracer.trace("Update cam inputs", camera::updateInputs);
+            Tracer.trace("Process cam inputs", camera::processInputs);
+          }
           Tracer.trace(
               "Update odo inputs",
               () -> odoThread.updateInputs(odoThreadInputs, lastOdometryUpdateTimestamp));
@@ -154,7 +157,7 @@ public class SwerveSubsystem extends SubsystemBase {
           }
 
           Tracer.trace("Update odometry", this::updateOdometry);
-          // Tracer.trace("Update vision", this::updateVision);
+          Tracer.trace("Update vision", this::updateVision);
         });
   }
 
@@ -265,6 +268,39 @@ public class SwerveSubsystem extends SubsystemBase {
     }
   }
 
+  private void updateVision() {
+    for (var camera : cameras) {
+      final PhotonPipelineResult result =
+          new PhotonPipelineResult(
+              camera.inputs.sequenceID,
+              camera.inputs.captureTimestampMicros,
+              camera.inputs.publishTimestampMicros,
+              camera.inputs.timeSinceLastPong,
+              camera.inputs.targets);
+      try {
+        if (!camera.inputs.stale) {
+          var estPose = camera.update(result);
+          var visionPose = estPose.get().estimatedPose;
+          // Sets the pose on the sim field
+          camera.setSimPose(estPose, camera, !camera.inputs.stale);
+          Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
+          Logger.recordOutput(
+              "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+          final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
+          Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
+          estimator.addVisionMeasurement(
+              visionPose.toPose2d(), camera.inputs.captureTimestampMicros / 1.0e6, deviations);
+          lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
+          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
+        } else {
+          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
+        }
+      } catch (NoSuchElementException e) {
+        Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
+      }
+    }
+  }
+
   /**
    * Generates a set of samples without using the async thread. Makes lots of Objects, so be careful
    * when using it irl!
@@ -272,7 +308,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private List<Samples> getSyncSamples() {
     return List.of(
         new Samples(
-            Logger.getTimestamp(),
+            Logger.getTimestamp() / 1.0e6,
             Map.of(
                 new SignalID(SignalType.DRIVE, 0), modules[0].getPosition().distanceMeters,
                 new SignalID(SignalType.STEER, 0), modules[0].getPosition().angle.getRotations(),
@@ -285,37 +321,6 @@ public class SwerveSubsystem extends SubsystemBase {
                 new SignalID(SignalType.GYRO, PhoenixOdometryThread.GYRO_MODULE_ID),
                     gyroInputs.yawPosition.getDegrees())));
   }
-
-  // private void updateVision() {
-  //   for (var camera : cameras) {
-  //     boolean isNewResult = Math.abs(camera.inputs.timestamp - lastEstTimestamp) > 1e-5;
-  //     var estPose =
-  //         camera.update(
-  //             camera.inputs.targets, camera.inputs.timestamp, constants.getFieldTagLayout());
-  //     if (estPose.isPresent()) {
-  //       var visionPose = estPose.get().estimatedPose;
-  //       // Sets the pose on the sim field
-  //       camera.setSimPose(estPose, camera, isNewResult);
-  //       Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-  //       Logger.recordOutput("Vision/Vision Pose2d From " + camera.getName(),
-  // visionPose.toPose2d());
-  //       estimator.addVisionMeasurement(
-  //           visionPose.toPose2d(),
-  //           camera.inputs.timestamp,
-  //           VisionHelper.findVisionMeasurementStdDevs(
-  //               estPose.get(),
-  //               constants.getVisionPointBlankStdDevs(),
-  //               constants.getVisionDistanceFactor()));
-  //       Pose3d[] tagPose3ds = new Pose3d[camera.inputs.targets.size()];
-  //       for (int i = 0; i < camera.inputs.targets.size(); i++) {
-  //         var target = camera.inputs.targets.get(i);
-  //         tagPose3ds[i] = constants.getFieldTagLayout().getTagPose(target.getFiducialId()).get();
-  //       }
-  //       Logger.recordOutput("Vision/" + camera.getName() + " Target Pose3ds", tagPose3ds);
-  //       if (isNewResult) lastEstTimestamp = camera.inputs.timestamp;
-  //     }
-  //   }
-  // }
 
   /** Returns the current pose estimator pose. */
   @AutoLogOutput(key = "Odometry/Robot")
@@ -350,14 +355,23 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   /** Get the drivebase's robot relative chassis speeds */
-  @AutoLogOutput(key = "Odometry/Velocity")
-  public ChassisSpeeds getVelocity() {
+  @AutoLogOutput(key = "Odometry/Velocity Robot Relative")
+  public ChassisSpeeds getVelocityRobotRelative() {
     var speeds =
         kinematics.toChassisSpeeds(
             Arrays.stream(modules).map((m) -> m.getState()).toArray(SwerveModuleState[]::new));
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation());
     return new ChassisSpeeds(
         speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond);
+  }
+
+  /** Get the drivebase's field relative chassis speeds */
+  @AutoLogOutput(key = "Odometry/Velocity Field Relative")
+  public ChassisSpeeds getVelocityFieldRelative() {
+    var speeds =
+        kinematics.toChassisSpeeds(
+            Arrays.stream(modules).map(m -> m.getState()).toArray(SwerveModuleState[]::new));
+    speeds = ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation());
+    return speeds;
   }
 
   /**
@@ -379,7 +393,7 @@ public class SwerveSubsystem extends SubsystemBase {
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, constants.getMaxLinearSpeed());
 
     Logger.recordOutput("Swerve/Target Speeds", speeds);
-    Logger.recordOutput("Swerve/Speed Error", speeds.minus(getVelocity()));
+    Logger.recordOutput("Swerve/Speed Error", speeds.minus(getVelocityRobotRelative()));
     Logger.recordOutput(
         "Swerve/Target Chassis Speeds Field Relative",
         ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation()));
@@ -394,8 +408,8 @@ public class SwerveSubsystem extends SubsystemBase {
         // Heuristic to enable/disable FOC
         final boolean focEnable =
             Math.sqrt(
-                    Math.pow(this.getVelocity().vxMetersPerSecond, 2)
-                        + Math.pow(this.getVelocity().vyMetersPerSecond, 2))
+                    Math.pow(this.getVelocityRobotRelative().vxMetersPerSecond, 2)
+                        + Math.pow(this.getVelocityRobotRelative().vyMetersPerSecond, 2))
                 < constants.getMaxLinearSpeed()
                     * 0.9; // TODO tune the magic number (90% of free speed)
         optimizedSetpointStates[i] =
