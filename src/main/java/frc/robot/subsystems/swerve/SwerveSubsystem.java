@@ -284,18 +284,23 @@ public class SwerveSubsystem extends SubsystemBase {
           // Sets the pose on the sim field
           camera.setSimPose(estPose, camera, !camera.inputs.stale);
           Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-          Logger.recordOutput("Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+          Logger.recordOutput(
+              "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+          final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
+          Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
           estimator.addVisionMeasurement(
-              visionPose.toPose2d(),
-              camera.inputs.captureTimestampMicros / 1e6,
-              VisionHelper.findVisionMeasurementStdDevs(estPose.get()));
-              lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
+              visionPose.toPose2d(), camera.inputs.captureTimestampMicros / 1.0e6, deviations);
+          lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
+          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
+        } else {
+          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
         }
       } catch (NoSuchElementException e) {
+        Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
       }
     }
   }
-  
+
   /**
    * Generates a set of samples without using the async thread. Makes lots of Objects, so be careful
    * when using it irl!
@@ -303,7 +308,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private List<Samples> getSyncSamples() {
     return List.of(
         new Samples(
-            Logger.getTimestamp(),
+            Logger.getTimestamp() / 1.0e6,
             Map.of(
                 new SignalID(SignalType.DRIVE, 0), modules[0].getPosition().distanceMeters,
                 new SignalID(SignalType.STEER, 0), modules[0].getPosition().angle.getRotations(),

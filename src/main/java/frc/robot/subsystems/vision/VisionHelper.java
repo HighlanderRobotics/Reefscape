@@ -447,7 +447,6 @@ public class VisionHelper {
     //         MathUtil.clamp(
     //             estimation.targetsUsed.size() - 1, 0, TAG_COUNT_DEVIATION_PARAMS.size() - 1))
     //     .computeDeviation(avgDistance);
-
     return deviation;
   }
 
