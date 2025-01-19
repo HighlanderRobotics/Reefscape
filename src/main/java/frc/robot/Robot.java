@@ -288,9 +288,9 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    // elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
     // elevator.setDefaultCommand(elevator.setVoltage(0.15));
-    elevator.setDefaultCommand(elevator.setExtension(0));
+    // elevator.setDefaultCommand(elevator.setExtension(0));
     driver.leftBumper().whileTrue(elevator.runCurrentZeroing());
     manipulator.setDefaultCommand(manipulator.indexCmd());
 

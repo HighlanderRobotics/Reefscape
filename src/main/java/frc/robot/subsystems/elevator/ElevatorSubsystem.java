@@ -5,6 +5,7 @@
 package frc.robot.subsystems.elevator;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -32,6 +33,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
+
+  private final LinearFilter currentFilter = LinearFilter.movingAverage(10);
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -73,13 +76,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command runCurrentZeroing() {
-    return this.run(
-            () -> {
-              io.setVoltage(-0.5);
-              Logger.recordOutput("Elevator/Setpoint", Double.NaN);
-            })
-        .until(() -> inputs.statorCurrentAmps > 20.0)
-        .finallyDo(() -> io.resetEncoder(0.0));
+    return this.runOnce(() -> currentFilter.reset())
+        .andThen(
+            this.run(
+                    () -> {
+                      io.setVoltage(-0.5);
+                      Logger.recordOutput("Elevator/Setpoint", Double.NaN);
+                    })
+                .until(() -> currentFilter.calculate(inputs.statorCurrentAmps) > 20.0)
+                .finallyDo(() -> io.resetEncoder(-0.125)));
   }
 
   public Command setVoltage(double voltage) {

@@ -46,10 +46,10 @@ public class ElevatorIOReal implements ElevatorIO {
 
     config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
     config.Slot0.kG = 0.3;
-    config.Slot0.kS = 0.15;
-    config.Slot0.kV = /* 3.86476 */ 5;
+    config.Slot0.kS = 0.0; // 0.15;
+    config.Slot0.kV = /* 3.86476 */ 4.25;
     config.Slot0.kA = 0.0;
-    config.Slot0.kP = 1.0;
+    config.Slot0.kP = 16.0;
     config.Slot0.kD = 0.0;
 
     config.CurrentLimits.StatorCurrentLimit = 60.0;
