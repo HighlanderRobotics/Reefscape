@@ -296,7 +296,8 @@ public class Robot extends LoggedRobot {
                 .until(
                     () ->
                         elevator.isNearExtension(Units.inchesToMeters(2.0))
-                            || elevator.currentFilterValue > 20.0),
+                            || Math.abs(elevator.currentFilterValue) > 20.0)
+                .unless(() -> !elevator.hasZeroed),
             elevator.runCurrentZeroing(),
             elevator.setExtension(0.0)));
     // elevator.setDefaultCommand(elevator.setVoltage(0.15));
@@ -337,7 +338,8 @@ public class Robot extends LoggedRobot {
                   if (ROBOT_TYPE == RobotType.SIM) {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
-                }));
+                }))
+        .onTrue(elevator.runCurrentZeroing());
 
     driver
         .rightTrigger()
@@ -346,8 +348,19 @@ public class Robot extends LoggedRobot {
             Commands.race(
                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
                     manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))
-                .andThen(Commands.waitSeconds(0.75))
-                .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)));
+                .andThen(
+                    Commands.waitSeconds(0.75),
+                    Commands.waitUntil(
+                        () -> {
+                          final var diff =
+                              swerve
+                                  .getPose()
+                                  .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                          return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+                        }))
+                .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight))
+                .unless(driver.leftTrigger()));
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));

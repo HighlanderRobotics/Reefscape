@@ -14,6 +14,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -67,7 +68,7 @@ public class ElevatorIOReal implements ElevatorIO {
         ElevatorSubsystem.GEAR_RATIO / (2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
 
     motor.getConfigurator().apply(config);
-    motor.setPosition(0.0); // Assume we boot 0ed
+    motor.setPosition(Units.inchesToMeters(2.0)); // Assume we boot nearly 0ed
     follower.getConfigurator().apply(config);
     follower.setControl(new Follower(motor.getDeviceID(), true));
 

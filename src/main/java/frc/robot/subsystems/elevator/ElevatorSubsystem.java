@@ -37,6 +37,8 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
   public double currentFilterValue = 0.0;
 
+  public boolean hasZeroed = false;
+
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
   private final LoggedMechanismRoot2d
@@ -86,7 +88,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         .until(() -> currentFilterValue > 20.0)
         .finallyDo(
             (interrupted) -> {
-              if (!interrupted) io.resetEncoder(0.0);
+              if (!interrupted) {
+                io.resetEncoder(0.0);
+                hasZeroed = true;
+              }
             });
   }
 
