@@ -60,13 +60,13 @@ public class AutoAim {
                   final var speeds =
                       new ChassisSpeeds(
                           vxController.calculate(swerve.getPose().getX(), cachedTarget[0].getX())
-                              + vxController.getSetpoint().velocity,
+                              + vxController.getSetpoint().velocity * 0.9,
                           vyController.calculate(swerve.getPose().getY(), cachedTarget[0].getY())
-                              + vyController.getSetpoint().velocity,
+                              + vyController.getSetpoint().velocity * 0.9,
                           headingController.calculate(
                                   swerve.getPose().getRotation().getRadians(),
                                   cachedTarget[0].getRotation().getRadians())
-                              + headingController.getSetpoint().velocity);
+                              + headingController.getSetpoint().velocity * 0.9);
                   Logger.recordOutput(
                       "AutoAim/Target Pose",
                       new Pose2d(
