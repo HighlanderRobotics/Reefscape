@@ -89,7 +89,7 @@ public class Robot extends LoggedRobot {
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.ALPHA;
 
   public static enum ReefTarget {
-    L1(0.0),
+    L1(ElevatorSubsystem.L1_EXTENSION_METERS),
     L2(ElevatorSubsystem.L2_EXTENSION_METERS),
     L3(ElevatorSubsystem.L3_EXTENSION_METERS),
     L4(ElevatorSubsystem.L4_EXTENSION_METERS);
@@ -319,8 +319,13 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
+        .or(driver.leftBumper())
         .whileTrue(
-            AutoAim.translateToPose(swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose()))
+            AutoAim.translateToPose(
+                    swerve,
+                    () ->
+                        AutoAimTargets.getHandedClosestTarget(
+                            swerve.getPose(), driver.leftBumper().getAsBoolean()))
                 .until(
                     () -> {
                       final var diff =
@@ -332,7 +337,7 @@ public class Robot extends LoggedRobot {
                 .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75)));
 
     driver
-        .leftBumper()
+        .leftTrigger()
         .whileTrue(
             AutoAim.translateToPose(
                 swerve,
@@ -365,7 +370,7 @@ public class Robot extends LoggedRobot {
                 Commands.race(
                         Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
                         manipulator.setVelocity(
-                            () -> currentTarget == ReefTarget.L1 ? 30.0 : 100.0))
+                            () -> currentTarget == ReefTarget.L1 ? 10.0 : 100.0))
                     .andThen(
                         Commands.waitSeconds(0.75),
                         Commands.waitUntil(
