@@ -293,7 +293,10 @@ public class Robot extends LoggedRobot {
         Commands.sequence(
             elevator
                 .setExtension(Units.inchesToMeters(2.0))
-                .until(() -> elevator.isNearExtension(Units.inchesToMeters(2.0))),
+                .until(
+                    () ->
+                        elevator.isNearExtension(Units.inchesToMeters(2.0))
+                            || elevator.currentFilterValue > 20.0),
             elevator.runCurrentZeroing(),
             elevator.setExtension(0.0)));
     // elevator.setDefaultCommand(elevator.setVoltage(0.15));
@@ -338,7 +341,6 @@ public class Robot extends LoggedRobot {
                     manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))
                 .andThen(Commands.waitSeconds(0.75))
                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)));
-    driver.rightBumper().whileTrue(elevator.setExtension(1));
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));

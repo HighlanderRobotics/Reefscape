@@ -35,6 +35,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final ElevatorIO io;
 
   private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
+  public double currentFilterValue = 0.0;
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -56,6 +57,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Elevator", inputs);
+    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
 
     carriage.setLength(inputs.positionMeters);
     Logger.recordOutput("Elevator/Mechanism2d", mech2d);
@@ -76,18 +78,16 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command runCurrentZeroing() {
-    return this.runOnce(() -> currentFilter.reset())
-        .andThen(
-            this.run(
-                    () -> {
-                      io.setVoltage(-0.5);
-                      Logger.recordOutput("Elevator/Setpoint", Double.NaN);
-                    })
-                .until(() -> currentFilter.calculate(inputs.statorCurrentAmps) > 20.0)
-                .finallyDo(
-                    (interrupted) -> {
-                      if (!interrupted) io.resetEncoder(0.0);
-                    }));
+    return this.run(
+            () -> {
+              io.setVoltage(-0.5);
+              Logger.recordOutput("Elevator/Setpoint", Double.NaN);
+            })
+        .until(() -> currentFilterValue > 20.0)
+        .finallyDo(
+            (interrupted) -> {
+              if (!interrupted) io.resetEncoder(0.0);
+            });
   }
 
   public Command setVoltage(double voltage) {
