@@ -370,7 +370,7 @@ public class Robot extends LoggedRobot {
                 Commands.race(
                         Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
                         manipulator.setVelocity(
-                            () -> currentTarget == ReefTarget.L1 ? 10.0 : 100.0))
+                            () -> currentTarget == ReefTarget.L1 ? 12.0 : 100.0))
                     .andThen(
                         Commands.waitSeconds(0.75),
                         Commands.waitUntil(
