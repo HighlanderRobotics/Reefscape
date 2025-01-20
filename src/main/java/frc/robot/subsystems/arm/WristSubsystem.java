@@ -27,7 +27,7 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngle(Supplier<Rotation2d> target) {
-    return this.runOnce(() -> Logger.recordOutput("Arm/Setpoint", target.get()))
+    return this.runOnce(() -> Logger.recordOutput("Carriage/Wrist/Setpoint", target.get()))
         .andThen(this.run(() -> io.setMotorPosition(target.get())));
   }
 

@@ -315,6 +315,7 @@ public class Robot extends LoggedRobot {
     // Add the arms and stuff
     elevatorRoot.append(carriageLigament);
     carriageLigament.append(shoulderLigament);
+    shoulderLigament.append(wristLigament);
 
     autos = new Autos(swerve);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
@@ -338,6 +339,8 @@ public class Robot extends LoggedRobot {
     manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
 
     shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
+
+    wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
@@ -440,6 +443,7 @@ public class Robot extends LoggedRobot {
     carriageLigament.setLength(elevator.getExtensionMeters());
     // Minus 90 to make it relative to horizontal
     shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
+    wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
   }
 

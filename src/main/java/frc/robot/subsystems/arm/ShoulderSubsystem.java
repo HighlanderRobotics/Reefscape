@@ -23,11 +23,11 @@ public class ShoulderSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     io.updateInputs(inputs);
-    Logger.processInputs("Carriage/Arm", inputs);
+    Logger.processInputs("Carriage/Shoulder", inputs);
   }
 
   public Command setTargetAngle(Supplier<Rotation2d> target) {
-    return this.runOnce(() -> Logger.recordOutput("Arm/Setpoint", target.get()))
+    return this.runOnce(() -> Logger.recordOutput("Carriage/Shoulder/Setpoint", target.get()))
         .andThen(this.run(() -> io.setMotorPosition(target.get())));
   }
 

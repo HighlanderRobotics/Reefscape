@@ -26,7 +26,7 @@ public class WristIOSim implements ArmIO {
 
   private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(0.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(30.0, 1.0, 2.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   @Override
   public void updateInputs(JointIOInputs inputs) {
