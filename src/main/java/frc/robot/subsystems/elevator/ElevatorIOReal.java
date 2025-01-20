@@ -68,7 +68,7 @@ public class ElevatorIOReal implements ElevatorIO {
         ElevatorSubsystem.GEAR_RATIO / (2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
 
     motor.getConfigurator().apply(config);
-    motor.setPosition(Units.inchesToMeters(2.0)); // Assume we boot nearly 0ed
+    motor.setPosition(Units.inchesToMeters(0.0)); // Assume we boot nearly 0ed
     follower.getConfigurator().apply(config);
     follower.setControl(new Follower(motor.getDeviceID(), true));
 

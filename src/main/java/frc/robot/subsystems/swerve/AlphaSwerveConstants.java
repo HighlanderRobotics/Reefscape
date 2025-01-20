@@ -53,8 +53,7 @@ public class AlphaSwerveConstants extends SwerveConstants {
 
   @Override
   public double getHeadingVelocityKP() {
-    // Copied from Banshee
-    return 4.0;
+    return 6.0;
   }
 
   @Override

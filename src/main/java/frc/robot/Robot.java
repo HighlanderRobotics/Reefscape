@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
@@ -289,17 +290,14 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
+    new Trigger(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak())
+        .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
+
     elevator.setDefaultCommand(
         Commands.sequence(
-            elevator
-                .setExtension(Units.inchesToMeters(2.0))
-                .until(
-                    () ->
-                        elevator.isNearExtension(Units.inchesToMeters(2.0))
-                            || Math.abs(elevator.currentFilterValue) > 20.0)
-                .unless(() -> !elevator.hasZeroed),
-            elevator.runCurrentZeroing(),
-            elevator.setExtension(0.0)));
+            elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
+            elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
+            elevator.setVoltage(0.0)));
     // elevator.setDefaultCommand(elevator.setVoltage(0.15));
     // elevator.setDefaultCommand(elevator.setExtension(0));
     driver.leftBumper().whileTrue(elevator.runCurrentZeroing());
@@ -327,8 +325,9 @@ public class Robot extends LoggedRobot {
                           swerve.getPose().minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
                       return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                           && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                          && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 5.0);
-                    }));
+                          && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                    })
+                .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75)));
 
     driver
         .start()
