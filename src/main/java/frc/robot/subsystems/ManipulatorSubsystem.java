@@ -29,6 +29,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   @Override
   public void periodic() {
     // roller io is updated in superclass
+    super.periodic();
     firstBBIO.updateInputs(firstBBInputs);
     secondBBIO.updateInputs(secondBBInputs);
 
@@ -38,16 +39,16 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command index() {
     return Commands.sequence(
-        setVelocity((firstBBInputs.get || secondBBInputs.get) ? -INDEXING_VELOCITY : 0)
-            .until(() -> firstBBInputs.get),
-        setVelocity(-1.0).until(() -> !firstBBInputs.get && secondBBInputs.get),
-        setVelocity(1.0).until(() -> firstBBInputs.get),
+        setVelocity(10.0).until(() -> firstBBInputs.get),
+        setVelocity(3.0).until(() -> !firstBBInputs.get && secondBBInputs.get),
+        setVelocity(-2.0).until(() -> firstBBInputs.get),
+        setVelocity(1.0).until(() -> !firstBBInputs.get),
         setVelocity(0));
   }
 
   public Command backIndex() {
     return Commands.sequence(
-        setVelocity(INDEXING_VELOCITY).until(() -> !secondBBInputs.get), index());
+        setVelocity(-INDEXING_VELOCITY).until(() -> !secondBBInputs.get), index());
   }
 
   public boolean getFirstBeambreak() {

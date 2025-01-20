@@ -11,7 +11,9 @@ import static edu.wpi.first.units.Units.Volts;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -202,11 +204,12 @@ public class Robot extends LoggedRobot {
           new RollerIOReal(
               10,
               RollerIOReal.getDefaultConfig()
+                  .withMotorOutput(
+                      new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
                   .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
                   .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))),
           new BeambreakIOReal(0, true),
           new BeambreakIOReal(1, true));
-  public static final double MANIPULATOR_INDEXING_VELOCITY = -100.0;
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -298,8 +301,6 @@ public class Robot extends LoggedRobot {
             elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
             elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
             elevator.setVoltage(0.0)));
-    // elevator.setDefaultCommand(elevator.setVoltage(0.15));
-    // elevator.setDefaultCommand(elevator.setExtension(0));
     driver.leftBumper().whileTrue(elevator.runCurrentZeroing());
     manipulator.setDefaultCommand(manipulator.index());
 
@@ -344,16 +345,12 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .and(() -> manipulator.getSecondBeambreak())
         .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
-        .whileTrue(
-            manipulator
-                .backIndex()
-                .onlyIf(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak()))
         .onFalse(
             Commands.either(
                 manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
                 Commands.race(
                         Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                        manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))
+                        manipulator.setVelocity(100.0))
                     .andThen(
                         Commands.waitSeconds(0.75),
                         Commands.waitUntil(
