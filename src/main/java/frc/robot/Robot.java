@@ -46,6 +46,7 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.AutoAimTargets;
+import frc.robot.utils.autoaim.HumanPlayerTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -329,6 +330,19 @@ public class Robot extends LoggedRobot {
                           && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
                     })
                 .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75)));
+
+    driver
+        .leftBumper()
+        .whileTrue(
+            AutoAim.translateToPose(
+                swerve,
+                () ->
+                    swerve
+                        .getPose()
+                        .nearest(
+                            Stream.of(HumanPlayerTargets.values())
+                                .map((target) -> target.location)
+                                .toList())));
 
     driver
         .start()
