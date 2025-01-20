@@ -16,7 +16,7 @@ public class AutoAim {
   static final double MAX_ANGULAR_SPEED = 10.0;
   static final double MAX_ANGULAR_ACCELERATION = 5.0;
   static final double MAX_AUTOAIM_SPEED = 3.0;
-  static final double MAX_AUTOAIM_ACCELERATION = 5.0;
+  static final double MAX_AUTOAIM_ACCELERATION = 2.0;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     // This feels like a horrible way of getting around lambda final requirements

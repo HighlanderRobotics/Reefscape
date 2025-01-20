@@ -319,8 +319,15 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .whileTrue(
-            AutoAim.translateToPose(
-                swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())));
+            AutoAim.translateToPose(swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose()))
+                .until(
+                    () -> {
+                      final var diff =
+                          swerve.getPose().minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                      return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+                          && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                          && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 5.0);
+                    }));
 
     driver
         .start()
