@@ -307,9 +307,9 @@ public class Robot extends LoggedRobot {
         swerve.driveTeleop(
             () ->
                 new ChassisSpeeds(
-                        modifyJoystick(driver.getLeftY() * -1)
+                        modifyJoystick(driver.getLeftY())
                             * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                        modifyJoystick(driver.getLeftX() * -1)
+                        modifyJoystick(driver.getLeftX())
                             * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                         modifyJoystick(driver.getRightX())
                             * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
