@@ -344,6 +344,10 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .and(() -> manipulator.getSecondBeambreak())
         .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
+        .whileTrue(
+            manipulator
+                .backIndex()
+                .onlyIf(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak()))
         .onFalse(
             Commands.either(
                 manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
