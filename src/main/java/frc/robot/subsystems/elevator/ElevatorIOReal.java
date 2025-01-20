@@ -58,9 +58,9 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.SupplyCurrentLimit = 20.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
-    config.MotionMagic.MotionMagicAcceleration = 32.0;
+    config.MotionMagic.MotionMagicAcceleration = 64.0;
     // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity = 16.0;
+    config.MotionMagic.MotionMagicCruiseVelocity = 32.0;
     // 50.0 / (ElevatorSubsystem.GEAR_RATIO * 2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
 
     // Carriage position meters in direction of elevator
