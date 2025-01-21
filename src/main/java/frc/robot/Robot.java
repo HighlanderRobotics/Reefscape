@@ -333,9 +333,12 @@ public class Robot extends LoggedRobot {
                       return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                           && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                           && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0)
-                          && MathUtil.isNear(0.0, swerve.getVelocityFieldRelative().vxMetersPerSecond, 0.5)
-                          && MathUtil.isNear(0.0, swerve.getVelocityFieldRelative().vyMetersPerSecond, 0.5)
-                          && MathUtil.isNear(0.0, swerve.getVelocityFieldRelative().omegaRadiansPerSecond, 3.0);
+                          && MathUtil.isNear(
+                              0.0, swerve.getVelocityFieldRelative().vxMetersPerSecond, 0.5)
+                          && MathUtil.isNear(
+                              0.0, swerve.getVelocityFieldRelative().vyMetersPerSecond, 0.5)
+                          && MathUtil.isNear(
+                              0.0, swerve.getVelocityFieldRelative().omegaRadiansPerSecond, 3.0);
                     })
                 .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75)));
 
