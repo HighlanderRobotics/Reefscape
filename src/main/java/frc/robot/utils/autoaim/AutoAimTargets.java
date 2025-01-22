@@ -69,7 +69,7 @@ public enum AutoAimTargets {
   public static Pose2d getHandedClosestTarget(Pose2d pose, boolean leftHandeed) {
     return pose.nearest(
         Arrays.stream(values())
-            .filter((target) -> target.leftHanded == leftHandeed)
+            // .filter((target) -> target.leftHanded == leftHandeed)
             .map(
                 (AutoAimTargets targets) -> {
                   return AutoAimTargets.getRobotTargetLocation(targets.location);

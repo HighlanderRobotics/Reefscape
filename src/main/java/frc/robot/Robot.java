@@ -321,26 +321,23 @@ public class Robot extends LoggedRobot {
         .rightBumper()
         .or(driver.leftBumper())
         .whileTrue(
-            AutoAim.translateToPose(
+            Commands.parallel(
+                AutoAim.translateToPose(
                     swerve,
                     () ->
                         AutoAimTargets.getHandedClosestTarget(
-                            swerve.getPose(), driver.leftBumper().getAsBoolean()))
-                .until(
-                    () -> {
-                      final var diff =
-                          swerve.getPose().minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-                      return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
-                          && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                          && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0)
-                          && MathUtil.isNear(
-                              0.0, swerve.getVelocityFieldRelative().vxMetersPerSecond, 0.5)
-                          && MathUtil.isNear(
-                              0.0, swerve.getVelocityFieldRelative().vyMetersPerSecond, 0.5)
-                          && MathUtil.isNear(
-                              0.0, swerve.getVelocityFieldRelative().omegaRadiansPerSecond, 3.0);
-                    })
-                .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75)));
+                            swerve.getPose(), driver.leftBumper().getAsBoolean())),
+                Commands.waitUntil(
+                        () -> {
+                          final var diff =
+                              swerve
+                                  .getPose()
+                                  .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                        })
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75))));
 
     driver
         .leftTrigger()

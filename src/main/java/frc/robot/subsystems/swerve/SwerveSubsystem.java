@@ -598,7 +598,7 @@ public class SwerveSubsystem extends SubsystemBase {
                   DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
                       ? getPose().getRotation()
                       : getPose().getRotation().minus(Rotation2d.fromDegrees(180)));
-          this.drive(speed, true, new double[4], new double[4]);
+          this.drive(speed, false, new double[4], new double[4]);
         });
   }
 
