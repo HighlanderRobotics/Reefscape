@@ -13,6 +13,7 @@ import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -221,6 +222,11 @@ public class Robot extends LoggedRobot {
               ? new ArmIOReal(
                   11,
                   ArmIOReal.getDefaultConfiguration()
+                      .withSlot0(
+                          new Slot0Configs()
+                              .withGravityType(GravityTypeValue.Arm_Cosine)
+                              .withKG(0.0)
+                              .withKP(0.0))
                       .withFeedback(
                           new FeedbackConfigs()
                               .withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO)))
@@ -231,6 +237,11 @@ public class Robot extends LoggedRobot {
               ? new ArmIOReal(
                   12,
                   ArmIOReal.getDefaultConfiguration()
+                      .withSlot0(
+                          new Slot0Configs()
+                              .withGravityType(GravityTypeValue.Arm_Cosine)
+                              .withKG(0.0)
+                              .withKP(0.0))
                       .withFeedback(
                           new FeedbackConfigs()
                               .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
