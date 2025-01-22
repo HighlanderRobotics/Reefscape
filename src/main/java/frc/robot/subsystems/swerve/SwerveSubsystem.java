@@ -26,6 +26,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -599,5 +600,16 @@ public class SwerveSubsystem extends SubsystemBase {
                       : getPose().getRotation().minus(Rotation2d.fromDegrees(180)));
           this.drive(speed, true, new double[4], new double[4]);
         });
+  }
+  public Command driveCharacterization() {
+    Timer timer = new Timer();
+    return this.run(
+      () -> {
+        for (Module m: modules) {
+          m.setCurrent(timer.get());
+          m.setTurnSetpoint(Rotation2d.kZero);
+        }
+      }
+    ).beforeStarting(() -> timer.restart());
   }
 }

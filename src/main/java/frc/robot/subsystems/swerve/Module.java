@@ -131,4 +131,12 @@ public class Module {
   public SwerveModuleState getState() {
     return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
   }
+
+  public void setCurrent(double amps) {
+    io.setCurrent(amps);
+  }
+
+  public void setTurnSetpoint(Rotation2d rotation) {
+    io.setTurnSetpoint(rotation);
+  }
 }
