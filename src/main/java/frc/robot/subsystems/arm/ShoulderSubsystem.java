@@ -16,7 +16,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
-  public ShoulderSubsystem(ArmIO io) {
+  public ShoulderSubsystem(final ArmIO io) {
     this.io = io;
   }
 
@@ -26,7 +26,7 @@ public class ShoulderSubsystem extends SubsystemBase {
     Logger.processInputs("Carriage/Shoulder", inputs);
   }
 
-  public Command setTargetAngle(Supplier<Rotation2d> target) {
+  public Command setTargetAngle(final Supplier<Rotation2d> target) {
     return this.run(
         () -> {
           io.setMotorPosition(target.get());
@@ -34,7 +34,7 @@ public class ShoulderSubsystem extends SubsystemBase {
         });
   }
 
-  public Command setTargetAngle(Rotation2d target) {
+  public Command setTargetAngle(final Rotation2d target) {
     return setTargetAngle(() -> target);
   }
 

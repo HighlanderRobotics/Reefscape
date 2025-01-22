@@ -29,7 +29,7 @@ public class WristIOSim implements ArmIO {
       new ProfiledPIDController(30.0, 1.0, 2.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   @Override
-  public void updateInputs(ArmIOInputs inputs) {
+  public void updateInputs(final ArmIOInputs inputs) {
     armSim.update(0.02);
 
     inputs.angularVelocityRPS =
@@ -41,12 +41,12 @@ public class WristIOSim implements ArmIO {
   }
 
   @Override
-  public void setMotorVoltage(double voltage) {
+  public void setMotorVoltage(final double voltage) {
     armSim.setInputVoltage(voltage);
   }
 
   @Override
-  public void setMotorPosition(Rotation2d targetPosition) {
+  public void setMotorPosition(final Rotation2d targetPosition) {
     setMotorVoltage(
         pid.calculate(armSim.getAngleRads(), targetPosition.getRadians())
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));

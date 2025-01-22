@@ -30,7 +30,7 @@ public class ArmIOReal implements ArmIO {
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
   private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
 
-  public ArmIOReal(int motorId, TalonFXConfiguration config) {
+  public ArmIOReal(final int motorId, final TalonFXConfiguration config) {
     motor = new TalonFX(motorId, "*");
 
     angularVelocityRPS = motor.getVelocity();
@@ -64,12 +64,12 @@ public class ArmIOReal implements ArmIO {
   }
 
   @Override
-  public void setMotorVoltage(double voltage) {
+  public void setMotorVoltage(final double voltage) {
     motor.setControl(voltageOut.withOutput(voltage));
   }
 
   @Override
-  public void setMotorPosition(Rotation2d targetPosition) {
+  public void setMotorPosition(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 
