@@ -14,7 +14,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(104.95);
 
   private final ArmIO io;
-  private final JointIOInputsAutoLogged inputs = new JointIOInputsAutoLogged();
+  private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
   public ShoulderSubsystem(ArmIO io) {
     this.io = io;
@@ -27,7 +27,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngle(Supplier<Rotation2d> target) {
-    return this.runOnce(() -> Logger.recordOutput("Carriage/Shoulder/Setpoint", target.get()))
+    return this.run(() -> Logger.recordOutput("Carriage/Shoulder/Setpoint", target.get()))
         .andThen(this.run(() -> io.setMotorPosition(target.get())));
   }
 

@@ -33,29 +33,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
 
-  // For dashboard
-  private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
-  private final LoggedMechanismRoot2d
-      root = // CAD distance from origin to center of carriage at full retraction
-      mech2d.getRoot(
-              "Elevator", (3.0 / 2.0) + Units.inchesToMeters(9.053), Units.inchesToMeters(12.689));
-  private final LoggedMechanismLigament2d carriage =
-      new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
-
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
-
-    // root.append(carriage);
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Elevator", inputs);
-
-    carriage.setLength(inputs.positionMeters);
-    //    Logger.recordOutput("Elevator/Mechanism2d", mech2d);
 
     Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
   }
@@ -84,19 +70,19 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Pose3d getCarriagePose() {
     return new Pose3d(
-        Units.inchesToMeters(4.5) + carriage.getLength() * ELEVATOR_ANGLE.getCos(),
+        Units.inchesToMeters(4.5) + inputs.positionMeters * ELEVATOR_ANGLE.getCos(),
         0.0,
-        Units.inchesToMeters(7.0) + carriage.getLength() * ELEVATOR_ANGLE.getSin(),
+        Units.inchesToMeters(7.0) + inputs.positionMeters * ELEVATOR_ANGLE.getSin(),
         new Rotation3d());
   }
 
   public Pose3d getFirstStagePose() {
     return new Pose3d(
         Units.inchesToMeters(2.25)
-            + (carriage.getLength() / 2.0) * Math.cos(ELEVATOR_ANGLE.getRadians()),
+            + (inputs.positionMeters / 2.0) * Math.cos(ELEVATOR_ANGLE.getRadians()),
         0.0,
         Units.inchesToMeters(4.25)
-            + (carriage.getLength() / 2.0) * Math.sin(ELEVATOR_ANGLE.getRadians()),
+            + (inputs.positionMeters / 2.0) * Math.sin(ELEVATOR_ANGLE.getRadians()),
         new Rotation3d());
   }
 

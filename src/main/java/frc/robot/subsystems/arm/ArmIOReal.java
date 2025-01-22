@@ -52,7 +52,7 @@ public class ArmIOReal implements ArmIO {
   }
 
   @Override
-  public void updateInputs(JointIOInputs inputs) {
+  public void updateInputs(ArmIOInputs inputs) {
     BaseStatusSignal.refreshAll(
         angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, motorPositionRotations);
 

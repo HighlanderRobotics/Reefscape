@@ -14,7 +14,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(256.5);
 
   private final ArmIO io;
-  private final JointIOInputsAutoLogged inputs = new JointIOInputsAutoLogged();
+  private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
   public WristSubsystem(ArmIO io) {
     this.io = io;
@@ -27,7 +27,7 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngle(Supplier<Rotation2d> target) {
-    return this.runOnce(() -> Logger.recordOutput("Carriage/Wrist/Setpoint", target.get()))
+    return this.run(() -> Logger.recordOutput("Carriage/Wrist/Setpoint", target.get()))
         .andThen(this.run(() -> io.setMotorPosition(target.get())));
   }
 

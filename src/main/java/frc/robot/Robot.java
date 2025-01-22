@@ -248,7 +248,7 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismRoot2d
       elevatorRoot = // CAD distance from origin to center of carriage at full retraction
       elevatorMech2d.getRoot(
-              "Elevator", (3.0 / 2.0) + Units.inchesToMeters(9.053), Units.inchesToMeters(12.689));
+              "Elevator", Units.inchesToMeters(21.5), 0.0);
   private final LoggedMechanismLigament2d carriageLigament =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
   private final LoggedMechanismLigament2d shoulderLigament =

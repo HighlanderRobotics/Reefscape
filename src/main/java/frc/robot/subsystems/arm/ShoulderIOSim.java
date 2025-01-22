@@ -29,7 +29,7 @@ public class ShoulderIOSim implements ArmIO {
       new ProfiledPIDController(10.0, 0.0, 3.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   @Override
-  public void updateInputs(JointIOInputs inputs) {
+  public void updateInputs(ArmIOInputs inputs) {
     armSim.update(0.02);
 
     inputs.angularVelocityRPS =

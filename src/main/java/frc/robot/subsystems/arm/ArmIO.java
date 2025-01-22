@@ -5,7 +5,7 @@ import org.littletonrobotics.junction.AutoLog;
 
 public interface ArmIO {
   @AutoLog
-  class JointIOInputs {
+  class ArmIOInputs {
     public double angularVelocityRPS = 0.0;
     public Rotation2d position = new Rotation2d();
     public double tempDegreesC = 0.0;
@@ -13,7 +13,7 @@ public interface ArmIO {
     public double statorCurrentAmps = 0.0;
   }
 
-  void updateInputs(JointIOInputs inputs);
+  void updateInputs(ArmIOInputs inputs);
 
   void setMotorVoltage(double voltage);
 

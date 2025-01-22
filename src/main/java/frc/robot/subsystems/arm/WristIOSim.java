@@ -29,7 +29,7 @@ public class WristIOSim implements ArmIO {
       new ProfiledPIDController(30.0, 1.0, 2.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   @Override
-  public void updateInputs(JointIOInputs inputs) {
+  public void updateInputs(ArmIOInputs inputs) {
     armSim.update(0.02);
 
     inputs.angularVelocityRPS =
