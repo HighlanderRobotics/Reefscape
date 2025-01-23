@@ -219,17 +219,7 @@ public class Robot extends LoggedRobot {
   private final ShoulderSubsystem shoulder =
       new ShoulderSubsystem(
           ROBOT_TYPE == RobotType.REAL
-              ? new ArmIOReal(
-                  11,
-                  ArmIOReal.getDefaultConfiguration()
-                      .withSlot0(
-                          new Slot0Configs()
-                              .withGravityType(GravityTypeValue.Arm_Cosine)
-                              .withKG(0.0)
-                              .withKP(0.0))
-                      .withFeedback(
-                          new FeedbackConfigs()
-                              .withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO)))
+              ? new ShoulderIOReal()
               : new ShoulderIOSim());
   private final WristSubsystem wrist =
       new WristSubsystem(
