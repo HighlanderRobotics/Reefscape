@@ -96,6 +96,12 @@ public class Robot extends LoggedRobot {
     }
   }
 
+  public static enum AlgaeReefTarget {
+    LOW,
+    HIGH,
+    STACK
+  }
+
   private ReefTarget currentTarget = ReefTarget.L1;
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
