@@ -203,9 +203,7 @@ public class Robot extends LoggedRobot {
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
           ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
-  private final IntakePivotSubsystem intakePivot =
-      new IntakePivotSubsystem(
-          ROBOT_TYPE == RobotType.REAL ? new IntakePivotIOReal() : new IntakePivotIOSim());
+          
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
           new RollerIOReal(
@@ -308,8 +306,6 @@ public class Robot extends LoggedRobot {
             elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
             elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
             elevator.setVoltage(0.0)));
-    driver.leftBumper().whileTrue(elevator.runCurrentZeroing());
-    intakePivot.setDefaultCommand(intakePivot.setTargetAngle(IntakePivotSubsystem.RETRACTED_ANGLE));
 
     manipulator.setDefaultCommand(manipulator.index());
 
