@@ -350,14 +350,23 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   /** Get the drivebase's robot relative chassis speeds */
-  @AutoLogOutput(key = "Odometry/Velocity")
-  public ChassisSpeeds getVelocity() {
+  @AutoLogOutput(key = "Odometry/Velocity Robot Relative")
+  public ChassisSpeeds getVelocityRobotRelative() {
     var speeds =
         kinematics.toChassisSpeeds(
             Arrays.stream(modules).map((m) -> m.getState()).toArray(SwerveModuleState[]::new));
-    speeds = ChassisSpeeds.fromFieldRelativeSpeeds(speeds, getRotation());
     return new ChassisSpeeds(
         speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond);
+  }
+
+  /** Get the drivebase's field relative chassis speeds */
+  @AutoLogOutput(key = "Odometry/Velocity Field Relative")
+  public ChassisSpeeds getVelocityFieldRelative() {
+    var speeds =
+        kinematics.toChassisSpeeds(
+            Arrays.stream(modules).map(m -> m.getState()).toArray(SwerveModuleState[]::new));
+    speeds = ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation());
+    return speeds;
   }
 
   /**
@@ -379,7 +388,7 @@ public class SwerveSubsystem extends SubsystemBase {
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, constants.getMaxLinearSpeed());
 
     Logger.recordOutput("Swerve/Target Speeds", speeds);
-    Logger.recordOutput("Swerve/Speed Error", speeds.minus(getVelocity()));
+    Logger.recordOutput("Swerve/Speed Error", speeds.minus(getVelocityRobotRelative()));
     Logger.recordOutput(
         "Swerve/Target Chassis Speeds Field Relative",
         ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation()));
@@ -394,8 +403,8 @@ public class SwerveSubsystem extends SubsystemBase {
         // Heuristic to enable/disable FOC
         final boolean focEnable =
             Math.sqrt(
-                    Math.pow(this.getVelocity().vxMetersPerSecond, 2)
-                        + Math.pow(this.getVelocity().vyMetersPerSecond, 2))
+                    Math.pow(this.getVelocityRobotRelative().vxMetersPerSecond, 2)
+                        + Math.pow(this.getVelocityRobotRelative().vyMetersPerSecond, 2))
                 < constants.getMaxLinearSpeed()
                     * 0.9; // TODO tune the magic number (90% of free speed)
         optimizedSetpointStates[i] =
