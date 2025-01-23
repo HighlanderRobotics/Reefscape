@@ -16,7 +16,6 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -39,16 +38,16 @@ public class ShoulderIOReal implements ArmIO {
 
   public ShoulderIOReal() {
 
-    TalonFXConfiguration config = ShoulderIOReal.getDefaultConfiguration()
-        .withSlot0(
-            new Slot0Configs()
-                .withGravityType(GravityTypeValue.Arm_Cosine)
-                .withKG(0.0)
-                .withKP(0.0))
-                .withFeedback(
-                    new FeedbackConfigs()
-                        .withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO));
-
+    TalonFXConfiguration config =
+        ShoulderIOReal.getDefaultConfiguration()
+            .withSlot0(
+                new Slot0Configs()
+                    .withGravityType(GravityTypeValue.Arm_Cosine)
+                    .withKG(0.0)
+                    .withKP(0.0))
+            .withFeedback(
+                new FeedbackConfigs()
+                    .withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO));
 
     motor = new TalonFX(11, "*");
     cancoder = new CANcoder(5, "*");
@@ -59,11 +58,9 @@ public class ShoulderIOReal implements ArmIO {
     statorCurrentAmps = motor.getStatorCurrent();
     motorPositionRotations = motor.getPosition();
 
-    
     CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
     cancoderConfig.MagnetSensor.MagnetOffset = 0.0;
-
 
     config.Feedback.FeedbackRemoteSensorID = 5;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;

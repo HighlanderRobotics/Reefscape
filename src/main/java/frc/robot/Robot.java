@@ -218,9 +218,7 @@ public class Robot extends LoggedRobot {
 
   private final ShoulderSubsystem shoulder =
       new ShoulderSubsystem(
-          ROBOT_TYPE == RobotType.REAL
-              ? new ShoulderIOReal()
-              : new ShoulderIOSim());
+          ROBOT_TYPE == RobotType.REAL ? new ShoulderIOReal() : new ShoulderIOSim());
   private final WristSubsystem wrist =
       new WristSubsystem(
           ROBOT_TYPE == RobotType.REAL

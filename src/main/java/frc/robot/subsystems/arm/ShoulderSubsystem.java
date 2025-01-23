@@ -8,7 +8,7 @@ import org.littletonrobotics.junction.Logger;
 
 public class ShoulderSubsystem extends SubsystemBase {
   // TODO: UPDATE WITH CAD
-  public static final double SHOULDER_GEAR_RATIO = (34.0/28.0) / 9.0; // guess fom CAD;
+  public static final double SHOULDER_GEAR_RATIO = (34.0 / 28.0) / 9.0; // guess fom CAD;
   public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(185.0);
   public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
   public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(104.95);
