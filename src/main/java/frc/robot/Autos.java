@@ -5,12 +5,16 @@
 package frc.robot;
 
 import choreo.auto.AutoFactory;
+import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+
+import java.util.LinkedList;
+
 import org.littletonrobotics.junction.Logger;
 
 public class Autos {
@@ -60,6 +64,61 @@ public class Autos {
     return routine.cmd();
   }
 
+  public Command getPROtoD() {
+    var routine = factory.newRoutine("coral intake to D");
+    var traj = routine.trajectory("PROtoD");
+    routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
+    return routine.cmd();
+  }
+
+  public Command getStarttoD() {
+    var routine = factory.newRoutine("start postion to D");
+    var traj = routine.trajectory("StarttoD");
+    routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
+    return routine.cmd();
+  }
+  
+  public Command autoCycleTest() {
+    final var routine = factory.newRoutine("Cycle RHS Start to D");
+    final var DtoPRO = routine.trajectory("DtoPRO");
+    final var PROtoD = routine.trajectory("PROtoD");
+    final var StarttoD = routine.trajectory("StarttoD");
+
+    routine.active().whileTrue(Commands.sequence(StarttoD.resetOdometry(), StarttoD.cmd()));
+    routine
+        .observe(StarttoD.done())
+        .onTrue(
+          Commands.sequence(
+            // score
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
+            DtoPRO.cmd()));
+    routine
+        .observe(DtoPRO.done())
+        .onTrue(
+          Commands.sequence(
+            //getcoral
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> PROtoD.getInitialPose().orElse(Pose2d.kZero))),
+            PROtoD.cmd()));
+    routine
+    .observe(PROtoD.done())
+    .onTrue(
+      Commands.sequence(
+        // score
+        Commands.waitSeconds(0.5)
+            .raceWith(
+                swerve.poseLockDriveCommand(
+                    () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
+        DtoPRO.cmd()));
+
+        return routine.cmd(); 
+  }
+
   public Command getDCycle() {
     final var routine = factory.newRoutine("Cycle RHS Start to D");
     final var startToD = routine.trajectory("RHStoD");
@@ -96,8 +155,76 @@ public class Autos {
                     .raceWith(
                         swerve.poseLockDriveCommand(
                             () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
-                PROtoD.cmd()));
+                PROtoD.cmd())); //should be DtoPRO instead?
 
     return routine.cmd();
   }
+
+  public Command CircleCoral() {
+    final var routine = factory.newRoutine("Circle the reef, scoring on L4");
+
+    LinkedList<AutoTrajectory> steps = new LinkedList<AutoTrajectory>();
+    String[] stepNames = {"RStoG","GtoPRO", "PROtoF", "FtoPRO", "PROtoE",
+    "EtoPRO", "PROtoD", "DtoPRO", "PROtoC", "CtoPRI", "PRItoB", "BtoPRI",
+    "PRItoA", "AtoPLI", "PLItoL", "LtoPLO", "PLOtoK", "KtoPLO", "PLOtoJ", 
+    "JtoPLO", "PLOtoI", "ItoPLO", "PLOtpH"};
+    for(String name:stepNames) {
+      steps.add(routine.trajectory(name));
+    }
+    
+   AutoTrajectory previous=null;
+   for(AutoTrajectory current:steps) {
+    if(previous==null) {
+      routine.active().whileTrue(Commands.sequence(current.resetOdometry(), current.cmd()));
+    } else {
+      routine
+      .observe(previous.done())
+      .onTrue(
+          Commands.sequence(
+              // score
+              Commands.waitSeconds(0.5)
+                  .raceWith(
+                      swerve.poseLockDriveCommand(
+                          () -> current.getInitialPose().orElse(Pose2d.kZero))),
+                          current.cmd()));       
+    }
+    previous=current;
+   }
+
+
+    // Steps with numeric part in name
+    /* 
+    for(int i=0;i<30;i++) {
+      list.add(routine.trajectory("Step_"+i));
+    }
+    */   
+/* 
+
+    routine.active().whileTrue(Commands.sequence(list.get(0).resetOdometry(), list.get(0).cmd()));
+
+    //for(var obj:list) {
+      //obj would be current item
+    //}
+
+    // Loop only works if list has at least 2 items
+    for(int i=0;i<list.size()-1;i++) {
+      final var current=list.get(i);
+      final var next=list.get(i+1);
+
+      routine
+      .observe(current.done())
+      .onTrue(
+          Commands.sequence(
+              // score
+              Commands.waitSeconds(0.5)
+                  .raceWith(
+                      swerve.poseLockDriveCommand(
+                          () -> next.getInitialPose().orElse(Pose2d.kZero))),
+                          next.cmd()));      
+    }
+
+*/
+    return routine.cmd();
+  }
+
 }
