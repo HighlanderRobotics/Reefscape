@@ -160,7 +160,111 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command CircleCoral() {
+
+  public Command SLMtoICMD() {
+    final var routine = factory.newRoutine("SLM to I");
+
+    LinkedList<AutoTrajectory> steps = new LinkedList<AutoTrajectory>();
+    String[] stepNames = {"SLMtoI","ItoPLO", "PLOtoL", "LtoPLO", "PLOtoK", "KtoPLO"};
+    for(String name:stepNames) {
+      steps.add(routine.trajectory(name));
+    }
+
+    routine
+    .observe(steps.get(0).done()) //SLMtoI
+    .onTrue(
+        Commands.sequence(
+            // score
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(1).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(1).cmd())); //ItoPLO
+routine
+    .observe(steps.get(1).done())
+    .onTrue(
+        Commands.sequence(
+            // intake
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(2).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(2).cmd())); //PLotoL
+routine
+    .observe(steps.get(2).done())
+    .onTrue(
+        Commands.sequence(
+            // score
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(3).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(3).cmd())); //LtoPLO
+routine
+    .observe(steps.get(3).done())
+    .onTrue(
+        Commands.sequence(
+            // intake
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(2).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(2).cmd())); //PLotoL
+routine
+    .observe(steps.get(2).done())
+    .onTrue(
+        Commands.sequence(
+            // score
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(3).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(3).cmd())); //LtoPLO
+routine
+    .observe(steps.get(3).done())
+    .onTrue(
+        Commands.sequence(
+            // intake
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(4).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(4).cmd())); //PLOtoK
+routine
+    .observe(steps.get(4).done())
+    .onTrue(
+        Commands.sequence(
+            // score
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(5).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(5).cmd())); //KtoPLO
+routine
+    .observe(steps.get(3).done())
+    .onTrue(
+        Commands.sequence(
+            // intake
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(4).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(4).cmd())); //PLOtoK
+routine
+    .observe(steps.get(4).done())
+    .onTrue(
+        Commands.sequence(
+            // score
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> steps.get(5).getInitialPose().orElse(Pose2d.kZero))),
+            steps.get(5).cmd())); //KtoPLO
+
+    return routine.cmd();
+   }
+
+  /* public Command CircleReef() {
     final var routine = factory.newRoutine("Circle the reef, scoring on L4");
 
     LinkedList<AutoTrajectory> steps = new LinkedList<AutoTrajectory>();
@@ -190,6 +294,7 @@ public class Autos {
     }
     previous=current;
    }
+    */
 
 
     // Steps with numeric part in name
@@ -224,7 +329,7 @@ public class Autos {
     }
 
 */
-    return routine.cmd();
-  }
+  //  return routine.cmd();
+ // }
 
 }
