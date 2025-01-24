@@ -32,6 +32,11 @@ public class AlphaSwerveConstants extends SwerveConstants {
   }
 
   @Override
+  public double getWheelRadiusMeters() {
+    return Units.inchesToMeters(1.875);
+  }
+
+  @Override
   public double getMaxLinearAcceleration() {
     return 14.0;
   }
