@@ -39,16 +39,16 @@ public class ShoulderIOReal implements ArmIO {
 
   public ShoulderIOReal() {
 
-    TalonFXConfiguration config = ShoulderIOReal.getDefaultConfiguration()
-        .withSlot0(
-            new Slot0Configs()
-                .withGravityType(GravityTypeValue.Arm_Cosine)
-                .withKG(0.0)
-                .withKP(0.0))
-                .withFeedback(
-                    new FeedbackConfigs()
-                        .withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO));
+    TalonFXConfiguration config = new TalonFXConfiguration();
 
+    config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
+    config.Slot0.kG = 0.0;
+    config.Slot0.kS = 0.0;
+    config.Slot0.kV = 0.0; 
+    config.Slot0.kA = 0.0;
+    config.Slot0.kP = 0.0;
+    config.Slot0.kD = 0.0;
+    config.Feedback = new FeedbackConfigs().withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO);
 
     motor = new TalonFX(11, "*");
     cancoder = new CANcoder(5, "*");
@@ -65,9 +65,9 @@ public class ShoulderIOReal implements ArmIO {
     cancoderConfig.MagnetSensor.MagnetOffset = 0.0;
 
 
-    config.Feedback.FeedbackRemoteSensorID = 5;
+    config.Feedback.FeedbackRemoteSensorID = ShoulderSubsystem.CANCODER_ID;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-    config.Feedback.SensorToMechanismRatio = 3;
+    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SENSOR_TO_MECHANISM_RATIO;
     config.Feedback.RotorToSensorRatio = ShoulderSubsystem.SHOULDER_GEAR_RATIO;
 
     cancoder.getConfigurator().apply(cancoderConfig);
@@ -104,15 +104,5 @@ public class ShoulderIOReal implements ArmIO {
   @Override
   public void setMotorPosition(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
-  }
-
-  public static TalonFXConfiguration getDefaultConfiguration() {
-    return new TalonFXConfiguration()
-        .withCurrentLimits(
-            new CurrentLimitsConfigs()
-                .withSupplyCurrentLimit(20.0)
-                .withSupplyCurrentLimitEnable(true))
-        .withSlot0(new Slot0Configs().withGravityType(GravityTypeValue.Arm_Cosine))
-        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
   }
 }
