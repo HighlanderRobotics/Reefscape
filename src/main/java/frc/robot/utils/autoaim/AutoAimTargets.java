@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import frc.robot.Robot;
 import java.util.Arrays;
+import java.util.List;
 
 public enum AutoAimTargets {
   // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls
@@ -45,6 +46,14 @@ public enum AutoAimTargets {
     this.leftHanded = leftHanded;
   }
 
+  private static final List<Pose2d> transformedPoses =
+      Arrays.stream(values())
+          .map(
+              (AutoAimTargets targets) -> {
+                return AutoAimTargets.getRobotTargetLocation(targets.location);
+              })
+          .toList();
+
   public static Pose2d getRobotTargetLocation(Pose2d original) {
     // 0.248 for trough
     return original.transformBy(
@@ -56,13 +65,7 @@ public enum AutoAimTargets {
 
   /** Gets the closest offset target to the given pose. */
   public static Pose2d getClosestTarget(Pose2d pose) {
-    return pose.nearest(
-        Arrays.stream(values())
-            .map(
-                (AutoAimTargets targets) -> {
-                  return AutoAimTargets.getRobotTargetLocation(targets.location);
-                })
-            .toList());
+    return pose.nearest(transformedPoses);
   }
 
   /** Gets the closest offset target to the given pose. */

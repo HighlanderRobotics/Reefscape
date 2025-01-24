@@ -37,9 +37,6 @@ import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
-import frc.robot.subsystems.intake.IntakePivotIOReal;
-import frc.robot.subsystems.intake.IntakePivotIOSim;
-import frc.robot.subsystems.intake.IntakePivotSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.vision.VisionIO;
@@ -49,7 +46,6 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.AutoAimTargets;
-import frc.robot.utils.autoaim.HumanPlayerTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -203,7 +199,7 @@ public class Robot extends LoggedRobot {
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
           ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
-          
+
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
           new RollerIOReal(
@@ -337,31 +333,7 @@ public class Robot extends LoggedRobot {
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
                         })
-                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75))));
-
-    driver
-        .leftTrigger()
-        .whileTrue(
-            AutoAim.translateToPose(
-                swerve,
-                () ->
-                    swerve
-                        .getPose()
-                        .nearest(
-                            Stream.of(HumanPlayerTargets.values())
-                                .map((target) -> target.location)
-                                .toList())));
-
-    driver
-        .start()
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  if (ROBOT_TYPE == RobotType.SIM) {
-                    swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
-                  }
-                }))
-        .onTrue(elevator.runCurrentZeroing());
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
         .rightTrigger()
@@ -387,6 +359,30 @@ public class Robot extends LoggedRobot {
                             }))
                     .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
                 driver.leftTrigger()));
+
+    // driver
+    //     .leftTrigger()
+    //     .whileTrue(
+    //         AutoAim.translateToPose(
+    //             swerve,
+    //             () ->
+    //                 swerve
+    //                     .getPose()
+    //                     .nearest(
+    //                         Stream.of(HumanPlayerTargets.values())
+    //                             .map((target) -> target.location)
+    //                             .toList())));
+
+    driver
+        .start()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (ROBOT_TYPE == RobotType.SIM) {
+                    swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
+                  }
+                }))
+        .onTrue(elevator.runCurrentZeroing());
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
