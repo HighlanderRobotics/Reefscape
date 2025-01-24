@@ -135,4 +135,8 @@ public abstract class SwerveConstants {
   }
 
   public abstract Mass getMass();
+
+  public abstract double getBumperWidth();
+
+  public abstract double getBumperLength();
 }
