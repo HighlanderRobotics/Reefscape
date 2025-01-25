@@ -161,30 +161,32 @@ public class PhoenixOdometryThread extends Thread implements OdometryThreadIO {
     while (true) {
       // Wait for updates from all signals
       var writeLock = journalLock.writeLock();
-      Tracer.trace(
-          "Odometry Thread",
-          () -> {
-            Tracer.trace(
-                "wait for all",
-                () -> BaseStatusSignal.waitForAll(2.0 / ODOMETRY_FREQUENCY_HZ, signalArr));
-            try {
-              writeLock.lock();
-              var filteredSignals =
-                  registeredSignals.stream()
-                      .filter(s -> s.signal().getStatus().equals(StatusCode.OK))
-                      .collect(Collectors.toSet());
-              journal.add(
-                  new Samples(
-                      timestampFor(filteredSignals),
-                      filteredSignals.stream()
-                          .collect(
-                              Collectors.toUnmodifiableMap(
-                                  s -> new SignalID(s.type(), s.modID()),
-                                  s -> s.signal().getValueAsDouble()))));
-            } finally {
-              writeLock.unlock();
-            }
-          });
+      // Tracer.trace(
+      // "Odometry Thread",
+      // () -> {
+      // Tracer.trace(
+      // "wait for all",
+      // () ->
+      BaseStatusSignal.waitForAll(2.0 / ODOMETRY_FREQUENCY_HZ, signalArr);
+      // );
+      try {
+        writeLock.lock();
+        var filteredSignals =
+            registeredSignals.stream()
+                .filter(s -> s.signal().getStatus().equals(StatusCode.OK))
+                .collect(Collectors.toSet());
+        journal.add(
+            new Samples(
+                timestampFor(filteredSignals),
+                filteredSignals.stream()
+                    .collect(
+                        Collectors.toUnmodifiableMap(
+                            s -> new SignalID(s.type(), s.modID()),
+                            s -> s.signal().getValueAsDouble()))));
+      } finally {
+        writeLock.unlock();
+      }
+      // });
     }
   }
 

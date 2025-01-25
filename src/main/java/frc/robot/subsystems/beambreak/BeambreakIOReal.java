@@ -7,7 +7,7 @@ public class BeambreakIOReal implements BeambreakIO {
   final DigitalInput beambreak;
 
   public BeambreakIOReal(int id, boolean invert) {
-    beambreak = invert ? new InvertedDigitalInput(0) : new DigitalInput(id);
+    beambreak = invert ? new InvertedDigitalInput(id) : new DigitalInput(id);
   }
 
   public void updateInputs(BeambreakIOInputsAutoLogged inputs) {
