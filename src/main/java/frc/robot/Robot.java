@@ -385,7 +385,7 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightTrigger()
-        .and(() -> manipulator.getSecondBeambreak())
+        .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
         .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
         .onFalse(
             Commands.either(
