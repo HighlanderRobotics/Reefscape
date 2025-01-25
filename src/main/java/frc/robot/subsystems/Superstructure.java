@@ -133,9 +133,10 @@ public class Superstructure {
   private void configureStateTransitionCommands() {
     stateTriggers
         .get(SuperState.IDLE)
-        // TODO impl other mechanism IDLE states
         .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.setVelocity(0.0));
+        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     // IDLE to coral intake
     stateTriggers
@@ -190,12 +191,16 @@ public class Superstructure {
 
     // No-op until intake becomes a thing
     stateTriggers.get(SuperState.INTAKE_CORAL_GROUND).onTrue(this.forceState(SuperState.IDLE));
+    // Intake coral ground to anti jam
+    stateTriggers.get(SuperState.INTAKE_CORAL_GROUND).and(antiJamReq).onTrue(forceState(SuperState.ANTI_JAM));
 
     stateTriggers
         .get(SuperState.READY_CORAL)
         // TODO add joints, maybe adjust other logic
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(manipulator.index()); // keep indexing to make sure its chilling
+    // Ready coral to anti jam
+    stateTriggers.get(SuperState.READY_CORAL).and(antiJamReq).onTrue(forceState(SuperState.ANTI_JAM));
 
     stateTriggers
         .get(SuperState.SPIT_CORAL)
@@ -205,6 +210,22 @@ public class Superstructure {
         .and(manipulator::getSecondBeambreak)
         .negate()
         .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.SPIT_CORAL)
+        .and(manipulator::getFirstBeambreak)
+        .negate()
+        .and(manipulator::getSecondBeambreak)
+        .negate()
+        .and(preClimbReq)
+        .onTrue(forceState(SuperState.PRE_CLIMB));
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     stateTriggers
         .get(SuperState.READY_CORAL)
@@ -274,7 +295,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .whileTrue(manipulator.setVelocity(() -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
-        .and(manipulator::getSecondBeambreak)
+        .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
@@ -287,14 +308,14 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(manipulator.index())
         .and(() -> manipulator.getFirstBeambreak())
-        .onTrue(this.forceState(SuperState.IDLE));
+        .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
         .whileTrue(manipulator.index())
         .and(() -> manipulator.getFirstBeambreak())
-        .onTrue(this.forceState(SuperState.IDLE));
+        .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
@@ -314,6 +335,13 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.READY_ALGAE)
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
+
+    stateTriggers
+        .get(SuperState.READY_ALGAE)
         .and(preClimbReq)
         .onTrue(forceState(SuperState.SPIT_ALGAE));
 
@@ -323,12 +351,6 @@ public class Superstructure {
         .and(() -> !manipulator.getFirstBeambreak())
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
-
-    stateTriggers
-        .get(SuperState.READY_ALGAE)
-        .whileTrue(elevator.setExtension(0.0))
-        .and(() -> elevator.isNearExtension(0.0)) // TODO: add retraction for elevator and intake
-        .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers.get(SuperState.PRE_PROCESSOR).whileTrue(elevator.setExtension(0.0));
 
