@@ -1,5 +1,7 @@
 package frc.robot.subsystems.swerve;
 
+import static edu.wpi.first.units.Units.Pound;
+
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -10,8 +12,6 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
-
-import static edu.wpi.first.units.Units.Pound;
 
 public class CompSwerveConstants extends SwerveConstants {
   @Override
@@ -174,7 +174,8 @@ public class CompSwerveConstants extends SwerveConstants {
   @Override
   public Mass getMass() {
     // Some materials not defined
-    // Not final: Funnel and climber not complete, I've added and extra 15 lbs for the unfinished sections
+    // Not final: Funnel and climber not complete, I've added and extra 15 lbs for the unfinished
+    // sections
     return Pound.of(153);
   }
 
