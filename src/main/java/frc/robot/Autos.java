@@ -171,17 +171,17 @@ public class Autos {
     return routine.cmd();
   }
 
-  public void runPath(AutoRoutine routine, AutoTrajectory currentPath, AutoTrajectory nextPath) {
+  public void runPath(AutoRoutine routine, AutoTrajectory currentPath, AutoTrajectory nextPath, Command cmd) {
     routine
-    .observe(currentPath.done()) //SLMtoI
+    .observe(currentPath.done()) 
     .onTrue(
         Commands.sequence(
-            // score
+            cmd,
             Commands.waitSeconds(0.5)
                 .raceWith(
                     swerve.poseLockDriveCommand(
                         () -> nextPath.getInitialPose().orElse(Pose2d.kZero))),
-            nextPath.cmd())); //ItoPLO
+            nextPath.cmd())); 
      routine.cmd();
 
   }
@@ -190,27 +190,17 @@ public class Autos {
     final var routine = factory.newRoutine("SLM to I");
 
     LinkedList<AutoTrajectory> steps = new LinkedList<AutoTrajectory>();
-    String[] stepNames = {"SLMtoI","ItoPLO", "PLOtoL", "LtoPLO", "PLOtoK", "KtoPLO"};
+    String[] stepNames = {"SLMtoI","ItoPLO", "PLOtoL", "LtoPLO", "PLOtoK", "KtoPLO", "PLOtoJ", "JtoPLO"};
     for(String name:stepNames) {
       steps.add(routine.trajectory(name));
     }
-    runPath(routine, steps.get(0), steps.get(1)); //Go to I
-    //score
-    runPath(routine, steps.get(1), steps.get(2)); // go to PLO
-    Commands.waitSeconds(0.5);
-    runPath(routine, steps.get(2), steps.get(3)); // go to L
-    //score
-    runPath(routine, steps.get(3), steps.get(2)); // go to PLO
-    Commands.waitSeconds(0.5);
-    runPath(routine, steps.get(2), steps.get(3)); //go to L
-    //score
-    runPath(routine, steps.get(3), steps.get(4)); // go to PLO
-    Commands.waitSeconds(0.5);
-    runPath(routine, steps.get(4), steps.get(5)); //go to K
-    //score
-    runPath(routine, steps.get(5), steps.get(4)); //go to PLO
-    Commands.waitSeconds(0.5);
-    runPath(routine, steps.get(4), steps.get(5)); // to to k
+    runPath(routine, steps.get(0), steps.get(1), scoreInAuto(steps.get(1).getFinalPose().get(), ReefTarget.L4)); //Go to I
+    runPath(routine, steps.get(1), steps.get(2), intakeInAuto(steps.get(2).getFinalPose().get())); // go to PLO
+    runPath(routine, steps.get(2), steps.get(3), scoreInAuto(steps.get(3).getFinalPose().get(), ReefTarget.L4)); // go to L
+    runPath(routine, steps.get(3), steps.get(4), intakeInAuto(steps.get(4).getFinalPose().get())); // go to PLO
+    runPath(routine, steps.get(4), steps.get(5), scoreInAuto(steps.get(5).getFinalPose().get(), ReefTarget.L4)); //go to K
+    runPath(routine, steps.get(5), steps.get(6), intakeInAuto(steps.get(6).getFinalPose().get())); // go to PLO
+    runPath(routine, steps.get(6), steps.get(7), scoreInAuto(steps.get(7).getFinalPose().get(), ReefTarget.L4)); //go to J
     
     return routine.cmd();
    }
@@ -248,6 +238,28 @@ Commands.race(
                     }))));
 
    }
+
+   public Command intakeInAuto(Pose2d pose) {
+
+    return Commands.sequence(
+      Commands.parallel(
+        AutoAim.translateToPose(
+            swerve, () -> pose),
+        Commands.waitUntil(
+                () -> {
+                  final var diff =
+                      swerve
+                          .getPose()
+                          .minus(pose);
+                  return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+                      && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                      && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                }),
+        Commands.waitUntil(
+          () -> manipulator.getSecondBeambreak()
+                )));
+    }
+
 
 /* 
 

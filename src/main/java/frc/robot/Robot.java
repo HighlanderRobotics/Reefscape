@@ -270,7 +270,7 @@ public class Robot extends LoggedRobot {
       swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
 
-    autos = new Autos(swerve);
+    autos = new Autos(swerve, manipulator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
