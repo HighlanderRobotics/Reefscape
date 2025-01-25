@@ -14,6 +14,7 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import java.net.IDN;
 
 import static frc.robot.subsystems.elevator.ElevatorSubsystem.L2_EXTENSION_METERS;
+import static frc.robot.subsystems.elevator.ElevatorSubsystem.L4_EXTENSION_METERS;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -31,19 +32,19 @@ public class Superstructure {
     PRE_L2,
     PRE_L3,
     PRE_L4,
-    SCORE_CORAL, // petro
-    ANTI_JAM, // sam
-    INTAKE_ALGAE_GROUND, // petro
-    INTAKE_ALGAE_HIGH, // sam
-    INTAKE_ALGAE_LOW, // petro
-    INTAKE_ALGAE_STACK, // sam
-    READY_ALGAE, // petro
-    SPIT_ALGAE, // sam
+    SCORE_CORAL, 
+    ANTI_JAM, 
+    INTAKE_ALGAE_GROUND, 
+    INTAKE_ALGAE_HIGH,
+    INTAKE_ALGAE_LOW,
+    INTAKE_ALGAE_STACK,
+    READY_ALGAE, 
+    SPIT_ALGAE, 
     PRE_PROCESSOR, // petro
-    PRE_NET, // sam
-    SCORE_ALGAE, // petro
+    PRE_NET, // petro
+    SCORE_ALGAE, // sam
     PRE_CLIMB, // sam
-    CLIMB // petro
+    CLIMB // sam
   }
 
   private final Supplier<Pose2d> pose;
@@ -328,6 +329,14 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(0.0)) // TODO: add retraction for elevator and intake
         .onTrue(this.forceState(SuperState.IDLE));
 
+    stateTriggers
+        .get(SuperState.PRE_PROCESSOR)
+        .whileTrue(elevator.setExtension(0.0));
+    
+    stateTriggers
+        .get(SuperState.PRE_NET)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS));
+        // TODO: set manipulator to net position
 
   }
 
