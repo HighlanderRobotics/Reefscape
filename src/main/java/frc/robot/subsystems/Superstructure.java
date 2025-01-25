@@ -45,9 +45,7 @@ public class Superstructure {
   private final Supplier<ReefTarget> reefTarget;
   private final Supplier<AlgaeReefTarget> algaeReefTarget;
 
-  /** Also triggered by scoreReq */
-  private final Trigger prescoreReq;
-
+  private final Trigger preScoreReq;
   private final Trigger scoreReq;
 
   private final Trigger groundIntakeCoralReq;
@@ -78,7 +76,7 @@ public class Superstructure {
       Supplier<ReefTarget> reefTarget,
       Supplier<AlgaeReefTarget> algaeReefTarget,
       Trigger scoreReq,
-      Trigger prescoreReq,
+      Trigger preScoreReq,
       Trigger groundIntakeCoralReq,
       Trigger hpIntakeCoralReq,
       Trigger groundIntakeAlgaeReq,
@@ -94,7 +92,7 @@ public class Superstructure {
     this.reefTarget = reefTarget;
     this.algaeReefTarget = algaeReefTarget;
 
-    this.prescoreReq = prescoreReq;
+    this.preScoreReq = preScoreReq;
     this.scoreReq = scoreReq;
 
     this.groundIntakeCoralReq = groundIntakeCoralReq;
@@ -167,6 +165,89 @@ public class Superstructure {
         .get(SuperState.IDLE)
         .and(preClimbReq)
         .onTrue(this.forceState(SuperState.PRE_CLIMB));
+
+    stateTriggers
+        .get(SuperState.INTAKE_CORAL_HP)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
+        .whileTrue(manipulator.indexCmd()) // TODO add joints, adjust manipulator behavior
+        .and(manipulator::getSecondBeambreak)
+        .onTrue(this.forceState(SuperState.READY_CORAL));
+
+    // No-op until intake becomes a thing
+    stateTriggers.get(SuperState.INTAKE_CORAL_GROUND).onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        // TODO add joints, maybe adjust other logic
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.indexCmd()); // keep indexing to make sure its chilling
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .and(preScoreReq)
+        .and(() -> reefTarget.get() == ReefTarget.L1)
+        .onTrue(this.forceState(SuperState.PRE_L1));
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .and(preScoreReq)
+        .and(() -> reefTarget.get() == ReefTarget.L2)
+        .onTrue(this.forceState(SuperState.PRE_L2));
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .and(preScoreReq)
+        .and(() -> reefTarget.get() == ReefTarget.L3)
+        .onTrue(this.forceState(SuperState.PRE_L3));
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .and(preScoreReq)
+        .and(() -> reefTarget.get() == ReefTarget.L4)
+        .onTrue(this.forceState(SuperState.PRE_L4));
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .and(preClimbReq)
+        .onTrue(this.forceState(SuperState.SPIT_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L1)
+        // TODO add joints and L1 constant
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.setVelocity(0.0))
+        .and(() -> elevator.isNearExtension(0.0))
+        .and(scoreReq)
+        .onTrue(this.forceState(SuperState.SCORE_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L2)
+        // TODO add joints
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
+        .whileTrue(manipulator.setVelocity(0.0))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
+        .and(scoreReq)
+        .onTrue(this.forceState(SuperState.SCORE_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L3)
+        // TODO add joints
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .whileTrue(manipulator.setVelocity(0.0))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .and(scoreReq)
+        .onTrue(this.forceState(SuperState.SCORE_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L4)
+        // TODO add joints
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
+        .whileTrue(manipulator.setVelocity(0.0))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
+        .and(scoreReq)
+        .onTrue(this.forceState(SuperState.SCORE_CORAL));
+    
+    stateTriggers.get(SuperState.SCORE_CORAL).
   }
 
   private Command forceState(SuperState nextState) {
