@@ -275,6 +275,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
     autoChooser.addOption("Cycle Demo", autos.getDCycle());
+    autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
