@@ -8,6 +8,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.AlgaeTarget;
 import frc.robot.Robot.ReefTarget;
+import frc.robot.subsystems.arm.ShoulderSubsystem;
+import frc.robot.subsystems.arm.WristSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import java.util.HashMap;
 import java.util.Map;
@@ -67,11 +69,15 @@ public class Superstructure {
 
   private final ElevatorSubsystem elevator;
   private final ManipulatorSubsystem manipulator;
+  private final ShoulderSubsystem shoulder;
+  private final WristSubsystem wrist;
   // Intake would be included here, but is cut from cad as of rn
 
   public Superstructure(
       ElevatorSubsystem elevator,
       ManipulatorSubsystem manipulator,
+      ShoulderSubsystem shoulder,
+      WristSubsystem wrist,
       Supplier<Pose2d> pose,
       Supplier<ChassisSpeeds> chassisVel,
       Supplier<ReefTarget> reefTarget,
@@ -87,6 +93,8 @@ public class Superstructure {
       Trigger antiJamReq) {
     this.elevator = elevator;
     this.manipulator = manipulator;
+    this.shoulder = shoulder;
+    this.wrist = wrist;
 
     this.pose = pose;
     this.chassisVel = chassisVel;
