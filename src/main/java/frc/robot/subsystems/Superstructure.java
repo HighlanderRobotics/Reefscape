@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -333,8 +334,9 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_NET)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS));
-    // TODO: set manipulator to net position
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(Rotation2d.fromDegrees(0.0))) // TODO: get correct angle
+        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(0.0))); // TODO: get correct angle
     stateTriggers
         .get(SuperState.PRE_NET)
         .or(stateTriggers.get(SuperState.PRE_PROCESSOR))
