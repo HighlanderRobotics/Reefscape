@@ -320,6 +320,7 @@ public class Superstructure {
         .get(SuperState.SPIT_ALGAE)
         .whileTrue(manipulator.setVelocity(-10))
         .and(() -> !manipulator.getFirstBeambreak())
+        .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
 
     stateTriggers
@@ -328,6 +329,29 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(0.0)) // TODO: add retraction for elevator and intake
         .onTrue(this.forceState(SuperState.IDLE));
 
+    stateTriggers
+        .get(SuperState.PRE_NET)
+        .or(stateTriggers.get(SuperState.PRE_PROCESSOR))
+        .and(scoreReq)
+        .onTrue(forceState(SuperState.SCORE_ALGAE));
+
+    stateTriggers
+        .get(SuperState.SCORE_ALGAE)
+        .whileTrue(manipulator.setVelocity(40))
+        // TODO: USE ALGAE BEAMBREAK
+        .and(manipulator::getFirstBeambreak)
+        .onFalse(forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.PRE_CLIMB)
+        // TODO: MAKE CLIMBER WORK
+        .and(climbCanReq)
+        .and(climbConfReq)
+        .onTrue(forceState(SuperState.CLIMB));
+
+    stateTriggers
+        .get(SuperState.CLIMB);
+        // TODO: MAKE CLIMBER WORK
 
   }
 
