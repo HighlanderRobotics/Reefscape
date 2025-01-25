@@ -5,13 +5,20 @@
 package frc.robot;
 
 import choreo.auto.AutoFactory;
+import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Robot.ReefTarget;
+import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.AutoAimTargets;
 
 import java.util.LinkedList;
 
@@ -19,10 +26,12 @@ import org.littletonrobotics.junction.Logger;
 
 public class Autos {
   private final SwerveSubsystem swerve;
+  private final ManipulatorSubsystem manipulator;
   private final AutoFactory factory;
 
-  public Autos(SwerveSubsystem swerve) {
+  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
     this.swerve = swerve;
+    this.manipulator = manipulator;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -119,6 +128,8 @@ public class Autos {
         return routine.cmd(); 
   }
 
+  
+
   public Command getDCycle() {
     final var routine = factory.newRoutine("Cycle RHS Start to D");
     final var startToD = routine.trajectory("RHStoD");
@@ -160,6 +171,20 @@ public class Autos {
     return routine.cmd();
   }
 
+  public void runPath(AutoRoutine routine, AutoTrajectory currentPath, AutoTrajectory nextPath) {
+    routine
+    .observe(currentPath.done()) //SLMtoI
+    .onTrue(
+        Commands.sequence(
+            // score
+            Commands.waitSeconds(0.5)
+                .raceWith(
+                    swerve.poseLockDriveCommand(
+                        () -> nextPath.getInitialPose().orElse(Pose2d.kZero))),
+            nextPath.cmd())); //ItoPLO
+     routine.cmd();
+
+  }
 
   public Command SLMtoICMD() {
     final var routine = factory.newRoutine("SLM to I");
@@ -169,100 +194,98 @@ public class Autos {
     for(String name:stepNames) {
       steps.add(routine.trajectory(name));
     }
-
-    routine
-    .observe(steps.get(0).done()) //SLMtoI
-    .onTrue(
-        Commands.sequence(
-            // score
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(1).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(1).cmd())); //ItoPLO
-routine
-    .observe(steps.get(1).done())
-    .onTrue(
-        Commands.sequence(
-            // intake
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(2).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(2).cmd())); //PLotoL
-routine
-    .observe(steps.get(2).done())
-    .onTrue(
-        Commands.sequence(
-            // score
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(3).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(3).cmd())); //LtoPLO
-routine
-    .observe(steps.get(3).done())
-    .onTrue(
-        Commands.sequence(
-            // intake
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(2).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(2).cmd())); //PLotoL
-routine
-    .observe(steps.get(2).done())
-    .onTrue(
-        Commands.sequence(
-            // score
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(3).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(3).cmd())); //LtoPLO
-routine
-    .observe(steps.get(3).done())
-    .onTrue(
-        Commands.sequence(
-            // intake
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(4).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(4).cmd())); //PLOtoK
-routine
-    .observe(steps.get(4).done())
-    .onTrue(
-        Commands.sequence(
-            // score
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(5).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(5).cmd())); //KtoPLO
-routine
-    .observe(steps.get(3).done())
-    .onTrue(
-        Commands.sequence(
-            // intake
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(4).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(4).cmd())); //PLOtoK
-routine
-    .observe(steps.get(4).done())
-    .onTrue(
-        Commands.sequence(
-            // score
-            Commands.waitSeconds(0.5)
-                .raceWith(
-                    swerve.poseLockDriveCommand(
-                        () -> steps.get(5).getInitialPose().orElse(Pose2d.kZero))),
-            steps.get(5).cmd())); //KtoPLO
-
+    runPath(routine, steps.get(0), steps.get(1)); //Go to I
+    //score
+    runPath(routine, steps.get(1), steps.get(2)); // go to PLO
+    Commands.waitSeconds(0.5);
+    runPath(routine, steps.get(2), steps.get(3)); // go to L
+    //score
+    runPath(routine, steps.get(3), steps.get(2)); // go to PLO
+    Commands.waitSeconds(0.5);
+    runPath(routine, steps.get(2), steps.get(3)); //go to L
+    //score
+    runPath(routine, steps.get(3), steps.get(4)); // go to PLO
+    Commands.waitSeconds(0.5);
+    runPath(routine, steps.get(4), steps.get(5)); //go to K
+    //score
+    runPath(routine, steps.get(5), steps.get(4)); //go to PLO
+    Commands.waitSeconds(0.5);
+    runPath(routine, steps.get(4), steps.get(5)); // to to k
+    
     return routine.cmd();
    }
+
+   public Command scoreInAuto(Pose2d pose, ReefTarget target) {
+
+    return Commands.sequence(
+      Commands.parallel(
+        AutoAim.translateToPose(
+            swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())),
+        Commands.waitUntil(
+                () -> {
+                  final var diff =
+                      swerve
+                          .getPose()
+                          .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                  return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+                      && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                      && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                }),
+Commands.race(
+                Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+                manipulator.setVelocity(
+                    () -> target == ReefTarget.L1 ? 12.0 : 100.0))
+            .andThen(
+                Commands.waitSeconds(0.75),
+                Commands.waitUntil(
+                    () -> {
+                      final var diff =
+                          swerve
+                              .getPose()
+                              .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                      return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
+                          && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+                    }))));
+
+   }
+
+/* 
+
+  public Command scoreInAuto(Pose2d pose, ReefTarget target) {
+    return Commands.sequence(
+      Commands.parallel(
+        AutoAim.translateToPose(swerve, () -> pose)),
+        Commands.waitUntil(
+          () -> {
+            final var diff =
+              swerve
+                .getPose()
+                .minus(AutoAimTargets.getClosestTrget(swerve.getPose()));
+            return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+            &&MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+            && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+
+          }),
+    Commands.race(
+      Commands.waitUntil(()-> !manipulator.getSecondBeambreak()),
+      manipulator.setVelocity(
+        () -> currentTarget == ReefTarget.L1 ? 12.0: 100.0)
+      .andThen(
+        Commands.waitSeconds(0.75),
+        Commands.waitUntil(
+          () -> {
+            final var diff =
+              swerve
+                .getPose()
+                .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+              return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
+                && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+
+          }
+          ))));
+        
+   }
+   */       
 
   /* public Command CircleReef() {
     final var routine = factory.newRoutine("Circle the reef, scoring on L4");
