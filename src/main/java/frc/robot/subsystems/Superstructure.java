@@ -8,7 +8,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.AlgaeReefTarget;
 import frc.robot.Robot.ReefTarget;
+import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+
+import static frc.robot.subsystems.elevator.ElevatorSubsystem.L2_EXTENSION_METERS;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -25,19 +29,19 @@ public class Superstructure {
     PRE_L2,
     PRE_L3,
     PRE_L4,
-    SCORE_CORAL,
-    ANTI_JAM,
-    INTAKE_ALGAE_GROUND,
-    INTAKE_ALGAE_HIGH,
-    INTAKE_ALGAE_LOW,
-    INTAKE_ALGAE_STACK,
-    READY_ALGAE,
-    SPIT_ALGAE,
-    PRE_PROCESSOR,
-    PRE_NET,
-    SCORE_ALGAE,
-    PRE_CLIMB,
-    CLIMB
+    SCORE_CORAL, // petro
+    ANTI_JAM, // sam
+    INTAKE_ALGAE_GROUND, // petro
+    INTAKE_ALGAE_HIGH, // sam
+    INTAKE_ALGAE_LOW, // petro
+    INTAKE_ALGAE_STACK, // sam
+    READY_ALGAE, // petro
+    SPIT_ALGAE, // sam
+    PRE_PROCESSOR, // petro
+    PRE_NET, // sam
+    SCORE_ALGAE, // petro
+    PRE_CLIMB, // sam
+    CLIMB // petro
   }
 
   private final Supplier<Pose2d> pose;
@@ -183,6 +187,13 @@ public class Superstructure {
         .whileTrue(manipulator.indexCmd()); // keep indexing to make sure its chilling
 
     stateTriggers
+        .get(SuperState.SPIT_CORAL)
+        .whileTrue(manipulator.setVelocity(10))
+        .and(manipulator::getFirstBeambreak).negate()
+        .and(manipulator::getSecondBeambreak).negate()
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
         .get(SuperState.READY_CORAL)
         .and(preScoreReq)
         .and(() -> reefTarget.get() == ReefTarget.L1)
@@ -247,7 +258,34 @@ public class Superstructure {
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
     
-    stateTriggers.get(SuperState.SCORE_CORAL).
+    stateTriggers
+        .get(SuperState.SCORE_CORAL)
+        .whileTrue(manipulator.setVelocity(
+            () -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
+            .and(manipulator::getSecondBeambreak)
+            .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.indexCmd())
+        .and(() -> manipulator.getFirstBeambreak())
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_LOW)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
+        .whileTrue(manipulator.indexCmd())
+        .and(() -> manipulator.getFirstBeambreak())
+        .onTrue(this.forceState(SuperState.IDLE));
+    
+    stateTriggers
+        .get(SuperState.READY_ALGAE)
+        .whileTrue(elevator.setExtension(0.0))
+        .and(() -> elevator.isNearExtension(0.0)) // TODO: add retraction for elevator and intake
+        .onTrue(this.forceState(SuperState.IDLE));
+
+
   }
 
   private Command forceState(SuperState nextState) {
