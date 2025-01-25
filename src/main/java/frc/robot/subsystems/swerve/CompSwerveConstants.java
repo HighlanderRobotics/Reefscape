@@ -26,9 +26,8 @@ import frc.robot.subsystems.vision.Vision;
 public class CompSwerveConstants extends SwerveConstants {
   @Override
   public double getMaxLinearSpeed() {
-    // (Max speed of motor (5800 rpm) in rads/sec / gear ratio) * radius of wheel (according to
-    // Google AI
-    return (Units.rotationsToRadians(5800.0 / 60) / getDriveGearRatio()) * getWheelRadiusMeters();
+    // From https://www.swervedrivespecialties.com/products/mk4n-swerve-module, L2+ with KrakenX60 and FOC
+    return 17.1;
   }
 
   @Override
