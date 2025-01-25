@@ -192,7 +192,10 @@ public class Superstructure {
     // No-op until intake becomes a thing
     stateTriggers.get(SuperState.INTAKE_CORAL_GROUND).onTrue(this.forceState(SuperState.IDLE));
     // Intake coral ground to anti jam
-    stateTriggers.get(SuperState.INTAKE_CORAL_GROUND).and(antiJamReq).onTrue(forceState(SuperState.ANTI_JAM));
+    stateTriggers
+        .get(SuperState.INTAKE_CORAL_GROUND)
+        .and(antiJamReq)
+        .onTrue(forceState(SuperState.ANTI_JAM));
 
     stateTriggers
         .get(SuperState.READY_CORAL)
@@ -200,7 +203,10 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(manipulator.index()); // keep indexing to make sure its chilling
     // Ready coral to anti jam
-    stateTriggers.get(SuperState.READY_CORAL).and(antiJamReq).onTrue(forceState(SuperState.ANTI_JAM));
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .and(antiJamReq)
+        .onTrue(forceState(SuperState.ANTI_JAM));
 
     stateTriggers
         .get(SuperState.SPIT_CORAL)
