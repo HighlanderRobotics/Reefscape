@@ -17,7 +17,7 @@ public class WristIOSim implements ArmIO {
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
           WristSubsystem.WRIST_GEAR_RATIO,
-          0.05,
+          0.15,
           Units.inchesToMeters(14.9),
           WristSubsystem.MIN_ARM_ROTATION.getRadians(),
           WristSubsystem.MAX_ARM_ROTATION.getRadians(),
