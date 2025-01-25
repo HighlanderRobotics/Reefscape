@@ -57,4 +57,6 @@ public interface ModuleIO {
 
   /** Use onboard PIDF to run the turn motor to the specified rotation */
   public void setTurnSetpoint(final Rotation2d rotation);
+
+  public void setCurrent(final double amps);
 }

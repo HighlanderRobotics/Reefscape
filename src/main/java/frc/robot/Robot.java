@@ -8,10 +8,14 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -20,6 +24,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -28,16 +33,18 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
-import frc.robot.subsystems.intake.IntakePivotIOReal;
-import frc.robot.subsystems.intake.IntakePivotIOSim;
-import frc.robot.subsystems.intake.IntakePivotSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.swerve.*;
+import frc.robot.subsystems.vision.VisionIO;
+import frc.robot.subsystems.vision.VisionIOReal;
+import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
@@ -55,6 +62,9 @@ import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
@@ -84,7 +94,7 @@ public class Robot extends LoggedRobot {
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.ALPHA;
 
   public static enum ReefTarget {
-    L1(0.0),
+    L1(ElevatorSubsystem.L1_EXTENSION_METERS),
     L2(ElevatorSubsystem.L2_EXTENSION_METERS),
     L3(ElevatorSubsystem.L3_EXTENSION_METERS),
     L4(ElevatorSubsystem.L4_EXTENSION_METERS);
@@ -156,13 +166,13 @@ public class Robot extends LoggedRobot {
           ROBOT_TYPE == RobotType.REAL
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
               : new GyroIOSim(swerveDriveSimulation.get().getGyroSimulation()),
-          // Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
-          //     .map(
-          //         (constants) ->
-          //             ROBOT_TYPE == RobotType.REAL
-          //                 ? new VisionIOReal(constants)
-          //                 : new VisionIOSim(constants))
-          //     .toArray(VisionIO[]::new),
+          Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
+              .map(
+                  (constants) ->
+                      ROBOT_TYPE == RobotType.REAL
+                          ? new VisionIOReal(constants)
+                          : new VisionIOSim(constants))
+              .toArray(VisionIO[]::new),
           ROBOT_TYPE == RobotType.REAL
               ? new ModuleIO[] {
                 new ModuleIOReal(
@@ -202,19 +212,37 @@ public class Robot extends LoggedRobot {
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
           ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
-  private final IntakePivotSubsystem intakePivot =
-      new IntakePivotSubsystem(
-          ROBOT_TYPE == RobotType.REAL ? new IntakePivotIOReal() : new IntakePivotIOSim());
+
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
           new RollerIOReal(
               10,
               RollerIOReal.getDefaultConfig()
+                  .withMotorOutput(
+                      new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
                   .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(1.0))),
-          new BeambreakIOReal(0, false),
-          new BeambreakIOReal(1, false));
-  public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
+                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))),
+          new BeambreakIOReal(0, true),
+          new BeambreakIOReal(1, true));
+
+  private final ShoulderSubsystem shoulder =
+      new ShoulderSubsystem(
+          ROBOT_TYPE == RobotType.REAL ? new ShoulderIOReal() : new ShoulderIOSim());
+  private final WristSubsystem wrist =
+      new WristSubsystem(
+          ROBOT_TYPE == RobotType.REAL
+              ? new ArmIOReal(
+                  12,
+                  ArmIOReal.getDefaultConfiguration()
+                      .withSlot0(
+                          new Slot0Configs()
+                              .withGravityType(GravityTypeValue.Arm_Cosine)
+                              .withKG(0.0)
+                              .withKP(0.0))
+                      .withFeedback(
+                          new FeedbackConfigs()
+                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
+              : new WristIOSim());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -222,6 +250,22 @@ public class Robot extends LoggedRobot {
   // Main benefit to that is reducing startup time, which idt we care about too much
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
 
+  // Mechanisms
+  private final LoggedMechanism2d elevatorMech2d =
+      new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
+  private final LoggedMechanismRoot2d
+      elevatorRoot = // CAD distance from origin to center of carriage at full retraction
+      elevatorMech2d.getRoot("Elevator", Units.inchesToMeters(21.5), 0.0);
+  private final LoggedMechanismLigament2d carriageLigament =
+      new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
+  private final LoggedMechanismLigament2d shoulderLigament =
+      new LoggedMechanismLigament2d(
+          "Arm", Units.inchesToMeters(15.7), ShoulderSubsystem.SHOULDER_RETRACTED_POS.getDegrees());
+  private final LoggedMechanismLigament2d wristLigament =
+      new LoggedMechanismLigament2d(
+          "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
+
+  @SuppressWarnings("resource")
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
     SignalLogger.enableAutoLogging(false);
@@ -275,7 +319,16 @@ public class Robot extends LoggedRobot {
     if (ROBOT_TYPE == RobotType.SIM) {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
       swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+      // global static is mildly questionable
+      VisionIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+    } else {
+      // this should never be called?
+      VisionIOSim.pose = () -> new Pose3d();
     }
+    // Add the arms and stuff
+    elevatorRoot.append(carriageLigament);
+    carriageLigament.append(shoulderLigament);
+    shoulderLigament.append(wristLigament);
 
     autos = new Autos(swerve);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
@@ -292,28 +345,88 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    elevator.setDefaultCommand(elevator.runCurrentZeroing().andThen(elevator.setExtension(0.0)));
+    new Trigger(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak())
+        .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
-    intakePivot.setDefaultCommand(intakePivot.setTargetAngle(IntakePivotSubsystem.RETRACTED_ANGLE));
+    elevator.setDefaultCommand(
+        Commands.sequence(
+            elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
+            elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
+            elevator.setVoltage(0.0)));
 
-    manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
+    manipulator.setDefaultCommand(manipulator.index());
+
+    shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
+
+    wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
             () ->
                 new ChassisSpeeds(
-                    modifyJoystick(driver.getLeftY())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                    modifyJoystick(driver.getLeftX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                    modifyJoystick(driver.getRightX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())));
+                        modifyJoystick(driver.getLeftY())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                        modifyJoystick(driver.getLeftX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                        modifyJoystick(driver.getRightX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
+                    .times(-1)));
 
     driver
         .rightBumper()
         .whileTrue(
-            AutoAim.translateToPose(
-                swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())));
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())),
+                Commands.waitUntil(
+                        () -> {
+                          final var diff =
+                              swerve
+                                  .getPose()
+                                  .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                        })
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightTrigger()
+        .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
+        .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
+        .onFalse(
+            Commands.either(
+                manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
+                Commands.race(
+                        Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+                        manipulator.setVelocity(
+                            () -> currentTarget == ReefTarget.L1 ? 12.0 : 100.0))
+                    .andThen(
+                        Commands.waitSeconds(0.75),
+                        Commands.waitUntil(
+                            () -> {
+                              final var diff =
+                                  swerve
+                                      .getPose()
+                                      .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                              return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
+                                  && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+                            }))
+                    .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
+                driver.leftTrigger()));
+
+    // driver
+    //     .leftTrigger()
+    //     .whileTrue(
+    //         AutoAim.translateToPose(
+    //             swerve,
+    //             () ->
+    //                 swerve
+    //                     .getPose()
+    //                     .nearest(
+    //                         Stream.of(HumanPlayerTargets.values())
+    //                             .map((target) -> target.location)
+    //                             .toList())));
 
     driver
         .start()
@@ -323,16 +436,8 @@ public class Robot extends LoggedRobot {
                   if (ROBOT_TYPE == RobotType.SIM) {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
-                }));
-
-    driver
-        .rightTrigger()
-        .whileTrue(
-            Commands.parallel(
-                elevator.setExtension(() -> currentTarget.elevatorHeight),
-                Commands.waitUntil(() -> elevator.isNearExtension(currentTarget.elevatorHeight))
-                    .andThen(manipulator.setVelocity(MANIPULATOR_INDEXING_VELOCITY))))
-        .onFalse(elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)));
+                }))
+        .onTrue(elevator.runCurrentZeroing());
 
     operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
@@ -395,6 +500,12 @@ public class Robot extends LoggedRobot {
           new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
         });
     Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
+
+    carriageLigament.setLength(elevator.getExtensionMeters());
+    // Minus 90 to make it relative to horizontal
+    shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
+    wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
+    Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
   }
 
   @Override

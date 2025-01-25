@@ -5,6 +5,7 @@
 package frc.robot.subsystems.elevator;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -26,14 +27,20 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(51.8);
 
-  public static final double L2_EXTENSION_METERS = Units.inchesToMeters(8.7);
-  public static final double L3_EXTENSION_METERS = Units.inchesToMeters(26.0);
-  public static final double L4_EXTENSION_METERS = Units.inchesToMeters(50.3);
+  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(6.0);
+  public static final double L2_EXTENSION_METERS = Units.inchesToMeters(9.0);
+  public static final double L3_EXTENSION_METERS = Units.inchesToMeters(24.5);
+  public static final double L4_EXTENSION_METERS = Units.inchesToMeters(49.6);
 
   public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
+
+  private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
+  public double currentFilterValue = 0.0;
+
+  public boolean hasZeroed = false;
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -47,14 +54,13 @@ public class ElevatorSubsystem extends SubsystemBase {
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
-
-    root.append(carriage);
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Elevator", inputs);
+    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
 
     carriage.setLength(inputs.positionMeters);
     Logger.recordOutput("Elevator/Mechanism2d", mech2d);
@@ -77,28 +83,45 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command runCurrentZeroing() {
     return this.run(
             () -> {
-              io.setVoltage(-1.0);
+              io.setVoltage(-0.5);
               Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> inputs.statorCurrentAmps > 40.0)
-        .finallyDo(() -> io.resetEncoder(0.0));
+        .until(() -> currentFilterValue > 20.0)
+        .finallyDo(
+            (interrupted) -> {
+              if (!interrupted) {
+                io.resetEncoder(0.0);
+                hasZeroed = true;
+              }
+            });
+  }
+
+  public Command setVoltage(double voltage) {
+    return this.run(
+        () -> {
+          io.setVoltage(voltage);
+        });
+  }
+
+  public Command setVoltage(DoubleSupplier voltage) {
+    return this.setVoltage(voltage.getAsDouble());
   }
 
   public Pose3d getCarriagePose() {
     return new Pose3d(
-        Units.inchesToMeters(4.5) + carriage.getLength() * ELEVATOR_ANGLE.getCos(),
+        Units.inchesToMeters(4.5) + inputs.positionMeters * ELEVATOR_ANGLE.getCos(),
         0.0,
-        Units.inchesToMeters(7.0) + carriage.getLength() * ELEVATOR_ANGLE.getSin(),
+        Units.inchesToMeters(7.0) + inputs.positionMeters * ELEVATOR_ANGLE.getSin(),
         new Rotation3d());
   }
 
   public Pose3d getFirstStagePose() {
     return new Pose3d(
         Units.inchesToMeters(2.25)
-            + (carriage.getLength() / 2.0) * Math.cos(ELEVATOR_ANGLE.getRadians()),
+            + (inputs.positionMeters / 2.0) * Math.cos(ELEVATOR_ANGLE.getRadians()),
         0.0,
         Units.inchesToMeters(4.25)
-            + (carriage.getLength() / 2.0) * Math.sin(ELEVATOR_ANGLE.getRadians()),
+            + (inputs.positionMeters / 2.0) * Math.sin(ELEVATOR_ANGLE.getRadians()),
         new Rotation3d());
   }
 

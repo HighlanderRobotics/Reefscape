@@ -127,4 +127,10 @@ public class ModuleIOSim implements ModuleIO {
     setTurnVoltage(
         turnController.calculate(turnSim.getAngularPositionRotations(), rotation.getRotations()));
   }
+
+  @Override
+  public void setCurrent(double amps) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setCurrent'");
+  }
 }
