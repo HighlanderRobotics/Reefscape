@@ -26,7 +26,8 @@ import frc.robot.subsystems.vision.Vision;
 public class CompSwerveConstants extends SwerveConstants {
   @Override
   public double getMaxLinearSpeed() {
-    // From https://www.swervedrivespecialties.com/products/mk4n-swerve-module, L2+ with KrakenX60 and FOC
+    // From https://www.swervedrivespecialties.com/products/mk4n-swerve-module, L2+ with KrakenX60
+    // and FOC
     return 17.1;
   }
 
