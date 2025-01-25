@@ -9,9 +9,19 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
+import frc.robot.subsystems.vision.Vision;
 
 public class CompSwerveConstants extends SwerveConstants {
   @Override
@@ -157,6 +167,49 @@ public class CompSwerveConstants extends SwerveConstants {
     turnConfig.ClosedLoopGeneral.ContinuousWrap = true;
 
     return turnConfig;
+  }
+
+  @Override
+  public Vision.VisionConstants[] getVisionConstants() {
+    // Copied from Alpha
+    final Matrix<N3, N3> CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(),
+            Nat.N3(),
+            901.8012064300815,
+            0.0,
+            830.4004635040717,
+            0.0,
+            903.1944838156696,
+            704.0648345598304,
+            0.0,
+            0.0,
+            1.0);
+    final Matrix<N8, N1> DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(),
+            Nat.N1(),
+            0.05096564042945532,
+            -0.08005742255822096,
+            9.362839975047e-5,
+            -2.1069595324007255e-5,
+            0.03230467950441941,
+            -0.0037459354189258794,
+            0.012202835675939619,
+            0.0034143496721838872);
+
+    return new Vision.VisionConstants[] {
+        new Vision.VisionConstants(
+            "Camera",
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(2.200),
+                    Units.inchesToMeters(9.250),
+                    Units.inchesToMeters(17.750)),
+                new Rotation3d(0, 0, 0)),
+            CAMERA_MATRIX,
+            DIST_COEFFS)
+    };
   }
 
   @Override
