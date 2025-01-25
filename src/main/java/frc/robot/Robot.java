@@ -96,10 +96,11 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static enum AlgaeReefTarget {
+  public static enum AlgaeTarget {
     LOW,
     HIGH,
-    STACK
+    STACK,
+    GROUND
   }
 
   private ReefTarget currentTarget = ReefTarget.L1;
