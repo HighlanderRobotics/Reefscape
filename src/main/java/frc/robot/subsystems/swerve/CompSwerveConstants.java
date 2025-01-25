@@ -57,25 +57,25 @@ public class CompSwerveConstants extends SwerveConstants {
   @Override
   public Module.ModuleConstants getFrontLeftModule() {
     return new Module.ModuleConstants(
-        0, "Front Left", 0, 1, 0, Rotation2d.fromRotations(-0.215088 + 0.5));
+        0, "Front Left", 0, 1, 0, Rotation2d.kZero);
   }
 
   @Override
   public Module.ModuleConstants getFrontRightModule() {
     return new Module.ModuleConstants(
-        1, "Front Right", 2, 3, 1, Rotation2d.fromRotations(-0.48974609375 + 0.5));
+        1, "Front Right", 2, 3, 1, Rotation2d.kZero);
   }
 
   @Override
   public Module.ModuleConstants getBackLeftModule() {
     return new Module.ModuleConstants(
-        2, "Back Left", 4, 5, 2, Rotation2d.fromRotations(0.226807 + 0.5));
+        2, "Back Left", 4, 5, 2, Rotation2d.kZero);
   }
 
   @Override
   public Module.ModuleConstants getBackRightModule() {
     return new Module.ModuleConstants(
-        3, "Back Right", 6, 7, 3, Rotation2d.fromRotations(0.206787 + 0.5));
+        3, "Back Right", 6, 7, 3, Rotation2d.kZero);
   }
 
   @Override
@@ -174,9 +174,8 @@ public class CompSwerveConstants extends SwerveConstants {
   @Override
   public Mass getMass() {
     // Some materials not defined
-    // Not final: Funnel and climber not complete, I've added and extra 15 lbs for the unfinished
-    // sections
-    return Pound.of(153);
+    // Not final: Funnel and climber not complete, I've just set it to max robot weight
+    return Pound.of(148);
   }
 
   @Override
