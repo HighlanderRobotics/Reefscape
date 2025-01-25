@@ -175,7 +175,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_CORAL_HP)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(manipulator.indexCmd()) // TODO add joints, adjust manipulator behavior
+        .whileTrue(manipulator.index()) // TODO add joints, adjust manipulator behavior
         .and(manipulator::getSecondBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
@@ -186,7 +186,7 @@ public class Superstructure {
         .get(SuperState.READY_CORAL)
         // TODO add joints, maybe adjust other logic
         .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.indexCmd()); // keep indexing to make sure its chilling
+        .whileTrue(manipulator.index()); // keep indexing to make sure its chilling
 
     stateTriggers
         .get(SuperState.SPIT_CORAL)
@@ -276,21 +276,21 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.indexCmd())
+        .whileTrue(manipulator.index())
         .and(() -> manipulator.getFirstBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
-        .whileTrue(manipulator.indexCmd())
+        .whileTrue(manipulator.index())
         .and(() -> manipulator.getFirstBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
-        .whileTrue(manipulator.indexCmd())
+        .whileTrue(manipulator.index())
         // TODO: ADD MANIPULATOR ALGAE BEAMBREAK
         .and(manipulator::getFirstBeambreak)
         .onTrue(forceState(SuperState.READY_ALGAE));
@@ -298,7 +298,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_STACK)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
-        .whileTrue(manipulator.indexCmd())
+        .whileTrue(manipulator.index())
         // TODO: ADD MANIPULATOR ALGAE BEAMBREAK
         .and(manipulator::getFirstBeambreak)
         .onTrue(forceState(SuperState.READY_ALGAE));
