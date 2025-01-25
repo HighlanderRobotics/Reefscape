@@ -8,10 +8,12 @@ import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.KilogramSquareMeters;
 import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
+import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -20,6 +22,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
@@ -29,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
@@ -55,6 +59,9 @@ import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGReader;
@@ -209,11 +216,45 @@ public class Robot extends LoggedRobot {
           new BeambreakIOReal(1, false));
   public static final double MANIPULATOR_INDEXING_VELOCITY = 50.0;
 
+  private final ShoulderSubsystem shoulder =
+      new ShoulderSubsystem(
+          ROBOT_TYPE == RobotType.REAL ? new ShoulderIOReal() : new ShoulderIOSim());
+  private final WristSubsystem wrist =
+      new WristSubsystem(
+          ROBOT_TYPE == RobotType.REAL
+              ? new ArmIOReal(
+                  12,
+                  ArmIOReal.getDefaultConfiguration()
+                      .withSlot0(
+                          new Slot0Configs()
+                              .withGravityType(GravityTypeValue.Arm_Cosine)
+                              .withKG(0.0)
+                              .withKP(0.0))
+                      .withFeedback(
+                          new FeedbackConfigs()
+                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
+              : new WristIOSim());
+
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
   // Main benefit to that is reducing startup time, which idt we care about too much
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
+
+  // Mechanisms
+  private final LoggedMechanism2d elevatorMech2d =
+      new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
+  private final LoggedMechanismRoot2d
+      elevatorRoot = // CAD distance from origin to center of carriage at full retraction
+      elevatorMech2d.getRoot("Elevator", Units.inchesToMeters(21.5), 0.0);
+  private final LoggedMechanismLigament2d carriageLigament =
+      new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
+  private final LoggedMechanismLigament2d shoulderLigament =
+      new LoggedMechanismLigament2d(
+          "Arm", Units.inchesToMeters(15.7), ShoulderSubsystem.SHOULDER_RETRACTED_POS.getDegrees());
+  private final LoggedMechanismLigament2d wristLigament =
+      new LoggedMechanismLigament2d(
+          "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
 
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -269,6 +310,10 @@ public class Robot extends LoggedRobot {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
       swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
+    // Add the arms and stuff
+    elevatorRoot.append(carriageLigament);
+    carriageLigament.append(shoulderLigament);
+    shoulderLigament.append(wristLigament);
 
     autos = new Autos(swerve);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
@@ -290,6 +335,10 @@ public class Robot extends LoggedRobot {
     intakePivot.setDefaultCommand(intakePivot.setTargetAngle(IntakePivotSubsystem.RETRACTED_ANGLE));
 
     manipulator.setDefaultCommand(manipulator.setVelocity(0.0));
+
+    shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
+
+    wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
@@ -388,6 +437,12 @@ public class Robot extends LoggedRobot {
           new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d())
         });
     Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
+
+    carriageLigament.setLength(elevator.getExtensionMeters());
+    // Minus 90 to make it relative to horizontal
+    shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
+    wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
+    Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
   }
 
   @Override
