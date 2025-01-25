@@ -3,7 +3,6 @@ package frc.robot.subsystems.arm;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
-import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -33,8 +32,16 @@ public class ShoulderIOReal implements ArmIO {
   private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
 
   public ShoulderIOReal() {
+    motor = new TalonFX(11, "*");
+    cancoder = new CANcoder(ShoulderSubsystem.CANCODER_ID, "*");
 
-    TalonFXConfiguration config = new TalonFXConfiguration();
+    angularVelocityRPS = motor.getVelocity();
+    temp = motor.getDeviceTemp();
+    supplyCurrentAmps = motor.getSupplyCurrent();
+    statorCurrentAmps = motor.getStatorCurrent();
+    motorPositionRotations = motor.getPosition();
+
+    final TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
     config.Slot0.kG = 0.0;
@@ -43,26 +50,20 @@ public class ShoulderIOReal implements ArmIO {
     config.Slot0.kA = 0.0;
     config.Slot0.kP = 0.0;
     config.Slot0.kD = 0.0;
-    config.Feedback =
-        new FeedbackConfigs().withSensorToMechanismRatio(ShoulderSubsystem.SHOULDER_GEAR_RATIO);
 
-    motor = new TalonFX(11, "*");
-    cancoder = new CANcoder(5, "*");
+    // guesses
+    config.MotionMagic.MotionMagicCruiseVelocity = 2.0;
+    config.MotionMagic.MotionMagicAcceleration = 10.0;
 
-    angularVelocityRPS = motor.getVelocity();
-    temp = motor.getDeviceTemp();
-    supplyCurrentAmps = motor.getSupplyCurrent();
-    statorCurrentAmps = motor.getStatorCurrent();
-    motorPositionRotations = motor.getPosition();
-
-    CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
+    final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
     cancoderConfig.MagnetSensor.MagnetOffset = 0.0;
 
     config.Feedback.FeedbackRemoteSensorID = ShoulderSubsystem.CANCODER_ID;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SENSOR_TO_MECHANISM_RATIO;
-    config.Feedback.RotorToSensorRatio = ShoulderSubsystem.SHOULDER_GEAR_RATIO;
+    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+    config.Feedback.RotorToSensorRatio =
+        ShoulderSubsystem.SHOULDER_GEAR_RATIO / ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
 
     cancoder.getConfigurator().apply(cancoderConfig);
     motor.getConfigurator().apply(config);

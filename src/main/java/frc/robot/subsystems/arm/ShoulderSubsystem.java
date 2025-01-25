@@ -8,8 +8,8 @@ import org.littletonrobotics.junction.Logger;
 
 public class ShoulderSubsystem extends SubsystemBase {
   // TODO: UPDATE WITH CAD
-  public static final double SHOULDER_GEAR_RATIO = 27 * (34 / 28); // guess fom CAD;
-  public static final double SENSOR_TO_MECHANISM_RATIO = 3.0;
+  public static final double SHOULDER_FINAL_STAGE_RATIO = 3.0;
+  public static final double SHOULDER_GEAR_RATIO = 9.0 * (34.0 / 28.0) * SHOULDER_FINAL_STAGE_RATIO;
   public static final int CANCODER_ID = 5;
   public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(185.0);
   public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
