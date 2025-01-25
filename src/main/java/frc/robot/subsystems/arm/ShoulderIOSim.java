@@ -17,8 +17,8 @@ public class ShoulderIOSim implements ArmIO {
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
           ShoulderSubsystem.SHOULDER_GEAR_RATIO,
-          0.05,
-          Units.inchesToMeters(26.04),
+          0.3,
+          Units.inchesToMeters(13.5),
           ShoulderSubsystem.MIN_SHOULDER_ROTATION.getRadians(),
           ShoulderSubsystem.MAX_SHOULDER_ROTATION.getRadians(),
           true,
