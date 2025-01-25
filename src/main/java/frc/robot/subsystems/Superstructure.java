@@ -270,9 +270,30 @@ public class Superstructure {
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
     stateTriggers
+        .get(SuperState.SCORE_CORAL)
+        .whileTrue(manipulator.setVelocity(
+            () -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
+        .and(manipulator::getSecondBeambreak)
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
         .get(SuperState.ANTI_JAM)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .onFalse(forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.indexCmd())
+        .and(() -> manipulator.getFirstBeambreak())
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_LOW)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
+        .whileTrue(manipulator.indexCmd())
+        .and(() -> manipulator.getFirstBeambreak())
+        .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
@@ -300,31 +321,6 @@ public class Superstructure {
         .whileTrue(manipulator.setVelocity(-10))
         .and(() -> !manipulator.getFirstBeambreak())
         .onTrue(forceState(SuperState.PRE_CLIMB));
-
-
-
-
-
-    stateTriggers
-        .get(SuperState.SCORE_CORAL)
-        .whileTrue(manipulator.setVelocity(
-            () -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
-            .and(manipulator::getSecondBeambreak)
-            .onTrue(this.forceState(SuperState.IDLE));
-
-    stateTriggers
-        .get(SuperState.INTAKE_ALGAE_GROUND)
-        .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.indexCmd())
-        .and(() -> manipulator.getFirstBeambreak())
-        .onTrue(this.forceState(SuperState.IDLE));
-
-    stateTriggers
-        .get(SuperState.INTAKE_ALGAE_LOW)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
-        .whileTrue(manipulator.indexCmd())
-        .and(() -> manipulator.getFirstBeambreak())
-        .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.READY_ALGAE)
