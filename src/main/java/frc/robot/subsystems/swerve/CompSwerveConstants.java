@@ -66,26 +66,22 @@ public class CompSwerveConstants extends SwerveConstants {
 
   @Override
   public Module.ModuleConstants getFrontLeftModule() {
-    return new Module.ModuleConstants(
-        0, "Front Left", 0, 1, 0, Rotation2d.kZero);
+    return new Module.ModuleConstants(0, "Front Left", 0, 1, 0, Rotation2d.kZero);
   }
 
   @Override
   public Module.ModuleConstants getFrontRightModule() {
-    return new Module.ModuleConstants(
-        1, "Front Right", 2, 3, 1, Rotation2d.kZero);
+    return new Module.ModuleConstants(1, "Front Right", 2, 3, 1, Rotation2d.kZero);
   }
 
   @Override
   public Module.ModuleConstants getBackLeftModule() {
-    return new Module.ModuleConstants(
-        2, "Back Left", 4, 5, 2, Rotation2d.kZero);
+    return new Module.ModuleConstants(2, "Back Left", 4, 5, 2, Rotation2d.kZero);
   }
 
   @Override
   public Module.ModuleConstants getBackRightModule() {
-    return new Module.ModuleConstants(
-        3, "Back Right", 6, 7, 3, Rotation2d.kZero);
+    return new Module.ModuleConstants(3, "Back Right", 6, 7, 3, Rotation2d.kZero);
   }
 
   @Override
@@ -199,16 +195,16 @@ public class CompSwerveConstants extends SwerveConstants {
             0.0034143496721838872);
 
     return new Vision.VisionConstants[] {
-        new Vision.VisionConstants(
-            "Camera",
-            new Transform3d(
-                new Translation3d(
-                    Units.inchesToMeters(2.200),
-                    Units.inchesToMeters(9.250),
-                    Units.inchesToMeters(17.750)),
-                new Rotation3d(0, 0, 0)),
-            CAMERA_MATRIX,
-            DIST_COEFFS)
+      new Vision.VisionConstants(
+          "Camera",
+          new Transform3d(
+              new Translation3d(
+                  Units.inchesToMeters(2.200),
+                  Units.inchesToMeters(9.250),
+                  Units.inchesToMeters(17.750)),
+              new Rotation3d(0, 0, 0)),
+          CAMERA_MATRIX,
+          DIST_COEFFS)
     };
   }
 
