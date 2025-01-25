@@ -8,14 +8,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.AlgaeTarget;
 import frc.robot.Robot.ReefTarget;
-import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
-
-import java.net.IDN;
-
-import static frc.robot.subsystems.elevator.ElevatorSubsystem.L2_EXTENSION_METERS;
-import static frc.robot.subsystems.elevator.ElevatorSubsystem.L4_EXTENSION_METERS;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -177,10 +170,7 @@ public class Superstructure {
         .onTrue(this.forceState(SuperState.PRE_CLIMB));
 
     // IDLE to ANTI_JAM
-    stateTriggers
-        .get(SuperState.IDLE)
-        .and(antiJamReq)
-        .onTrue(forceState(SuperState.ANTI_JAM));
+    stateTriggers.get(SuperState.IDLE).and(antiJamReq).onTrue(forceState(SuperState.ANTI_JAM));
 
     stateTriggers
         .get(SuperState.INTAKE_CORAL_HP)
@@ -201,8 +191,10 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SPIT_CORAL)
         .whileTrue(manipulator.setVelocity(10))
-        .and(manipulator::getFirstBeambreak).negate()
-        .and(manipulator::getSecondBeambreak).negate()
+        .and(manipulator::getFirstBeambreak)
+        .negate()
+        .and(manipulator::getSecondBeambreak)
+        .negate()
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
@@ -272,8 +264,7 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.SCORE_CORAL)
-        .whileTrue(manipulator.setVelocity(
-            () -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
+        .whileTrue(manipulator.setVelocity(() -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
         .and(manipulator::getSecondBeambreak)
         .onTrue(this.forceState(SuperState.IDLE));
 
@@ -330,14 +321,12 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(0.0)) // TODO: add retraction for elevator and intake
         .onTrue(this.forceState(SuperState.IDLE));
 
-    stateTriggers
-        .get(SuperState.PRE_PROCESSOR)
-        .whileTrue(elevator.setExtension(0.0));
+    stateTriggers.get(SuperState.PRE_PROCESSOR).whileTrue(elevator.setExtension(0.0));
 
     stateTriggers
         .get(SuperState.PRE_NET)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS));
-        // TODO: set manipulator to net position
+    // TODO: set manipulator to net position
     stateTriggers
         .get(SuperState.PRE_NET)
         .or(stateTriggers.get(SuperState.PRE_PROCESSOR))
@@ -358,9 +347,8 @@ public class Superstructure {
         .and(climbConfReq)
         .onTrue(forceState(SuperState.CLIMB));
 
-    stateTriggers
-        .get(SuperState.CLIMB);
-        // TODO: MAKE CLIMBER WORK
+    stateTriggers.get(SuperState.CLIMB);
+    // TODO: MAKE CLIMBER WORK
 
   }
 
