@@ -52,8 +52,6 @@ public class ElevatorSubsystem extends SubsystemBase {
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
-
-    root.append(carriage);
   }
 
   @Override
@@ -109,19 +107,19 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Pose3d getCarriagePose() {
     return new Pose3d(
-        Units.inchesToMeters(4.5) + carriage.getLength() * ELEVATOR_ANGLE.getCos(),
+        Units.inchesToMeters(4.5) + inputs.positionMeters * ELEVATOR_ANGLE.getCos(),
         0.0,
-        Units.inchesToMeters(7.0) + carriage.getLength() * ELEVATOR_ANGLE.getSin(),
+        Units.inchesToMeters(7.0) + inputs.positionMeters * ELEVATOR_ANGLE.getSin(),
         new Rotation3d());
   }
 
   public Pose3d getFirstStagePose() {
     return new Pose3d(
         Units.inchesToMeters(2.25)
-            + (carriage.getLength() / 2.0) * Math.cos(ELEVATOR_ANGLE.getRadians()),
+            + (inputs.positionMeters / 2.0) * Math.cos(ELEVATOR_ANGLE.getRadians()),
         0.0,
         Units.inchesToMeters(4.25)
-            + (carriage.getLength() / 2.0) * Math.sin(ELEVATOR_ANGLE.getRadians()),
+            + (inputs.positionMeters / 2.0) * Math.sin(ELEVATOR_ANGLE.getRadians()),
         new Rotation3d());
   }
 

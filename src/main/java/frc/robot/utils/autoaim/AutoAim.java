@@ -48,15 +48,9 @@ public class AutoAim {
             () -> {
               cachedTarget[0] = target.get();
               Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
-              headingController.reset(
-                  swerve.getPose().getRotation().getRadians(),
-                  0.0);
-              vxController.reset(
-                  swerve.getPose().getX(),
-                  0.0);
-              vyController.reset(
-                  swerve.getPose().getY(),
-                  0.0);
+              headingController.reset(swerve.getPose().getRotation().getRadians(), 0.0);
+              vxController.reset(swerve.getPose().getX(), 0.0);
+              vyController.reset(swerve.getPose().getY(), 0.0);
             })
         .andThen(
             swerve.driveVelocityFieldRelative(
