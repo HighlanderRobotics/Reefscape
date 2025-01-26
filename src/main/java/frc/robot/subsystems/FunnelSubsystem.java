@@ -6,9 +6,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerIOInputsAutoLogged;
 import frc.robot.subsystems.servo.ServoIO;
-import frc.robot.subsystems.servo.ServoIO.ServoIOInputs;
 import frc.robot.subsystems.servo.ServoIOInputsAutoLogged;
-
 import org.littletonrobotics.junction.Logger;
 
 public class FunnelSubsystem extends SubsystemBase {
@@ -49,8 +47,6 @@ public class FunnelSubsystem extends SubsystemBase {
 
   /** DO NOT RUN IF YOU WANT TO SCORE MORE CORAL */
   public Command unlatch() {
-    return this.runOnce(() -> 
-      latchIO.setPosition(LATCH_OPEN_POSITION)
-    );
+    return this.runOnce(() -> latchIO.setPosition(LATCH_OPEN_POSITION));
   }
 }
