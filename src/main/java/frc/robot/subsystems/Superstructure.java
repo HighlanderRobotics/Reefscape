@@ -58,7 +58,7 @@ public class Superstructure {
 
   private final Trigger preClimbReq;
   private final Trigger climbConfReq;
-  private final Trigger climbCanReq;
+  private final Trigger climbCancelReq;
 
   private final Trigger antiJamReq;
 
@@ -90,7 +90,7 @@ public class Superstructure {
       Trigger intakeAlgaeReq,
       Trigger climbReq,
       Trigger climbConfReq,
-      Trigger climbCanReq,
+      Trigger climbCancelReq,
       Trigger antiJamReq) {
     this.elevator = elevator;
     this.manipulator = manipulator;
@@ -112,7 +112,7 @@ public class Superstructure {
 
     this.preClimbReq = climbReq;
     this.climbConfReq = climbConfReq;
-    this.climbCanReq = climbCanReq;
+    this.climbCancelReq = climbCancelReq;
 
     this.antiJamReq = antiJamReq;
 
@@ -214,18 +214,14 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SPIT_CORAL)
         .whileTrue(manipulator.setVelocity(10))
-        .and(manipulator::getFirstBeambreak)
-        .negate()
-        .and(manipulator::getSecondBeambreak)
-        .negate()
+        .and(() -> !manipulator.getFirstBeambreak())
+        .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.SPIT_CORAL)
-        .and(manipulator::getFirstBeambreak)
-        .negate()
-        .and(manipulator::getSecondBeambreak)
-        .negate()
+        .and(() -> !manipulator.getFirstBeambreak())
+        .and(() -> !manipulator.getSecondBeambreak())
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
 
@@ -305,7 +301,11 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.ANTI_JAM)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS));
+
+    stateTriggers
+        .get(SuperState.ANTI_JAM)
+        .and(antiJamReq)
         .onFalse(forceState(SuperState.IDLE));
 
     stateTriggers
@@ -326,7 +326,7 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
         .whileTrue(manipulator.index())
         // TODO: ADD MANIPULATOR ALGAE BEAMBREAK
         .and(manipulator::getFirstBeambreak)
@@ -382,12 +382,14 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.PRE_CLIMB)
         // TODO: MAKE CLIMBER WORK
-        .and(climbCanReq)
         .and(climbConfReq)
         .onTrue(forceState(SuperState.CLIMB));
 
     stateTriggers.get(SuperState.CLIMB);
     // TODO: MAKE CLIMBER WORK
+
+    // May need more checks to see if canceling is safe
+    stateTriggers.get(SuperState.CLIMB).and(climbCancelReq).onTrue(forceState(SuperState.IDLE));
 
   }
 
