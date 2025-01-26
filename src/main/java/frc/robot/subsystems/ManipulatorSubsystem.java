@@ -51,6 +51,10 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         setVelocity(-INDEXING_VELOCITY).until(() -> !secondBBInputs.get), index());
   }
 
+  public double getVoltage() {
+    return io.getVoltage();
+  }
+
   public boolean getFirstBeambreak() {
     return firstBBInputs.get;
   }

@@ -59,4 +59,11 @@ public class RollerIOSim implements RollerIO {
   public void registerSimulationCallback(Consumer<RollerIOInputsAutoLogged> callback) {
     this.callback = Optional.of(callback);
   }
+
+  @Override
+  public double getVoltage() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getVoltage'");
+  }
+
 }

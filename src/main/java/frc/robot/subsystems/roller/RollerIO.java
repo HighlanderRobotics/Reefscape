@@ -27,6 +27,7 @@ public interface RollerIO {
 
   public void setVelocity(double velocityRPS);
 
+  public double getVoltage();
   /**
    * This method is meant to set a function to be called alongside updateInput to update a
    * simulation, such as for routing simulation

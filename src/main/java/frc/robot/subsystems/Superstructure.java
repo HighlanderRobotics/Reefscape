@@ -310,30 +310,28 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(manipulator.index())
-        .and(() -> manipulator.getFirstBeambreak())
+        .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
         .whileTrue(manipulator.index())
-        .and(() -> manipulator.getFirstBeambreak())
+        .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
         .whileTrue(manipulator.index())
-        // TODO: ADD MANIPULATOR ALGAE BEAMBREAK
-        .and(manipulator::getFirstBeambreak)
+        .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_STACK)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .whileTrue(manipulator.index())
-        // TODO: ADD MANIPULATOR ALGAE BEAMBREAK
-        .and(manipulator::getFirstBeambreak)
+        .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(forceState(SuperState.READY_ALGAE));
 
     stateTriggers
