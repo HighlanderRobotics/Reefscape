@@ -107,14 +107,19 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static enum AlgaeTarget {
+  public static enum AlgaeIntakeTarget {
     LOW,
     HIGH,
     STACK,
     GROUND
   }
 
+  public static enum AlgaeScoreTarget {
+    NET, PROCESSOR
+  }
+
   private ReefTarget currentTarget = ReefTarget.L1;
+  private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
   private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
@@ -276,7 +281,7 @@ public class Robot extends LoggedRobot {
           swerve::getVelocityFieldRelative,
           () -> currentTarget,
           // TODO: ADD ACTUAL TARGET VARIABLE
-          () -> AlgaeTarget.LOW,
+          () -> AlgaeIntakeTarget.LOW,
           driver.leftTrigger(),
           driver.rightTrigger(),
           new Trigger(() -> false),
@@ -412,31 +417,35 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    driver
-        .rightTrigger()
-        .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
-        .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
-        .onFalse(
-            Commands.either(
-                manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
-                Commands.race(
-                        Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                        manipulator.setVelocity(
-                            () -> currentTarget == ReefTarget.L1 ? 12.0 : 100.0))
-                    .andThen(
-                        Commands.waitSeconds(0.75),
-                        Commands.waitUntil(
-                            () -> {
-                              final var diff =
-                                  swerve
-                                      .getPose()
-                                      .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-                              return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
-                                  && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
-                            }))
-                    .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
-                driver.leftTrigger()));
+    // driver
+    //     .rightTrigger()
+    //     .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
+    //     .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
+    //     .onFalse(
+    //         Commands.either(
+    //             manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
+    //             Commands.race(
+    //                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+    //                     manipulator.setVelocity(
+    //                         () -> currentTarget == ReefTarget.L1 ? 12.0 : 100.0))
+    //                 .andThen(
+    //                     Commands.waitSeconds(0.75),
+    //                     Commands.waitUntil(
+    //                         () -> {
+    //                           final var diff =
+    //                               swerve
+    //                                   .getPose()
+    //                                   .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+    //                           return !(MathUtil.isNear(0.0, diff.getX(),
+    // Units.inchesToMeters(6.0))
+    //                               && MathUtil.isNear(0.0, diff.getY(),
+    // Units.inchesToMeters(6.0)));
+    //                         }))
+    //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
+    //             driver.leftTrigger()));
 
+    driver.povUp().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
+    driver.povDown().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
     // driver
     //     .leftTrigger()
     //     .whileTrue(

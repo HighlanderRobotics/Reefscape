@@ -6,7 +6,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Robot.AlgaeTarget;
+import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.arm.ShoulderSubsystem;
 import frc.robot.subsystems.arm.WristSubsystem;
@@ -45,7 +45,7 @@ public class Superstructure {
   private final Supplier<Pose2d> pose;
   private final Supplier<ChassisSpeeds> chassisVel;
   private final Supplier<ReefTarget> reefTarget;
-  private final Supplier<AlgaeTarget> algaeTarget;
+  private final Supplier<AlgaeIntakeTarget> algaeTarget;
 
   private final Trigger preScoreReq;
   private final Trigger scoreReq;
@@ -81,7 +81,7 @@ public class Superstructure {
       Supplier<Pose2d> pose,
       Supplier<ChassisSpeeds> chassisVel,
       Supplier<ReefTarget> reefTarget,
-      Supplier<AlgaeTarget> algaeTarget,
+      Supplier<AlgaeIntakeTarget> algaeTarget,
       Trigger scoreReq,
       Trigger preScoreReq,
       Trigger groundIntakeCoralReq,
@@ -137,7 +137,7 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
-    // IDLE to coral intake
+    // IDLE -> INTAKE_CORAL_{HP/GROUND}
     stateTriggers
         .get(SuperState.IDLE)
         .and(hpIntakeCoralReq)
@@ -148,39 +148,40 @@ public class Superstructure {
         .and(groundIntakeCoralReq)
         .onTrue(this.forceState(SuperState.INTAKE_CORAL_GROUND));
 
-    // IDLE to algae intake
+    // IDLE -> INTAKE_ALGAE_{location}
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeTarget.GROUND)
+        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.GROUND)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_GROUND));
 
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeTarget.HIGH)
+        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.HIGH)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_HIGH));
 
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeTarget.LOW)
+        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.LOW)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_LOW));
 
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeTarget.STACK)
+        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.STACK)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_STACK));
-    // IDLE to climb
+    // IDLE -> PRE_CLIMB
     stateTriggers
         .get(SuperState.IDLE)
         .and(preClimbReq)
         .onTrue(this.forceState(SuperState.PRE_CLIMB));
 
-    // IDLE to ANTI_JAM
+    // IDLE -> ANTI_JAM
     stateTriggers.get(SuperState.IDLE).and(antiJamReq).onTrue(forceState(SuperState.ANTI_JAM));
 
+    // INTAKE_CORAL_HP logic
     stateTriggers
         .get(SuperState.INTAKE_CORAL_HP)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
@@ -192,44 +193,44 @@ public class Superstructure {
 
     // No-op until intake becomes a thing
     stateTriggers.get(SuperState.INTAKE_CORAL_GROUND).onTrue(this.forceState(SuperState.IDLE));
-    // Intake coral ground to anti jam
+    // INTAKE_CORAL_GROUND -> ANTI_JAM
     stateTriggers
         .get(SuperState.INTAKE_CORAL_GROUND)
         .and(antiJamReq)
         .onTrue(forceState(SuperState.ANTI_JAM));
-
+    // READY_CORAL logic
     stateTriggers
         .get(SuperState.READY_CORAL)
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(manipulator.index()); // keep indexing to make sure its chilling
-    // Ready coral to anti jam
+    // READY_CORAL -> ANTI_JAM
     stateTriggers
         .get(SuperState.READY_CORAL)
         .and(antiJamReq)
         .onTrue(forceState(SuperState.ANTI_JAM));
-
+    // SPIT_CORAL logic + -> IDLE
     stateTriggers
         .get(SuperState.SPIT_CORAL)
         .whileTrue(manipulator.setVelocity(10))
         .and(() -> !manipulator.getFirstBeambreak())
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
-
+    // SPIT_CORAL -> PRE_CLIMB
     stateTriggers
         .get(SuperState.SPIT_CORAL)
         .and(() -> !manipulator.getFirstBeambreak())
         .and(() -> !manipulator.getSecondBeambreak())
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
-
+    // READY_CORAL -> PRE_L{1-4}
     stateTriggers
         .get(SuperState.READY_CORAL)
         .and(preScoreReq)
         .and(() -> reefTarget.get() == ReefTarget.L1)
         .onTrue(this.forceState(SuperState.PRE_L1));
-
+    
     stateTriggers
         .get(SuperState.READY_CORAL)
         .and(preScoreReq)
@@ -247,12 +248,12 @@ public class Superstructure {
         .and(preScoreReq)
         .and(() -> reefTarget.get() == ReefTarget.L4)
         .onTrue(this.forceState(SuperState.PRE_L4));
-
+    // READY_CORAL -> SPIT_CORAL
     stateTriggers
         .get(SuperState.READY_CORAL)
         .and(preClimbReq)
         .onTrue(this.forceState(SuperState.SPIT_CORAL));
-
+    // PRE_L{1-4} logic + -> SCORE_CORAL
     stateTriggers
         .get(SuperState.PRE_L1)
         // TODO add joints and L1 constant
@@ -291,19 +292,19 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
-
+    // SCORE_CORAL -> IDLE
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .whileTrue(manipulator.setVelocity(() -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
-
+    // ANTI_JAM logic
     stateTriggers
         .get(SuperState.ANTI_JAM)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS));
-
+    // ANTI_JAM -> IDLE
     stateTriggers.get(SuperState.ANTI_JAM).and(antiJamReq).onFalse(forceState(SuperState.IDLE));
-
+    // INTAKE_ALGAE_{location} -> READY_ALGAE
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(elevator.setExtension(0.0))
@@ -333,7 +334,7 @@ public class Superstructure {
         .whileTrue(manipulator.index())
         .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(forceState(SuperState.READY_ALGAE));
-
+    // READY_ALGAE logic
     stateTriggers
         .get(SuperState.READY_ALGAE)
         .whileTrue(elevator.setExtension(0.0))
@@ -343,16 +344,22 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.READY_ALGAE)
+        .and(scoreReq)
+        .onTrue(forceState(SuperState.PRE_NET));
+    
+    // READY_ALGAE -> SPIT_ALGAE
+    stateTriggers
+        .get(SuperState.READY_ALGAE)
         .and(preClimbReq)
         .onTrue(forceState(SuperState.SPIT_ALGAE));
-
+    // SPIT_ALGAE -> PRE_CLIMB
     stateTriggers
         .get(SuperState.SPIT_ALGAE)
         .whileTrue(manipulator.setVelocity(-10))
         .and(() -> !manipulator.getFirstBeambreak())
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
-
+    // PRE_PROCESSOR logic
     stateTriggers.get(SuperState.PRE_PROCESSOR).whileTrue(elevator.setExtension(0.0));
 
     stateTriggers

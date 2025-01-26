@@ -19,6 +19,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
       secondBBInputs = new BeambreakIOInputsAutoLogged();
 
+  private boolean bb1 = false;
+  private boolean bb2 = false;
+
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
     super(rollerIO, NAME);
@@ -56,10 +59,18 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public boolean getFirstBeambreak() {
-    return firstBBInputs.get;
+    return firstBBInputs.get || bb1;
   }
 
   public boolean getSecondBeambreak() {
-    return secondBBInputs.get;
+    return secondBBInputs.get || bb2;
+  }
+
+  public void setFirstBeambreak(boolean state) {
+    bb1 = state;
+  }
+
+  public void setSecondBeambreak(boolean state) {
+    bb2 = state;
   }
 }
