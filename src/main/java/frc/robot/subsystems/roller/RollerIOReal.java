@@ -93,4 +93,10 @@ public class RollerIOReal implements RollerIO {
   public void registerSimulationCallback(Consumer<RollerIOInputsAutoLogged> callback) {
     this.callback = Optional.of(callback);
   }
+
+  @Override
+  public double getVoltage() {
+      return motor.getMotorVoltage().getValue().magnitude();
+  }
+
 }
