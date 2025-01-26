@@ -119,9 +119,10 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   public void startOdoThread() {
-    //I don't love this but it seems to work
+    // I don't love this but it seems to work
     odoThread.start();
   }
+
   public void periodic() {
     Tracer.trace(
         "SwervePeriodic",
