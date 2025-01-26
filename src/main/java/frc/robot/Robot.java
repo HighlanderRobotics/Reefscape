@@ -319,10 +319,14 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
+        .or(driver.leftBumper())
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
-                    swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())),
+                    swerve,
+                    () ->
+                        AutoAimTargets.getHandedClosestTarget(
+                            swerve.getPose(), driver.leftBumper().getAsBoolean())),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
