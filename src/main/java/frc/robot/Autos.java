@@ -187,47 +187,44 @@ public class Autos {
     final var routine = factory.newRoutine("SLM to I");
 
     LinkedList<AutoTrajectory> steps = new LinkedList<AutoTrajectory>();
-    String[] stepNames = {
-      "SLMtoI", "ItoPLO", "PLOtoL", "LtoPLO", "PLOtoK", "KtoPLO", "PLOtoJ", "JtoPLO"
-    };
+    String[] stepNames = {"SLMtoI", "ItoPLO", "PLOtoL", "LtoPLO", "PLOtoK", "KtoPLO", "PLOtoJ"};
     for (String name : stepNames) {
       steps.add(routine.trajectory(name));
     }
-    runPath(
-        routine,
-        steps.get(0),
-        steps.get(1),
-        scoreInAuto(steps.get(1).getFinalPose(), ReefTarget.L4)); // Go to I
-    runPath(
-        routine,
-        steps.get(1),
-        steps.get(2),
-        intakeInAuto(steps.get(2).getFinalPose())); // go to PLO
-    runPath(
-        routine,
-        steps.get(2),
-        steps.get(3),
-        scoreInAuto(steps.get(3).getFinalPose(), ReefTarget.L4)); // go to L
-    runPath(
-        routine,
-        steps.get(3),
-        steps.get(4),
-        intakeInAuto(steps.get(4).getFinalPose())); // go to PLO
-    runPath(
-        routine,
-        steps.get(4),
-        steps.get(5),
-        scoreInAuto(steps.get(5).getFinalPose(), ReefTarget.L4)); // go to K
-    runPath(
-        routine,
-        steps.get(5),
-        steps.get(6),
-        intakeInAuto(steps.get(6).getFinalPose())); // go to PLO
-    runPath(
-        routine,
-        steps.get(6),
-        steps.get(7),
-        scoreInAuto(steps.get(7).getFinalPose(), ReefTarget.L4)); // go to J
+    routine.active().whileTrue(Commands.sequence(steps.get(0).resetOdometry(), steps.get(0).cmd()));
+    // routine
+    //   .observe(steps.get(0).done())
+    // .onTrue(scoreInAuto(steps.get(0).getFinalPose(), ReefTarget.L4));
+    // runPath(
+    //     routine,
+    //     steps.get(0),
+    //     steps.get(1),
+    //     intakeInAuto(steps.get(1).getFinalPose())); // go to PLO
+    // runPath(
+    //     routine,
+    //     steps.get(1),
+    //     steps.get(2),
+    //     scoreInAuto(steps.get(2).getFinalPose(), ReefTarget.L4)); // go to L
+    // runPath(
+    //     routine,
+    //     steps.get(2),
+    //     steps.get(3),
+    //     intakeInAuto(steps.get(3).getFinalPose())); // go to PLO
+    // runPath(
+    //     routine,
+    //     steps.get(3),
+    //     steps.get(4),
+    //     scoreInAuto(steps.get(4).getFinalPose(), ReefTarget.L4)); // go to K
+    // runPath(
+    //     routine,
+    //     steps.get(4),
+    //     steps.get(5),
+    //     intakeInAuto(steps.get(5).getFinalPose())); // go to PLO
+    // runPath(
+    //     routine,
+    //     steps.get(5),
+    //     steps.get(6),
+    //     scoreInAuto(steps.get(6).getFinalPose(), ReefTarget.L4)); // go to J
 
     return routine.cmd();
   }

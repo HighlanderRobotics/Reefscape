@@ -17,8 +17,12 @@ public class AlphaSwerveConstants extends SwerveConstants {
   @Override
   public double getMaxLinearSpeed() {
     // (Max speed of motor (5800 rpm) in rads/sec / gear ratio) * radius of wheel (according to
-    // Google AI
-    return (Units.rotationsToRadians(5800.0 / 60) / getDriveGearRatio()) * getWheelRadiusMeters();
+    // // Google AI
+    // return (Units.rotationsToRadians(5800.0 / 60) / getDriveGearRatio()) *
+    // getWheelRadiusMeters();
+
+    // From SDS
+    return Units.feetToMeters(17.1);
   }
 
   @Override
