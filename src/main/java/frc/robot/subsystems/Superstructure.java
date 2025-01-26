@@ -186,7 +186,7 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(manipulator.index()) // TODO add joints, adjust manipulator behavior
+        .whileTrue(manipulator.index())
         .and(manipulator::getSecondBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
@@ -255,8 +255,9 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_L1)
-        // TODO add joints and L1 constant
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(scoreReq)
@@ -369,7 +370,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_ALGAE)
         .whileTrue(manipulator.setVelocity(40))
-        // TODO: USE ALGAE BEAMBREAK
+        .and(() -> manipulator.getVoltage() < 0.0)
         .and(manipulator::getFirstBeambreak)
         .onFalse(forceState(SuperState.IDLE));
 
