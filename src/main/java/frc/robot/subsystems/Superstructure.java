@@ -302,10 +302,7 @@ public class Superstructure {
         .get(SuperState.ANTI_JAM)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS));
 
-    stateTriggers
-        .get(SuperState.ANTI_JAM)
-        .and(antiJamReq)
-        .onFalse(forceState(SuperState.IDLE));
+    stateTriggers.get(SuperState.ANTI_JAM).and(antiJamReq).onFalse(forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
@@ -389,7 +386,6 @@ public class Superstructure {
 
     // May need more checks to see if canceling is safe
     stateTriggers.get(SuperState.CLIMB).and(climbCancelReq).onTrue(forceState(SuperState.IDLE));
-
   }
 
   private Command forceState(SuperState nextState) {
