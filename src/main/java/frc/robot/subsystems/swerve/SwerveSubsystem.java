@@ -74,6 +74,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private double lastOdometryUpdateTimestamp = 0.0;
 
   private final Optional<SwerveDriveSimulation> simulation;
+  private final boolean useModuleFF = Robot.isReal();
 
   private Alert usingSyncOdometryAlert = new Alert("Using Sync Odometry", AlertType.kInfo);
   private Alert missingModuleData = new Alert("Missing Module Data", AlertType.kError);
@@ -473,7 +474,11 @@ public class SwerveSubsystem extends SubsystemBase {
           ChassisSpeeds.fromFieldRelativeSpeeds(
               new ChassisSpeeds(sample.vx, sample.vy, sample.omega).plus(feedback), getRotation());
       Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
-      this.drive(speeds, false, sample.moduleForcesX(), sample.moduleForcesY());
+      this.drive(
+          speeds,
+          false,
+          useModuleFF ? sample.moduleForcesX() : new double[4],
+          useModuleFF ? sample.moduleForcesY() : new double[4]);
     };
   }
 

@@ -19,7 +19,7 @@ import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 
@@ -183,15 +183,47 @@ public class Autos {
     routine.cmd();
   }
 
+  public void runPath(
+      AutoRoutine routine,
+      String startLocation,
+      String middleLocation,
+      String endLocation,
+      HashMap<String, AutoTrajectory> steps) {
+    if (endLocation.substring(0, 1).equals("P")) { // hp station
+      runPath(
+          routine,
+          steps.get(startLocation + "to" + middleLocation),
+          steps.get(middleLocation + "to" + endLocation),
+          intakeInAuto(steps.get(middleLocation + "to" + endLocation).getFinalPose()));
+    } else { // score
+      runPath(
+          routine,
+          steps.get(startLocation + "to" + middleLocation),
+          steps.get(middleLocation + "to" + endLocation),
+          scoreInAuto(
+              steps.get(middleLocation + "to" + endLocation).getFinalPose(),
+              ReefTarget.L4)); // i've been told that we're only scoring on L4
+    }
+  }
+
   public Command SLMtoICMD() {
     final var routine = factory.newRoutine("SLM to I");
 
-    LinkedList<AutoTrajectory> steps = new LinkedList<AutoTrajectory>();
-    String[] stepNames = {"SLMtoI", "ItoPLO", "PLOtoL", "LtoPLO", "PLOtoK", "KtoPLO", "PLOtoJ"};
-    for (String name : stepNames) {
-      steps.add(routine.trajectory(name));
+    HashMap<String, AutoTrajectory> steps = new HashMap<String, AutoTrajectory>();
+    String[] stops = {
+      "SLM", "I", "PLO", "L", "PLO", "K", "PLO", "J"
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1];
+      steps.put(name, routine.trajectory(name));
     }
-    routine.active().whileTrue(Commands.sequence(steps.get(0).resetOdometry(), steps.get(0).cmd()));
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(steps.get("SLMtoI").resetOdometry(), steps.get("SLMtoI").cmd()));
+    for (int i = 0; i < stops.length - 2; i++) {
+      runPath(routine, stops[i], stops[i + 1], stops[i + 2], steps);
+    } // am i a clown
     // routine
     //   .observe(steps.get(0).done())
     // .onTrue(scoreInAuto(steps.get(0).getFinalPose(), ReefTarget.L4));
