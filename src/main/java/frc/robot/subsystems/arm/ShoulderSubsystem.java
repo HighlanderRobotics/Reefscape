@@ -15,6 +15,10 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
   public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(104.95);
 
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(153.8);
+  public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0);
+  public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(115.0);
+
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
