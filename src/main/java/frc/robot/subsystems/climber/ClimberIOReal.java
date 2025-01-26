@@ -3,9 +3,13 @@ package frc.robot.subsystems.climber;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -23,10 +27,20 @@ public class ClimberIOReal implements ClimberIO {
   private final StatusSignal<Angle> position = motor.getPosition();
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
-  private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
+  private final MotionMagicTorqueCurrentFOC motionMagic = new MotionMagicTorqueCurrentFOC(0.0);
 
   public ClimberIOReal() {
     final var config = new TalonFXConfiguration();
+
+    config.Slot0.kP = 0.0;
+
+    config.MotionMagic.MotionMagicAcceleration = 5.0;
+    config.MotionMagic.MotionMagicCruiseVelocity = 0.75;
+
+    config.Feedback.SensorToMechanismRatio = ClimberSubsystem.CLIMB_GEAR_RATIO;
+
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     motor.getConfigurator().apply(config);
     BaseStatusSignal.setUpdateFrequencyForAll(50.0, angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position);
