@@ -17,5 +17,5 @@ public interface ClimberIO {
 
   public void setVoltage(final double volts);
 
-  public void setRotation(final Rotation2d rotation);
+  public void setPosition(final double position);
 }

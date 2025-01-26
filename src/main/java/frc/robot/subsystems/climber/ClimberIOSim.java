@@ -12,7 +12,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class ClimberIOSim implements ClimberIO {
-  // this is stolen from the shoulder but its like fine our physics sim isnt really good enough for full climb sim
+  // this is stolen from the shoulder but its like fine our physics sim isnt really good enough for
+  // full climb sim
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
@@ -46,9 +47,13 @@ public class ClimberIOSim implements ClimberIO {
   }
 
   @Override
-  public void setRotation(final Rotation2d rotation) {
+  public void setPosition(final double position) {
     setVoltage(
-        pid.calculate(armSim.getAngleRads(), rotation.getRadians())
+        pid.calculate(
+                armSim.getAngleRads(),
+                Math.asin(
+                    (Units.rotationsToRadians(position) * ClimberSubsystem.CLIMBER_DRUM_RADIUS_METERS)
+                        / ClimberSubsystem.CLIMBER_ARM_LENGTH_METERS))
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));
   }
 }

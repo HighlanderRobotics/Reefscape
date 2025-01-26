@@ -4,14 +4,15 @@
 
 package frc.robot.subsystems.climber;
 
-import org.littletonrobotics.junction.Logger;
-
-import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import org.littletonrobotics.junction.Logger;
 
 public class ClimberSubsystem extends SubsystemBase {
   // TODO update
+  public static final double CLIMBER_ARM_LENGTH_METERS = Units.inchesToMeters(11.0);
+  public static final double CLIMBER_DRUM_RADIUS_METERS = Units.inchesToMeters(1.0);
   public static final double CLIMB_GEAR_RATIO = 64.0;
 
   private final ClimberIO io;
@@ -27,7 +28,7 @@ public class ClimberSubsystem extends SubsystemBase {
     Logger.processInputs("Climber", inputs);
   }
 
-  public Command setPosition(Rotation2d position) {
-    return this.run(() -> io.setRotation(position));
+  public Command setPosition(double position) {
+    return this.run(() -> io.setPosition(position));
   }
 }
