@@ -280,7 +280,7 @@ public class Robot extends LoggedRobot {
           driver.leftTrigger(),
           driver.rightTrigger(),
           new Trigger(() -> false),
-          new Trigger(() -> false),
+          driver.leftBumper(),
           new Trigger(() -> false),
           new Trigger(() -> false),
           new Trigger(() -> false),
@@ -528,6 +528,7 @@ public class Robot extends LoggedRobot {
     shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
+    superstructure.periodic();
   }
 
   @Override
