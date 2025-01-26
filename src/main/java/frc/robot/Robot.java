@@ -35,6 +35,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
@@ -264,6 +265,27 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismLigament2d wristLigament =
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
+
+  private final Superstructure superstructure =
+      new Superstructure(
+          elevator,
+          manipulator,
+          shoulder,
+          wrist,
+          swerve::getPose,
+          swerve::getVelocityFieldRelative,
+          () -> currentTarget,
+          // TODO: ADD ACTUAL TARGET VARIABLE
+          () -> AlgaeTarget.LOW,
+          driver.leftTrigger(),
+          driver.rightTrigger(),
+          new Trigger(() -> false),
+          driver.leftBumper(),
+          new Trigger(() -> false),
+          new Trigger(() -> false),
+          new Trigger(() -> false),
+          new Trigger(() -> false),
+          new Trigger(() -> false));
 
   @SuppressWarnings("resource")
   public Robot() {
@@ -506,6 +528,7 @@ public class Robot extends LoggedRobot {
     shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
+    superstructure.periodic();
   }
 
   @Override
