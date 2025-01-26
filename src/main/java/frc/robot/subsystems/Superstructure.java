@@ -312,6 +312,8 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(shoulder.setTargetAngle(Rotation2d.fromDegrees(180 - 26.2)))
+        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(360 - 164.9)))
         .whileTrue(manipulator.index())
         .and(() -> manipulator.getFirstBeambreak())
         .onTrue(this.forceState(SuperState.READY_ALGAE));
@@ -362,9 +364,9 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_NET)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(Rotation2d.fromDegrees(0.0))) // TODO: get correct angle
-        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(0.0))); // TODO: get correct angle
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(Rotation2d.fromDegrees(65.0))) // TODO: get correct angle
+        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(145.0))); // TODO: get correct angle
     stateTriggers
         .get(SuperState.PRE_NET)
         .or(stateTriggers.get(SuperState.PRE_PROCESSOR))
