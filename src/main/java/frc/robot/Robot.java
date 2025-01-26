@@ -282,6 +282,7 @@ public class Robot extends LoggedRobot {
           () -> currentTarget,
           // TODO: ADD ACTUAL TARGET VARIABLE
           () -> AlgaeIntakeTarget.LOW,
+          () -> algaeScoreTarget,
           driver.leftTrigger(),
           driver.rightTrigger(),
           new Trigger(() -> false),
@@ -474,6 +475,8 @@ public class Robot extends LoggedRobot {
     operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
     operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
     operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
+    operator.leftStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
+    operator.rightStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
     // Log locations of all autoaim targets
     Logger.recordOutput(

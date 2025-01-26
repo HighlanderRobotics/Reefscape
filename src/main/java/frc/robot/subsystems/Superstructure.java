@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.AlgaeIntakeTarget;
+import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.arm.ShoulderSubsystem;
 import frc.robot.subsystems.arm.WristSubsystem;
@@ -45,7 +46,8 @@ public class Superstructure {
   private final Supplier<Pose2d> pose;
   private final Supplier<ChassisSpeeds> chassisVel;
   private final Supplier<ReefTarget> reefTarget;
-  private final Supplier<AlgaeIntakeTarget> algaeTarget;
+  private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
+  private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
   private final Trigger preScoreReq;
   private final Trigger scoreReq;
@@ -81,7 +83,8 @@ public class Superstructure {
       Supplier<Pose2d> pose,
       Supplier<ChassisSpeeds> chassisVel,
       Supplier<ReefTarget> reefTarget,
-      Supplier<AlgaeIntakeTarget> algaeTarget,
+      Supplier<AlgaeIntakeTarget> algaeIntakeTarget,
+      Supplier<AlgaeScoreTarget> algaeScoreTarget,
       Trigger scoreReq,
       Trigger preScoreReq,
       Trigger groundIntakeCoralReq,
@@ -99,7 +102,8 @@ public class Superstructure {
     this.pose = pose;
     this.chassisVel = chassisVel;
     this.reefTarget = reefTarget;
-    this.algaeTarget = algaeTarget;
+    this.algaeIntakeTarget = algaeIntakeTarget;
+    this.algaeScoreTarget = algaeScoreTarget;
 
     this.preScoreReq = preScoreReq;
     this.scoreReq = scoreReq;
@@ -152,25 +156,25 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.GROUND)
+        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_GROUND));
 
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.HIGH)
+        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_HIGH));
 
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.LOW)
+        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.LOW)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_LOW));
 
     stateTriggers
         .get(SuperState.IDLE)
         .and(intakeAlgaeReq)
-        .and(() -> algaeTarget.get() == AlgaeIntakeTarget.STACK)
+        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK)
         .onTrue(this.forceState(SuperState.INTAKE_ALGAE_STACK));
     // IDLE -> PRE_CLIMB
     stateTriggers
@@ -342,11 +346,18 @@ public class Superstructure {
         .whileTrue(manipulator.setVelocity(0.0))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
-
+    // READY_ALGAE -> PRE_NET
     stateTriggers
         .get(SuperState.READY_ALGAE)
-        .and(scoreReq)
+        .and(preScoreReq)
+        .and(() -> algaeScoreTarget.get() == AlgaeScoreTarget.NET)
         .onTrue(forceState(SuperState.PRE_NET));
+    // READY_ALGAE -> PRE_PROCESSOR
+    stateTriggers
+        .get(SuperState.READY_ALGAE)
+        .and(preScoreReq)
+        .and(() -> algaeScoreTarget.get() == AlgaeScoreTarget.PROCESSOR)
+        .onTrue(forceState(SuperState.PRE_PROCESSOR));
     
     // READY_ALGAE -> SPIT_ALGAE
     stateTriggers
@@ -362,6 +373,7 @@ public class Superstructure {
         .onTrue(forceState(SuperState.PRE_CLIMB));
     // PRE_PROCESSOR logic
     stateTriggers.get(SuperState.PRE_PROCESSOR).whileTrue(elevator.setExtension(0.0));
+    stateTriggers.get(SuperState.PRE_PROCESSOR).and(scoreReq).onTrue(forceState(SuperState.SCORE_ALGAE));
 
     stateTriggers
         .get(SuperState.PRE_NET)
