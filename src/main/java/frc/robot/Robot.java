@@ -88,15 +88,22 @@ public class Robot extends LoggedRobot {
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.ALPHA;
 
   public static enum ReefTarget {
-    L1(ElevatorSubsystem.L1_EXTENSION_METERS),
+    L1(ElevatorSubsystem.L1_EXTENSION_METERS, 12.0),
     L2(ElevatorSubsystem.L2_EXTENSION_METERS),
     L3(ElevatorSubsystem.L3_EXTENSION_METERS),
-    L4(ElevatorSubsystem.L4_EXTENSION_METERS);
+    L4(ElevatorSubsystem.L4_EXTENSION_METERS, 20.0);
 
     public final double elevatorHeight;
+    public final double outtakeSpeed;
+
+    private ReefTarget(double elevatorHeight, double outtakeSpeed) {
+      this.elevatorHeight = elevatorHeight;
+      this.outtakeSpeed = outtakeSpeed;
+    }
 
     private ReefTarget(double elevatorHeight) {
       this.elevatorHeight = elevatorHeight;
+      this.outtakeSpeed = 100.0;
     }
   }
 
@@ -348,8 +355,7 @@ public class Robot extends LoggedRobot {
                 manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
                 Commands.race(
                         Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                        manipulator.setVelocity(
-                            () -> currentTarget == ReefTarget.L1 ? 12.0 : 100.0))
+                        manipulator.setVelocity(() -> currentTarget.outtakeSpeed))
                     .andThen(
                         Commands.waitSeconds(0.75),
                         Commands.waitUntil(
