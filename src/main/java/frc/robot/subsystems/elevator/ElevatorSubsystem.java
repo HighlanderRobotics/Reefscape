@@ -32,6 +32,8 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double L3_EXTENSION_METERS = Units.inchesToMeters(24.5);
   public static final double L4_EXTENSION_METERS = Units.inchesToMeters(49.6);
 
+  public static final double INTAKE_ALGAE_HIGH_EXTENSION = Units.inchesToMeters(24.5);
+
   public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();

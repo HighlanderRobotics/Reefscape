@@ -1,7 +1,6 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -58,7 +57,7 @@ public class Superstructure {
 
   private final Trigger preClimbReq;
   private final Trigger climbConfReq;
-  private final Trigger climbCanReq;
+  private final Trigger climbCancelReq;
 
   private final Trigger antiJamReq;
 
@@ -90,7 +89,7 @@ public class Superstructure {
       Trigger intakeAlgaeReq,
       Trigger climbReq,
       Trigger climbConfReq,
-      Trigger climbCanReq,
+      Trigger climbCancelReq,
       Trigger antiJamReq) {
     this.elevator = elevator;
     this.manipulator = manipulator;
@@ -112,7 +111,7 @@ public class Superstructure {
 
     this.preClimbReq = climbReq;
     this.climbConfReq = climbConfReq;
-    this.climbCanReq = climbCanReq;
+    this.climbCancelReq = climbCancelReq;
 
     this.antiJamReq = antiJamReq;
 
@@ -185,6 +184,8 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_CORAL_HP)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(manipulator.index()) // TODO add joints, adjust manipulator behavior
         .and(manipulator::getSecondBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
@@ -199,7 +200,8 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.READY_CORAL)
-        // TODO add joints, maybe adjust other logic
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(manipulator.index()); // keep indexing to make sure its chilling
     // Ready coral to anti jam
@@ -211,27 +213,16 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SPIT_CORAL)
         .whileTrue(manipulator.setVelocity(10))
-        .and(manipulator::getFirstBeambreak)
-        .negate()
-        .and(manipulator::getSecondBeambreak)
-        .negate()
+        .and(() -> !manipulator.getFirstBeambreak())
+        .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.SPIT_CORAL)
-        .and(manipulator::getFirstBeambreak)
-        .negate()
-        .and(manipulator::getSecondBeambreak)
-        .negate()
+        .and(() -> !manipulator.getFirstBeambreak())
+        .and(() -> !manipulator.getSecondBeambreak())
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
-
-    stateTriggers
-        .get(SuperState.READY_CORAL)
-        .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.setVelocity(0.0))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     stateTriggers
         .get(SuperState.READY_CORAL)
@@ -265,16 +256,17 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.PRE_L1)
         // TODO add joints and L1 constant
-        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .whileTrue(manipulator.setVelocity(0.0))
-        .and(() -> elevator.isNearExtension(0.0))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
     stateTriggers
         .get(SuperState.PRE_L2)
-        // TODO add joints
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L2_POS))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
         .and(scoreReq)
@@ -282,8 +274,9 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_L3)
-        // TODO add joints
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L3_POS))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .and(scoreReq)
@@ -291,8 +284,9 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_L4)
-        // TODO add joints
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L4_POS))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(scoreReq)
@@ -306,14 +300,15 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.ANTI_JAM)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
-        .onFalse(forceState(SuperState.IDLE));
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS));
+
+    stateTriggers.get(SuperState.ANTI_JAM).and(antiJamReq).onFalse(forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(shoulder.setTargetAngle(Rotation2d.fromDegrees(180 - 26.2)))
-        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(360 - 164.9)))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(manipulator.index())
         .and(() -> manipulator.getFirstBeambreak())
         .onTrue(this.forceState(SuperState.READY_ALGAE));
@@ -327,7 +322,7 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
         .whileTrue(manipulator.index())
         // TODO: ADD MANIPULATOR ALGAE BEAMBREAK
         .and(manipulator::getFirstBeambreak)
@@ -364,9 +359,9 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_NET)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(Rotation2d.fromDegrees(65.0))) // TODO: get correct angle
-        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(145.0))); // TODO: get correct angle
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS));
     stateTriggers
         .get(SuperState.PRE_NET)
         .or(stateTriggers.get(SuperState.PRE_PROCESSOR))
@@ -383,13 +378,14 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.PRE_CLIMB)
         // TODO: MAKE CLIMBER WORK
-        .and(climbCanReq)
         .and(climbConfReq)
         .onTrue(forceState(SuperState.CLIMB));
 
     stateTriggers.get(SuperState.CLIMB);
     // TODO: MAKE CLIMBER WORK
 
+    // May need more checks to see if canceling is safe
+    stateTriggers.get(SuperState.CLIMB).and(climbCancelReq).onTrue(forceState(SuperState.IDLE));
   }
 
   private Command forceState(SuperState nextState) {
