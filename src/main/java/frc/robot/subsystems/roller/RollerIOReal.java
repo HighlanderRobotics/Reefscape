@@ -96,7 +96,6 @@ public class RollerIOReal implements RollerIO {
 
   @Override
   public double getVoltage() {
-      return motor.getMotorVoltage().getValue().magnitude();
+    return motor.getMotorVoltage().getValue().magnitude();
   }
-
 }

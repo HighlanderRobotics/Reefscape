@@ -65,5 +65,4 @@ public class RollerIOSim implements RollerIO {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'getVoltage'");
   }
-
 }
