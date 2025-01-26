@@ -12,7 +12,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class ClimberIOSim implements ClimberIO {
-  // this is stolen from the shoulder but its like fine our physics sim isnt really good enough for full climb sim
+  // this is stolen from the shoulder but its like fine our physics sim isnt really good enough for
+  // full climb sim
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),

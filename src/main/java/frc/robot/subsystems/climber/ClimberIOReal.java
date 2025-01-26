@@ -4,12 +4,10 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -43,13 +41,15 @@ public class ClimberIOReal implements ClimberIO {
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     motor.getConfigurator().apply(config);
-    BaseStatusSignal.setUpdateFrequencyForAll(50.0, angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position);
+    BaseStatusSignal.setUpdateFrequencyForAll(
+        50.0, angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position);
     motor.optimizeBusUtilization();
   }
 
   @Override
   public void updateInputs(ClimberIOInputsAutoLogged inputs) {
-    BaseStatusSignal.refreshAll(angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position);
+    BaseStatusSignal.refreshAll(
+        angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position);
 
     inputs.position = Rotation2d.fromRotations(position.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
