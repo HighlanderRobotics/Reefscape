@@ -102,7 +102,6 @@ public class SwerveSubsystem extends SubsystemBase {
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
     this.simulation = simulation;
-    odoThread.start();
     cameras = new Vision[visionIOs.length];
     modules = new Module[moduleIOs.length];
 
@@ -117,6 +116,11 @@ public class SwerveSubsystem extends SubsystemBase {
     for (int i = 0; i < cameras.length; i++) {
       cameraPoses[i] = Pose3d.kZero;
     }
+  }
+
+  public void startOdoThread() {
+    // I don't love this but it seems to work
+    odoThread.start();
   }
 
   public void periodic() {
