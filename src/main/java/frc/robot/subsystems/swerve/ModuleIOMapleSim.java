@@ -205,4 +205,10 @@ public class ModuleIOMapleSim implements ModuleIO {
   public void setTurnSetpoint(final Rotation2d rotation) {
     turnTalon.setControl(turnPID.withPosition(rotation.getRotations()));
   }
+
+  @Override
+  public void setCurrent(double amps) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setCurrent'");
+  }
 }

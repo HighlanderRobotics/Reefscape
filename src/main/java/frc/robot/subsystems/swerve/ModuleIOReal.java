@@ -14,6 +14,7 @@ package frc.robot.subsystems.swerve;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
@@ -67,6 +68,7 @@ public class ModuleIOReal implements ModuleIO {
   private final VelocityTorqueCurrentFOC driveControlVelocity =
       new VelocityTorqueCurrentFOC(0.0).withSlot(0);
   private final MotionMagicVoltage turnPID = new MotionMagicVoltage(0.0).withEnableFOC(true);
+  private final TorqueCurrentFOC driveControlCurrent = new TorqueCurrentFOC(0.0);
 
   public ModuleIOReal(ModuleConstants moduleConstants, SwerveConstants swerveConstants) {
     this.constants = moduleConstants;
@@ -183,5 +185,10 @@ public class ModuleIOReal implements ModuleIO {
   @Override
   public void setTurnSetpoint(final Rotation2d rotation) {
     turnTalon.setControl(turnPID.withPosition(rotation.getRotations()));
+  }
+
+  @Override
+  public void setCurrent(final double amps) {
+    driveTalon.setControl(driveControlCurrent.withOutput(amps));
   }
 }
