@@ -189,75 +189,43 @@ public class Autos {
       String middleLocation,
       String endLocation,
       HashMap<String, AutoTrajectory> steps) {
-    if (endLocation.substring(0, 1).equals("P")) { // hp station
-      runPath(
-          routine,
-          steps.get(startLocation + "to" + middleLocation),
-          steps.get(middleLocation + "to" + endLocation),
-          intakeInAuto(steps.get(middleLocation + "to" + endLocation).getFinalPose()));
-    } else { // score
-      runPath(
-          routine,
-          steps.get(startLocation + "to" + middleLocation),
-          steps.get(middleLocation + "to" + endLocation),
-          scoreInAuto(
-              steps.get(middleLocation + "to" + endLocation).getFinalPose(),
-              ReefTarget.L4)); // i've been told that we're only scoring on L4
-    }
+    runPath(
+        routine,
+        steps.get(startLocation + "to" + middleLocation),
+        steps.get(middleLocation + "to" + endLocation),
+        endLocation.substring(0, 1).equals("P") // hp station
+            ? intakeInAuto(steps.get(middleLocation + "to" + endLocation).getFinalPose())
+            : scoreInAuto(
+                steps.get(middleLocation + "to" + endLocation).getFinalPose(),
+                ReefTarget.L4)); // i've been told we're only scoring on l4 in auto
   }
 
   public Command SLMtoICMD() {
     final var routine = factory.newRoutine("SLM to I");
-
-    HashMap<String, AutoTrajectory> steps = new HashMap<String, AutoTrajectory>();
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "SLM", "I", "PLO", "L", "PLO", "K", "PLO", "J"
+      "SLM", "I", "PLO", "L", "PLO", "K", "PLO", "J" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
-      String name = stops[i] + "to" + stops[i + 1];
-      steps.put(name, routine.trajectory(name));
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
     }
     routine
         .active()
         .whileTrue(
-            Commands.sequence(steps.get("SLMtoI").resetOdometry(), steps.get("SLMtoI").cmd()));
+            Commands.sequence(
+                steps.get("SLMtoI").resetOdometry(),
+                steps.get("SLMtoI").cmd())); // runs the very first traj
     for (int i = 0; i < stops.length - 2; i++) {
-      runPath(routine, stops[i], stops[i + 1], stops[i + 2], steps);
-    } // am i a clown
-    // routine
-    //   .observe(steps.get(0).done())
-    // .onTrue(scoreInAuto(steps.get(0).getFinalPose(), ReefTarget.L4));
-    // runPath(
-    //     routine,
-    //     steps.get(0),
-    //     steps.get(1),
-    //     intakeInAuto(steps.get(1).getFinalPose())); // go to PLO
-    // runPath(
-    //     routine,
-    //     steps.get(1),
-    //     steps.get(2),
-    //     scoreInAuto(steps.get(2).getFinalPose(), ReefTarget.L4)); // go to L
-    // runPath(
-    //     routine,
-    //     steps.get(2),
-    //     steps.get(3),
-    //     intakeInAuto(steps.get(3).getFinalPose())); // go to PLO
-    // runPath(
-    //     routine,
-    //     steps.get(3),
-    //     steps.get(4),
-    //     scoreInAuto(steps.get(4).getFinalPose(), ReefTarget.L4)); // go to K
-    // runPath(
-    //     routine,
-    //     steps.get(4),
-    //     steps.get(5),
-    //     intakeInAuto(steps.get(5).getFinalPose())); // go to PLO
-    // runPath(
-    //     routine,
-    //     steps.get(5),
-    //     steps.get(6),
-    //     scoreInAuto(steps.get(6).getFinalPose(), ReefTarget.L4)); // go to J
-
+      runPath(
+          routine,
+          stops[i],
+          stops[i + 1],
+          stops[i + 2],
+          steps); // runs each of the following traj + whatever it does at the end of the traj
+    }
     return routine.cmd();
   }
 

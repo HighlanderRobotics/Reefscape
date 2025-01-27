@@ -74,7 +74,6 @@ public class SwerveSubsystem extends SubsystemBase {
   private double lastOdometryUpdateTimestamp = 0.0;
 
   private final Optional<SwerveDriveSimulation> simulation;
-  private final boolean useModuleFF = Robot.isReal();
 
   private Alert usingSyncOdometryAlert = new Alert("Using Sync Odometry", AlertType.kInfo);
   private Alert missingModuleData = new Alert("Missing Module Data", AlertType.kError);
@@ -477,8 +476,8 @@ public class SwerveSubsystem extends SubsystemBase {
       this.drive(
           speeds,
           false,
-          useModuleFF ? sample.moduleForcesX() : new double[4],
-          useModuleFF ? sample.moduleForcesY() : new double[4]);
+          Robot.isReal() ? sample.moduleForcesX() : new double[4],
+          Robot.isReal() ? sample.moduleForcesY() : new double[4]);
     };
   }
 
