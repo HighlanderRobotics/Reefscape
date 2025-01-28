@@ -3,6 +3,7 @@
 ## Driver
 
 | Button | State | Action |
+| ------ | ----- | ------ |
 | Left Trigger | IDLE | Intake algae with current request |
 | Right Trigger | READY_CORAL | Score coral on the selected level |
 | Right Trigger | READY_ALGAE | Score algae in the selected target |
@@ -21,6 +22,7 @@
 ## Operator
 
 | Button | Action |
+| ------ | ------ |
 | A | Set target coral level to L1, set target Algae intake to ground |
 | X | Set target coral level to L2, set target Algae intake to low reef |
 | B | Set target coral level to L3, set target Algae intake to high reef |
