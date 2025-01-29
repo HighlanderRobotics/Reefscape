@@ -266,35 +266,46 @@ public class Robot extends LoggedRobot {
                               .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
               : new WristIOSim());
 
-    private final FunnelSubsystem funnel = new FunnelSubsystem(
-      ROBOT_TYPE == RobotType.REAL ? new RollerIOReal(19, RollerIOReal.getDefaultConfig().withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2.0))) : new RollerIOSim(0.01, 2.0, new SimpleMotorFeedforward(0.0, 0.24), new PIDController(1.0, 0.0, 0.0)), 
-      new ServoIOReal(0));
-    
-    private final ClimberSubsystem climber = new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
+  private final FunnelSubsystem funnel =
+      new FunnelSubsystem(
+          ROBOT_TYPE == RobotType.REAL
+              ? new RollerIOReal(
+                  19,
+                  RollerIOReal.getDefaultConfig()
+                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2.0)))
+              : new RollerIOSim(
+                  0.01,
+                  2.0,
+                  new SimpleMotorFeedforward(0.0, 0.24),
+                  new PIDController(1.0, 0.0, 0.0)),
+          new ServoIOReal(0));
 
-    private final Superstructure superstructure =
-        new Superstructure(
-            elevator,
-            manipulator,
-            shoulder,
-            wrist,
-            funnel,
-            climber,
-            swerve::getPose,
-            swerve::getVelocityFieldRelative,
-            () -> currentTarget,
-            // TODO: ADD ACTUAL TARGET VARIABLE
-            () -> AlgaeIntakeTarget.LOW,
-            () -> algaeScoreTarget,
-            driver.leftTrigger(),
-            driver.rightTrigger(),
-            new Trigger(() -> false),
-            driver.leftBumper(),
-            new Trigger(() -> false),
-            new Trigger(() -> false),
-            new Trigger(() -> false),
-            new Trigger(() -> false),
-            new Trigger(() -> false));
+  private final ClimberSubsystem climber =
+      new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
+
+  private final Superstructure superstructure =
+      new Superstructure(
+          elevator,
+          manipulator,
+          shoulder,
+          wrist,
+          funnel,
+          climber,
+          swerve::getPose,
+          swerve::getVelocityFieldRelative,
+          () -> currentTarget,
+          // TODO: ADD ACTUAL TARGET VARIABLE
+          () -> AlgaeIntakeTarget.LOW,
+          () -> algaeScoreTarget,
+          driver.leftTrigger(),
+          driver.rightTrigger(),
+          new Trigger(() -> false),
+          driver.leftBumper(),
+          new Trigger(() -> false),
+          new Trigger(() -> false),
+          new Trigger(() -> false),
+          new Trigger(() -> false),
+          new Trigger(() -> false));
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
