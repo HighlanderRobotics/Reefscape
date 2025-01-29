@@ -135,6 +135,7 @@ public class Robot extends LoggedRobot {
   }
 
   private ReefTarget currentTarget = ReefTarget.L1;
+  private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
@@ -284,17 +285,17 @@ public class Robot extends LoggedRobot {
             swerve::getVelocityFieldRelative,
             () -> currentTarget,
             // TODO: ADD ACTUAL TARGET VARIABLE
-            () -> AlgaeIntakeTarget.LOW,
+            () -> algaeIntakeTarget,
             () -> algaeScoreTarget,
-            driver.leftTrigger(),
+            driver.rightTrigger(),
             driver.rightTrigger(),
             new Trigger(() -> false),
-            driver.leftBumper(),
-            new Trigger(() -> false),
-            new Trigger(() -> false),
-            new Trigger(() -> false),
-            new Trigger(() -> false),
-            new Trigger(() -> false));
+            driver.leftTrigger().negate(),
+            driver.leftTrigger(),
+            driver.x().and(driver.pov(-1).negate()).debounce(0.5),
+            driver.rightTrigger(),
+            driver.y().debounce(0.5).or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
+            driver.a());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
