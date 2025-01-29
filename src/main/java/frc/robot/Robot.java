@@ -285,29 +285,32 @@ public class Robot extends LoggedRobot {
   private final ClimberSubsystem climber =
       new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
 
-    private final Superstructure superstructure =
-        new Superstructure(
-            elevator,
-            manipulator,
-            shoulder,
-            wrist,
-            funnel,
-            climber,
-            swerve::getPose,
-            swerve::getVelocityFieldRelative,
-            () -> currentTarget,
-            // TODO: ADD ACTUAL TARGET VARIABLE
-            () -> algaeIntakeTarget,
-            () -> algaeScoreTarget,
-            driver.rightTrigger(),
-            driver.rightTrigger(),
-            new Trigger(() -> false),
-            driver.leftTrigger().negate(),
-            driver.leftTrigger(),
-            driver.x().and(driver.pov(-1).negate()).debounce(0.5),
-            driver.rightTrigger(),
-            driver.y().debounce(0.5).or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
-            driver.a());
+  private final Superstructure superstructure =
+      new Superstructure(
+          elevator,
+          manipulator,
+          shoulder,
+          wrist,
+          funnel,
+          climber,
+          swerve::getPose,
+          swerve::getVelocityFieldRelative,
+          () -> currentTarget,
+          // TODO: ADD ACTUAL TARGET VARIABLE
+          () -> algaeIntakeTarget,
+          () -> algaeScoreTarget,
+          driver.rightTrigger(),
+          driver.rightTrigger(),
+          new Trigger(() -> false),
+          driver.leftTrigger().negate(),
+          driver.leftTrigger(),
+          driver.x().and(driver.pov(-1).negate()).debounce(0.5),
+          driver.rightTrigger(),
+          driver
+              .y()
+              .debounce(0.5)
+              .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
+          driver.a());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -441,7 +444,13 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(() -> superstructure.getState() == SuperState.READY_CORAL || superstructure.getState() == SuperState.PRE_L1 || superstructure.getState() == SuperState.PRE_L2 || superstructure.getState() == SuperState.PRE_L3 || superstructure.getState() == SuperState.PRE_L4)
+        .and(
+            () ->
+                superstructure.getState() == SuperState.READY_CORAL
+                    || superstructure.getState() == SuperState.PRE_L1
+                    || superstructure.getState() == SuperState.PRE_L2
+                    || superstructure.getState() == SuperState.PRE_L3
+                    || superstructure.getState() == SuperState.PRE_L4)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
@@ -479,8 +488,10 @@ public class Robot extends LoggedRobot {
     //                               swerve
     //                                   .getPose()
     //                                   .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-    //                           return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
-    //                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+    //                           return !(MathUtil.isNear(0.0, diff.getX(),
+    // Units.inchesToMeters(6.0))
+    //                               && MathUtil.isNear(0.0, diff.getY(),
+    // Units.inchesToMeters(6.0)));
     //                         }))
     //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
     //             driver.leftTrigger()));
