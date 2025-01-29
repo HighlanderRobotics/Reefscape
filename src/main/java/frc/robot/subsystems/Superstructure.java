@@ -423,6 +423,10 @@ public class Superstructure {
     stateTriggers.get(SuperState.CLIMB).and(climbCancelReq).onTrue(forceState(SuperState.IDLE));
   }
 
+  public SuperState getState() {
+    return state;
+  }
+
   private Command forceState(SuperState nextState) {
     return Commands.runOnce(
         () -> {

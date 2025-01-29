@@ -39,6 +39,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
+import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.climber.ClimberIOReal;
@@ -429,6 +430,7 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
+        .and(() -> superstructure.getState() == SuperState.READY_CORAL || superstructure.getState() == SuperState.PRE_L1 || superstructure.getState() == SuperState.PRE_L2 || superstructure.getState() == SuperState.PRE_L3 || superstructure.getState() == SuperState.PRE_L4)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
@@ -448,29 +450,29 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    driver
-        .rightTrigger()
-        .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
-        .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
-        .onFalse(
-            Commands.either(
-                manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
-                Commands.race(
-                        Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                        manipulator.setVelocity(() -> currentTarget.outtakeSpeed))
-                    .andThen(
-                        Commands.waitSeconds(0.75),
-                        Commands.waitUntil(
-                            () -> {
-                              final var diff =
-                                  swerve
-                                      .getPose()
-                                      .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-                              return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
-                                  && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
-                            }))
-                    .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
-                driver.leftTrigger()));
+    // driver
+    //     .rightTrigger()
+    //     .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
+    //     .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
+    //     .onFalse(
+    //         Commands.either(
+    //             manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
+    //             Commands.race(
+    //                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+    //                     manipulator.setVelocity(() -> currentTarget.outtakeSpeed))
+    //                 .andThen(
+    //                     Commands.waitSeconds(0.75),
+    //                     Commands.waitUntil(
+    //                         () -> {
+    //                           final var diff =
+    //                               swerve
+    //                                   .getPose()
+    //                                   .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+    //                           return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
+    //                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+    //                         }))
+    //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
+    //             driver.leftTrigger()));
 
     driver.povUp().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
     driver.povDown().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
@@ -498,10 +500,10 @@ public class Robot extends LoggedRobot {
                 }))
         .onTrue(elevator.runCurrentZeroing());
 
-    operator.a().or(driver.a()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
-    operator.x().or(driver.x()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
-    operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
-    operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
+    operator.a().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
+    operator.x().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
+    operator.b().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
+    operator.y().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
     operator.leftStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
     operator
         .rightStick()
