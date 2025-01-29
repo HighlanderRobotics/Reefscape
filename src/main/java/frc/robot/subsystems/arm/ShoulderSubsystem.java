@@ -13,9 +13,13 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final int CANCODER_ID = 5;
   public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(185.0);
   public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
+
   public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(104.95);
+  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(104.95);
+
 
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(153.8);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(153.8);
   public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(115.0);
 

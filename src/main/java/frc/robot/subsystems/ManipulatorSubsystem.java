@@ -15,6 +15,9 @@ import org.littletonrobotics.junction.Logger;
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
+  public static final double ALGAE_INTAKE_VOLTAGE = -10.0;
+  public static final double ALGAE_HOLDING_VOLTAGE = -1.0;
+
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
       secondBBInputs = new BeambreakIOInputsAutoLogged();
@@ -52,6 +55,10 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public Command backIndex() {
     return Commands.sequence(
         setVelocity(-INDEXING_VELOCITY).until(() -> !secondBBInputs.get), index());
+  }
+
+  public Command intakeAlgae() {
+    return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE)).until(() -> inputs.statorCurrentAmps > 20.0).andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
   public double getVoltage() {

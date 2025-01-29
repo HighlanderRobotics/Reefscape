@@ -146,7 +146,9 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(manipulator.setVelocity(0.0))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(climber.setPosition(0.0))
+        .whileTrue(funnel.setVoltage(0.0));
 
     // IDLE -> INTAKE_CORAL_{HP/GROUND}
     stateTriggers
@@ -196,9 +198,10 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_CORAL_HP)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
+        .whileTrue(funnel.setVoltage(6.0))
         .and(manipulator::getSecondBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
@@ -227,6 +230,7 @@ public class Superstructure {
         .whileTrue(manipulator.setVelocity(10))
         .and(() -> !manipulator.getFirstBeambreak())
         .and(() -> !manipulator.getSecondBeambreak())
+        .and(preClimbReq.negate())
         .onTrue(this.forceState(SuperState.IDLE));
     // SPIT_CORAL -> PRE_CLIMB
     stateTriggers
@@ -269,7 +273,7 @@ public class Superstructure {
         .get(SuperState.PRE_L1)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(scoreReq)
@@ -307,7 +311,7 @@ public class Superstructure {
     // SCORE_CORAL -> IDLE
     stateTriggers
         .get(SuperState.SCORE_CORAL)
-        .whileTrue(manipulator.setVelocity(() -> elevator.isNearExtension(0.0) ? 12.0 : 100.0))
+        .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
     // ANTI_JAM logic
@@ -322,35 +326,37 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
-        .whileTrue(manipulator.index())
+        .whileTrue(manipulator.intakeAlgae())
         .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
-        .whileTrue(manipulator.index())
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
+        .whileTrue(manipulator.intakeAlgae())
         .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
-        .whileTrue(manipulator.index())
+        .whileTrue(manipulator.intakeAlgae())
         .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_STACK)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
-        .whileTrue(manipulator.index())
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
+        .whileTrue(manipulator.intakeAlgae())
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .and(() -> manipulator.getVoltage() < 0.0)
         .onTrue(forceState(SuperState.READY_ALGAE));
     // READY_ALGAE logic
     stateTriggers
         .get(SuperState.READY_ALGAE)
         .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(manipulator.intakeAlgae())
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
     // READY_ALGAE -> PRE_NET
@@ -374,7 +380,8 @@ public class Superstructure {
     // SPIT_ALGAE -> PRE_CLIMB
     stateTriggers
         .get(SuperState.SPIT_ALGAE)
-        .whileTrue(manipulator.setVelocity(-10))
+        // Positive bc algae is backwards
+        .whileTrue(manipulator.setVelocity(10))
         .and(() -> !manipulator.getFirstBeambreak())
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
@@ -384,7 +391,7 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_NET)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS));
     stateTriggers
