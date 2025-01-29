@@ -245,7 +245,7 @@ public class Superstructure {
         .and(preScoreReq)
         .and(() -> reefTarget.get() == ReefTarget.L1)
         .onTrue(this.forceState(SuperState.PRE_L1));
-    
+
     stateTriggers
         .get(SuperState.READY_CORAL)
         .and(preScoreReq)
@@ -371,7 +371,7 @@ public class Superstructure {
         .and(preScoreReq)
         .and(() -> algaeScoreTarget.get() == AlgaeScoreTarget.PROCESSOR)
         .onTrue(forceState(SuperState.PRE_PROCESSOR));
-    
+
     // READY_ALGAE -> SPIT_ALGAE
     stateTriggers
         .get(SuperState.READY_ALGAE)
@@ -387,7 +387,10 @@ public class Superstructure {
         .onTrue(forceState(SuperState.PRE_CLIMB));
     // PRE_PROCESSOR logic
     stateTriggers.get(SuperState.PRE_PROCESSOR).whileTrue(elevator.setExtension(0.0));
-    stateTriggers.get(SuperState.PRE_PROCESSOR).and(scoreReq).onTrue(forceState(SuperState.SCORE_ALGAE));
+    stateTriggers
+        .get(SuperState.PRE_PROCESSOR)
+        .and(scoreReq)
+        .onTrue(forceState(SuperState.SCORE_ALGAE));
 
     stateTriggers
         .get(SuperState.PRE_NET)
