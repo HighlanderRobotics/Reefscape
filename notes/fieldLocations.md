@@ -22,4 +22,9 @@ Each location is named "P" + {Right = "R", Left = "L"} + {Outside = "O", Middle 
 
 ## Starting Locations
 
-TBD depending on how autos work out, for now use "Mid", "RHS" (for Right Hand Side), and "LHS" (for Left Hand Side)
+There are three starting locations per side that correspond to the inside, middle, and outside.
+
+Each location is named {Right = "R", Left = "L"} + {Outside = "O", Middle = "M", Inside = "I"}
+
+![A map of the starting locations on the left side of the field](leftStartingLabels.PNG)
+![A map of the starting locations on the right side of the field](rightStartingLabels.PNG)
