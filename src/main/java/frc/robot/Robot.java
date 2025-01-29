@@ -122,7 +122,8 @@ public class Robot extends LoggedRobot {
   }
 
   public static enum AlgaeScoreTarget {
-    NET, PROCESSOR
+    NET,
+    PROCESSOR
   }
 
   private ReefTarget currentTarget = ReefTarget.L1;
@@ -485,7 +486,9 @@ public class Robot extends LoggedRobot {
     operator.b().or(driver.b()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
     operator.y().or(driver.y()).onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
     operator.leftStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
-    operator.rightStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
+    operator
+        .rightStick()
+        .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
     // Log locations of all autoaim targets
     Logger.recordOutput(
