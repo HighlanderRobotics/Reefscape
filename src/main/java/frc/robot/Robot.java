@@ -81,7 +81,7 @@ public class Robot extends LoggedRobot {
   public enum RobotHardware {
     BANSHEE(new BansheeSwerveConstants()),
     ALPHA(new AlphaSwerveConstants()),
-    COMP(null); // TODO Add swerve constants as appropriate
+    COMP(new CompSwerveConstants());
 
     public final SwerveConstants swerveConstants;
 
@@ -95,15 +95,22 @@ public class Robot extends LoggedRobot {
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.ALPHA;
 
   public static enum ReefTarget {
-    L1(ElevatorSubsystem.L1_EXTENSION_METERS),
+    L1(ElevatorSubsystem.L1_EXTENSION_METERS, 12.0),
     L2(ElevatorSubsystem.L2_EXTENSION_METERS),
     L3(ElevatorSubsystem.L3_EXTENSION_METERS),
-    L4(ElevatorSubsystem.L4_EXTENSION_METERS);
+    L4(ElevatorSubsystem.L4_EXTENSION_METERS, 20.0);
 
     public final double elevatorHeight;
+    public final double outtakeSpeed;
+
+    private ReefTarget(double elevatorHeight, double outtakeSpeed) {
+      this.elevatorHeight = elevatorHeight;
+      this.outtakeSpeed = outtakeSpeed;
+    }
 
     private ReefTarget(double elevatorHeight) {
       this.elevatorHeight = elevatorHeight;
+      this.outtakeSpeed = 100.0;
     }
   }
 
@@ -342,6 +349,7 @@ public class Robot extends LoggedRobot {
 
     Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may
     // be added.
+    swerve.startOdoThread();
     SignalLogger.setPath("/media/sda1/");
 
     if (ROBOT_TYPE == RobotType.SIM) {
@@ -402,10 +410,14 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
+        .or(driver.leftBumper())
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
-                    swerve, () -> AutoAimTargets.getClosestTarget(swerve.getPose())),
+                    swerve,
+                    () ->
+                        AutoAimTargets.getHandedClosestTarget(
+                            swerve.getPose(), driver.leftBumper().getAsBoolean())),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
@@ -418,32 +430,29 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    // driver
-    //     .rightTrigger()
-    //     .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
-    //     .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
-    //     .onFalse(
-    //         Commands.either(
-    //             manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
-    //             Commands.race(
-    //                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-    //                     manipulator.setVelocity(
-    //                         () -> currentTarget == ReefTarget.L1 ? 12.0 : 100.0))
-    //                 .andThen(
-    //                     Commands.waitSeconds(0.75),
-    //                     Commands.waitUntil(
-    //                         () -> {
-    //                           final var diff =
-    //                               swerve
-    //                                   .getPose()
-    //                                   .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-    //                           return !(MathUtil.isNear(0.0, diff.getX(),
-    // Units.inchesToMeters(6.0))
-    //                               && MathUtil.isNear(0.0, diff.getY(),
-    // Units.inchesToMeters(6.0)));
-    //                         }))
-    //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
-    //             driver.leftTrigger()));
+    driver
+        .rightTrigger()
+        .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
+        .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
+        .onFalse(
+            Commands.either(
+                manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
+                Commands.race(
+                        Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+                        manipulator.setVelocity(() -> currentTarget.outtakeSpeed))
+                    .andThen(
+                        Commands.waitSeconds(0.75),
+                        Commands.waitUntil(
+                            () -> {
+                              final var diff =
+                                  swerve
+                                      .getPose()
+                                      .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                              return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
+                                  && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+                            }))
+                    .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
+                driver.leftTrigger()));
 
     driver.povUp().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
     driver.povDown().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
