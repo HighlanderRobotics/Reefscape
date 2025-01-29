@@ -17,6 +17,8 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -34,14 +36,20 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
+import frc.robot.subsystems.climber.ClimberIOReal;
+import frc.robot.subsystems.climber.ClimberIOSim;
+import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
+import frc.robot.subsystems.roller.RollerIOSim;
+import frc.robot.subsystems.servo.ServoIOReal;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOReal;
@@ -257,6 +265,36 @@ public class Robot extends LoggedRobot {
                               .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
               : new WristIOSim());
 
+    private final FunnelSubsystem funnel = new FunnelSubsystem(
+      ROBOT_TYPE == RobotType.REAL ? new RollerIOReal(19, RollerIOReal.getDefaultConfig().withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2.0))) : new RollerIOSim(0.01, 2.0, new SimpleMotorFeedforward(0.0, 0.24), new PIDController(1.0, 0.0, 0.0)), 
+      new ServoIOReal(0));
+    
+    private final ClimberSubsystem climber = new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
+
+    private final Superstructure superstructure =
+        new Superstructure(
+            elevator,
+            manipulator,
+            shoulder,
+            wrist,
+            funnel,
+            climber,
+            swerve::getPose,
+            swerve::getVelocityFieldRelative,
+            () -> currentTarget,
+            // TODO: ADD ACTUAL TARGET VARIABLE
+            () -> AlgaeIntakeTarget.LOW,
+            () -> algaeScoreTarget,
+            driver.leftTrigger(),
+            driver.rightTrigger(),
+            new Trigger(() -> false),
+            driver.leftBumper(),
+            new Trigger(() -> false),
+            new Trigger(() -> false),
+            new Trigger(() -> false),
+            new Trigger(() -> false),
+            new Trigger(() -> false));
+
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
@@ -277,28 +315,6 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismLigament2d wristLigament =
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
-
-  private final Superstructure superstructure =
-      new Superstructure(
-          elevator,
-          manipulator,
-          shoulder,
-          wrist,
-          swerve::getPose,
-          swerve::getVelocityFieldRelative,
-          () -> currentTarget,
-          // TODO: ADD ACTUAL TARGET VARIABLE
-          () -> AlgaeIntakeTarget.LOW,
-          () -> algaeScoreTarget,
-          driver.leftTrigger(),
-          driver.rightTrigger(),
-          new Trigger(() -> false),
-          driver.leftBumper(),
-          new Trigger(() -> false),
-          new Trigger(() -> false),
-          new Trigger(() -> false),
-          new Trigger(() -> false),
-          new Trigger(() -> false));
 
   @SuppressWarnings("resource")
   public Robot() {

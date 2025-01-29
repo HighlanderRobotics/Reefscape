@@ -11,6 +11,7 @@ import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.arm.ShoulderSubsystem;
 import frc.robot.subsystems.arm.WristSubsystem;
+import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import java.util.HashMap;
 import java.util.Map;
@@ -70,9 +71,11 @@ public class Superstructure {
   private Timer stateTimer = new Timer();
 
   private final ElevatorSubsystem elevator;
-  private final ManipulatorSubsystem manipulator;
   private final ShoulderSubsystem shoulder;
   private final WristSubsystem wrist;
+  private final ManipulatorSubsystem manipulator;
+  private final FunnelSubsystem funnel;
+  private final ClimberSubsystem climber;
   // Intake would be included here, but is cut from cad as of rn
 
   public Superstructure(
@@ -80,6 +83,8 @@ public class Superstructure {
       ManipulatorSubsystem manipulator,
       ShoulderSubsystem shoulder,
       WristSubsystem wrist,
+      FunnelSubsystem funnel,
+      ClimberSubsystem climber,
       Supplier<Pose2d> pose,
       Supplier<ChassisSpeeds> chassisVel,
       Supplier<ReefTarget> reefTarget,
@@ -98,6 +103,8 @@ public class Superstructure {
     this.manipulator = manipulator;
     this.shoulder = shoulder;
     this.wrist = wrist;
+    this.funnel = funnel;
+    this.climber = climber;
 
     this.pose = pose;
     this.chassisVel = chassisVel;

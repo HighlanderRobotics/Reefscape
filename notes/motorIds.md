@@ -18,3 +18,4 @@
 | 16   | Elevator Main            |
 | 17   | Elevator Follower        |
 | 18   | Climber                  |
+| 19   | Funnel                   |
