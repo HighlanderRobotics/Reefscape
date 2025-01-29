@@ -21,8 +21,6 @@ import org.littletonrobotics.junction.Logger;
 public class Superstructure {
   public static enum SuperState {
     IDLE,
-    INTAKE_CORAL_HP,
-    INTAKE_CORAL_GROUND,
     READY_CORAL,
     SPIT_CORAL,
     PRE_L1,
@@ -52,9 +50,6 @@ public class Superstructure {
 
   private final Trigger preScoreReq;
   private final Trigger scoreReq;
-
-  private final Trigger groundIntakeCoralReq;
-  private final Trigger hpIntakeCoralReq;
 
   private final Trigger intakeAlgaeReq;
 
@@ -92,8 +87,6 @@ public class Superstructure {
       Supplier<AlgaeScoreTarget> algaeScoreTarget,
       Trigger scoreReq,
       Trigger preScoreReq,
-      Trigger groundIntakeCoralReq,
-      Trigger hpIntakeCoralReq,
       Trigger intakeAlgaeReq,
       Trigger climbReq,
       Trigger climbConfReq,
@@ -114,9 +107,6 @@ public class Superstructure {
 
     this.preScoreReq = preScoreReq;
     this.scoreReq = scoreReq;
-
-    this.groundIntakeCoralReq = groundIntakeCoralReq;
-    this.hpIntakeCoralReq = hpIntakeCoralReq;
 
     this.intakeAlgaeReq = intakeAlgaeReq;
 
@@ -143,23 +133,13 @@ public class Superstructure {
   private void configureStateTransitionCommands() {
     stateTriggers
         .get(SuperState.IDLE)
-        .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.setVelocity(0.0))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(climber.setPosition(0.0))
-        .whileTrue(funnel.setVoltage(0.0));
-
-    // IDLE -> INTAKE_CORAL_{HP/GROUND}
-    stateTriggers
-        .get(SuperState.IDLE)
-        .and(hpIntakeCoralReq)
-        .onTrue(this.forceState(SuperState.INTAKE_CORAL_HP));
-
-    stateTriggers
-        .get(SuperState.IDLE)
-        .and(groundIntakeCoralReq)
-        .onTrue(this.forceState(SuperState.INTAKE_CORAL_GROUND));
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
+        .whileTrue(manipulator.index())
+        .whileTrue(funnel.setVoltage(6.0))
+        .and(manipulator::getSecondBeambreak)
+        .onTrue(this.forceState(SuperState.READY_CORAL));
 
     // IDLE -> INTAKE_ALGAE_{location}
     stateTriggers
@@ -194,24 +174,6 @@ public class Superstructure {
     // IDLE -> ANTI_JAM
     stateTriggers.get(SuperState.IDLE).and(antiJamReq).onTrue(forceState(SuperState.ANTI_JAM));
 
-    // INTAKE_CORAL_HP logic
-    stateTriggers
-        .get(SuperState.INTAKE_CORAL_HP)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
-        .whileTrue(manipulator.index())
-        .whileTrue(funnel.setVoltage(6.0))
-        .and(manipulator::getSecondBeambreak)
-        .onTrue(this.forceState(SuperState.READY_CORAL));
-
-    // No-op until intake becomes a thing
-    stateTriggers.get(SuperState.INTAKE_CORAL_GROUND).onTrue(this.forceState(SuperState.IDLE));
-    // INTAKE_CORAL_GROUND -> ANTI_JAM
-    stateTriggers
-        .get(SuperState.INTAKE_CORAL_GROUND)
-        .and(antiJamReq)
-        .onTrue(forceState(SuperState.ANTI_JAM));
     // READY_CORAL logic
     stateTriggers
         .get(SuperState.READY_CORAL)

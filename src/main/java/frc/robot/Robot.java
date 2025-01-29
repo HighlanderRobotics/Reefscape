@@ -296,13 +296,10 @@ public class Robot extends LoggedRobot {
             swerve::getPose,
             swerve::getVelocityFieldRelative,
             () -> currentTarget,
-            // TODO: ADD ACTUAL TARGET VARIABLE
             () -> algaeIntakeTarget,
             () -> algaeScoreTarget,
             driver.rightTrigger(),
             driver.rightTrigger(),
-            new Trigger(() -> false),
-            driver.leftTrigger().negate(),
             driver.leftTrigger(),
             driver.x().and(driver.pov(-1).negate()).debounce(0.5),
             driver.rightTrigger(),
