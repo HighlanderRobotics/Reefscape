@@ -285,26 +285,29 @@ public class Robot extends LoggedRobot {
   private final ClimberSubsystem climber =
       new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
 
-    private final Superstructure superstructure =
-        new Superstructure(
-            elevator,
-            manipulator,
-            shoulder,
-            wrist,
-            funnel,
-            climber,
-            swerve::getPose,
-            swerve::getVelocityFieldRelative,
-            () -> currentTarget,
-            () -> algaeIntakeTarget,
-            () -> algaeScoreTarget,
-            driver.rightTrigger(),
-            driver.rightTrigger(),
-            driver.leftTrigger(),
-            driver.x().and(driver.pov(-1).negate()).debounce(0.5),
-            driver.rightTrigger(),
-            driver.y().debounce(0.5).or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
-            driver.a());
+  private final Superstructure superstructure =
+      new Superstructure(
+          elevator,
+          manipulator,
+          shoulder,
+          wrist,
+          funnel,
+          climber,
+          swerve::getPose,
+          swerve::getVelocityFieldRelative,
+          () -> currentTarget,
+          () -> algaeIntakeTarget,
+          () -> algaeScoreTarget,
+          driver.rightTrigger(),
+          driver.rightTrigger(),
+          driver.leftTrigger(),
+          driver.x().and(driver.pov(-1).negate()).debounce(0.5),
+          driver.rightTrigger(),
+          driver
+              .y()
+              .debounce(0.5)
+              .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
+          driver.a());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
