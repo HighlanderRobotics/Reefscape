@@ -16,7 +16,8 @@
 | B | READY_CORAL | SPIT_CORAL |
 | B | READY_ALGAE | SPIT_ALGAE |
 | X + Any DPAD for 0.5s | READY_{any}, IDLE | Preclimb |
-| Y for 0.5s | PRE_CLIMB, CLIMB | Cancel climb (dangerous!) |
+| Right Trigger | PRECLIMB | Climb |
+| Y for 0.5s | CLIMB | Cancel climb (dangerous!) |
 | Start + Back | any | Rezero swerve |
 
 ## Operator
@@ -30,3 +31,4 @@
 | Left Trigger | Set algae target to processor |
 | Right Trigger | Set algae target to net |
 | Start | Rezero elevator and arms |
+| Left Stick + Right Trigger for 0.5s | Preclimb |
