@@ -438,7 +438,13 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(() -> superstructure.getState() == SuperState.READY_CORAL || superstructure.getState() == SuperState.PRE_L1 || superstructure.getState() == SuperState.PRE_L2 || superstructure.getState() == SuperState.PRE_L3 || superstructure.getState() == SuperState.PRE_L4)
+        .and(
+            () ->
+                superstructure.getState() == SuperState.READY_CORAL
+                    || superstructure.getState() == SuperState.PRE_L1
+                    || superstructure.getState() == SuperState.PRE_L2
+                    || superstructure.getState() == SuperState.PRE_L3
+                    || superstructure.getState() == SuperState.PRE_L4)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
@@ -476,8 +482,10 @@ public class Robot extends LoggedRobot {
     //                               swerve
     //                                   .getPose()
     //                                   .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-    //                           return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
-    //                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
+    //                           return !(MathUtil.isNear(0.0, diff.getX(),
+    // Units.inchesToMeters(6.0))
+    //                               && MathUtil.isNear(0.0, diff.getY(),
+    // Units.inchesToMeters(6.0)));
     //                         }))
     //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
     //             driver.leftTrigger()));
