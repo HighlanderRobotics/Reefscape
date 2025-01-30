@@ -575,7 +575,9 @@ public class Robot extends LoggedRobot {
           "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
 
-    Logger.recordOutput("Target", currentTarget);
+    Logger.recordOutput("Targets/Reef Target", currentTarget);
+    Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
+    Logger.recordOutput("Targets/Algae Score Target", algaeScoreTarget);
     Logger.recordOutput(
         "Mechanism Poses",
         new Pose3d[] {

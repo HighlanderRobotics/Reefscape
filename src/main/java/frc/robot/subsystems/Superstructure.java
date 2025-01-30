@@ -179,7 +179,7 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(manipulator.index()); // keep indexing to make sure its chilling
-    
+
     // SPIT_CORAL logic + -> IDLE
     stateTriggers
         .get(SuperState.SPIT_CORAL)
