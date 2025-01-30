@@ -519,11 +519,40 @@ public class Robot extends LoggedRobot {
                 }))
         .onTrue(elevator.runCurrentZeroing());
 
-    operator.a().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
-    operator.x().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
-    operator.b().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
-    operator.y().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
+    operator
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L1;
+                  algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
+                }));
+    operator
+        .x()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L2;
+                  algaeIntakeTarget = AlgaeIntakeTarget.LOW;
+                }));
+    operator
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L3;
+                  algaeIntakeTarget = AlgaeIntakeTarget.HIGH;
+                }));
+    operator
+        .y()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L4;
+                  algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+                }));
     operator.leftStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
+
     operator
         .rightStick()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));

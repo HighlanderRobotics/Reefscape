@@ -270,7 +270,7 @@ public class Superstructure {
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
-    antiJamReq.onTrue(forceState(SuperState.ANTI_JAM));
+    antiJamReq.onTrue(forceState(SuperState.ANTI_JAM)).onFalse(forceState(SuperState.IDLE));
     // ANTI_JAM logic
     stateTriggers
         .get(SuperState.ANTI_JAM)
