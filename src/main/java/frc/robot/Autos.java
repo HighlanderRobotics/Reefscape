@@ -278,6 +278,64 @@ public class Autos {
     return routine.cmd();
   }
 
+  public Command LOtoJCMD() {
+    final var routine = factory.newRoutine("LO to J");
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "LO", "J", "PLO", "K", "PLO", "L", "PLO", "A", "PLO" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(
+                steps.get("LOtoJ").resetOdometry(),
+                steps.get("LOtoJ").cmd())); // runs the very first traj
+    for (int i = 0; i < stops.length - 2; i++) {
+      runPath(
+          routine,
+          stops[i],
+          stops[i + 1],
+          stops[i + 2],
+          steps); // runs each of the following traj + whatever it does at the end of the traj
+    }
+    return routine.cmd();
+  }
+
+  public Command ROtoECMD() {
+    final var routine = factory.newRoutine("RO to E");
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "RO", "E", "PRO", "D", "PRO", "C", "PRO", "B", "PRO" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(
+                steps.get("ROtoE").resetOdometry(),
+                steps.get("ROtoE").cmd())); // runs the very first traj
+    for (int i = 0; i < stops.length - 2; i++) {
+      runPath(
+          routine,
+          stops[i],
+          stops[i + 1],
+          stops[i + 2],
+          steps); // runs each of the following traj + whatever it does at the end of the traj
+    }
+    return routine.cmd();
+  }
+
   public Command scoreInAuto(Optional<Pose2d> pose, ReefTarget target) {
     if (!pose.isPresent()) {
       return new InstantCommand();
@@ -324,109 +382,6 @@ public class Autos {
     }
   }
 
-  /*
-
-  public Command scoreInAuto(Pose2d pose, ReefTarget target) {
-    return Commands.sequence(
-      Commands.parallel(
-        AutoAim.translateToPose(swerve, () -> pose)),
-        Commands.waitUntil(
-          () -> {
-            final var diff =
-              swerve
-                .getPose()
-                .minus(AutoAimTargets.getClosestTrget(swerve.getPose()));
-            return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
-            &&MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-            && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-
-          }),
-    Commands.race(
-      Commands.waitUntil(()-> !manipulator.getSecondBeambreak()),
-      manipulator.setVelocity(
-        () -> currentTarget == ReefTarget.L1 ? 12.0: 100.0)
-      .andThen(
-        Commands.waitSeconds(0.75),
-        Commands.waitUntil(
-          () -> {
-            final var diff =
-              swerve
-                .getPose()
-                .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-              return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
-                && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
-
-          }
-          ))));
-
-   }
-   */
-
-  /* public Command CircleReef() {
-   final var routine = factory.newRoutine("Circle the reef, scoring on L4");
-
-   LinkedList<AutoTrajectory> steps = new LinkedList<AutoTrajectory>();
-   String[] stepNames = {"RStoG","GtoPRO", "PROtoF", "FtoPRO", "PROtoE",
-   "EtoPRO", "PROtoD", "DtoPRO", "PROtoC", "CtoPRI", "PRItoB", "BtoPRI",
-   "PRItoA", "AtoPLI", "PLItoL", "LtoPLO", "PLOtoK", "KtoPLO", "PLOtoJ",
-   "JtoPLO", "PLOtoI", "ItoPLO", "PLOtpH"};
-   for(String name:stepNames) {
-     steps.add(routine.trajectory(name));
-   }
-
-  AutoTrajectory previous=null;
-  for(AutoTrajectory current:steps) {
-   if(previous==null) {
-     routine.active().whileTrue(Commands.sequence(current.resetOdometry(), current.cmd()));
-   } else {
-     routine
-     .observe(previous.done())
-     .onTrue(
-         Commands.sequence(
-             // score
-             Commands.waitSeconds(0.5)
-                 .raceWith(
-                     swerve.poseLockDriveCommand(
-                         () -> current.getInitialPose().orElse(Pose2d.kZero))),
-                         current.cmd()));
-   }
-   previous=current;
-  }
-   */
-
-  // Steps with numeric part in name
-  /*
-  for(int i=0;i<30;i++) {
-    list.add(routine.trajectory("Step_"+i));
-  }
-  */
-  /*
-
-      routine.active().whileTrue(Commands.sequence(list.get(0).resetOdometry(), list.get(0).cmd()));
-
-      //for(var obj:list) {
-        //obj would be current item
-      //}
-
-      // Loop only works if list has at least 2 items
-      for(int i=0;i<list.size()-1;i++) {
-        final var current=list.get(i);
-        final var next=list.get(i+1);
-
-        routine
-        .observe(current.done())
-        .onTrue(
-            Commands.sequence(
-                // score
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> next.getInitialPose().orElse(Pose2d.kZero))),
-                            next.cmd()));
-      }
-
-  */
-  //  return routine.cmd();
-  // }
+ 
 
 }

@@ -331,6 +331,8 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
     autoChooser.addOption("LM to H", autos.LMtoHCMD());
     autoChooser.addOption("RM to G", autos.RMtoGCmd());
+    autoChooser.addOption("4.5 L Outside", autos.LOtoJCMD());
+    autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
