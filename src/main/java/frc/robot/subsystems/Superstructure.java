@@ -5,6 +5,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.AlgaeScoreTarget;
@@ -374,15 +375,15 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_CLIMB)
-        // TODO: MAKE CLIMBER WORK
+        .whileTrue(climber.setPosition(ClimberSubsystem.CLIMB_EXTENDED_POSITION))
+        .onTrue(funnel.unlatch()) // !!
         .and(climbConfReq)
         .onTrue(forceState(SuperState.CLIMB));
 
-    stateTriggers.get(SuperState.CLIMB);
-    // TODO: MAKE CLIMBER WORK
+    stateTriggers.get(SuperState.CLIMB).whileTrue(climber.setPosition(0.0).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
 
     // May need more checks to see if canceling is safe
-    stateTriggers.get(SuperState.CLIMB).and(climbCancelReq).onTrue(forceState(SuperState.IDLE));
+    stateTriggers.get(SuperState.CLIMB).and(climbCancelReq).onTrue(forceState(SuperState.PRE_CLIMB));
   }
 
   public SuperState getState() {
