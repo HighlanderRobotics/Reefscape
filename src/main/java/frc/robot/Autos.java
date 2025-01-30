@@ -336,6 +336,64 @@ public class Autos {
     return routine.cmd();
   }
 
+  public Command LItoKCMD() {
+    final var routine = factory.newRoutine("LI to K");
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "LI", "K", "PLI", "L", "PLI", "A", "PLI", "B", "PLI" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(
+                steps.get("LItoK").resetOdometry(),
+                steps.get("LItoK").cmd())); // runs the very first traj
+    for (int i = 0; i < stops.length - 2; i++) {
+      runPath(
+          routine,
+          stops[i],
+          stops[i + 1],
+          stops[i + 2],
+          steps); // runs each of the following traj + whatever it does at the end of the traj
+    }
+    return routine.cmd();
+  }
+
+  public Command RItoDCMD() {
+    final var routine = factory.newRoutine("RI to D");
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "RI", "D", "PRI", "C", "PRI", "B", "PRI", "A", "PRI" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(
+                steps.get("RItoD").resetOdometry(),
+                steps.get("RItoD").cmd())); // runs the very first traj
+    for (int i = 0; i < stops.length - 2; i++) {
+      runPath(
+          routine,
+          stops[i],
+          stops[i + 1],
+          stops[i + 2],
+          steps); // runs each of the following traj + whatever it does at the end of the traj
+    }
+    return routine.cmd();
+  }
+
   public Command scoreInAuto(Optional<Pose2d> pose, ReefTarget target) {
     if (!pose.isPresent()) {
       return new InstantCommand();
@@ -381,7 +439,4 @@ public class Autos {
               Commands.waitUntil(() -> manipulator.getSecondBeambreak())));
     }
   }
-
- 
-
 }
