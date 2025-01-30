@@ -183,6 +183,21 @@ public class Autos {
     routine.cmd();
   }
 
+  // just runs a single path
+  public void runPath(AutoRoutine routine, AutoTrajectory path, Command cmd) {
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(
+                path.resetOdometry(),
+                Commands.waitSeconds(0.5)
+                    .raceWith(
+                        swerve.poseLockDriveCommand(
+                            () -> path.getInitialPose().orElse(Pose2d.kZero))),
+                path.cmd(),
+                cmd));
+  }
+
   public void runPath(
       AutoRoutine routine,
       String startLocation,
@@ -226,6 +241,40 @@ public class Autos {
           stops[i + 2],
           steps); // runs each of the following traj + whatever it does at the end of the traj
     }
+    return routine.cmd();
+  }
+
+  public Command LMtoHCMD() {
+    final var routine = factory.newRoutine("LM to H");
+    final var traj = routine.trajectory("LMtoH");
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(
+                traj.resetOdometry(),
+                traj.cmd(),
+                Commands.waitSeconds(0.5)
+                    .raceWith(
+                        swerve.poseLockDriveCommand(
+                            () -> traj.getFinalPose().orElse(Pose2d.kZero))),
+                scoreInAuto(traj.getFinalPose(), ReefTarget.L4)));
+    return routine.cmd();
+  }
+
+  public Command RMtoGCmd() {
+    final var routine = factory.newRoutine("RM to G");
+    final var traj = routine.trajectory("RMtoG");
+    routine
+        .active()
+        .whileTrue(
+            Commands.sequence(
+                traj.resetOdometry(),
+                traj.cmd(),
+                Commands.waitSeconds(0.5)
+                    .raceWith(
+                        swerve.poseLockDriveCommand(
+                            () -> traj.getFinalPose().orElse(Pose2d.kZero))),
+                scoreInAuto(traj.getFinalPose(), ReefTarget.L4)));
     return routine.cmd();
   }
 
