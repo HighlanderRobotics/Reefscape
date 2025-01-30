@@ -332,7 +332,4 @@ public class Autos {
               Commands.waitUntil(() -> manipulator.getSecondBeambreak())));
     }
   }
-
- 
-
 }
