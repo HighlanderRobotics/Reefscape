@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
@@ -169,12 +168,18 @@ public class Autos {
             Commands.sequence(
                 cmd,
                 Commands.waitUntil(
-                  () -> {
-                    final var diff = swerve.getPose().minus(currentPath.getFinalPose().orElse(Pose2d.kZero));
-                    return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(2.0)) //TODO update when merged
-                        && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
-                        && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-                  })
+                        () -> {
+                          final var diff =
+                              swerve
+                                  .getPose()
+                                  .minus(currentPath.getFinalPose().orElse(Pose2d.kZero));
+                          return MathUtil.isNear(
+                                  0.0,
+                                  diff.getX(),
+                                  Units.inchesToMeters(2.0)) // TODO update when merged
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                        })
                     .raceWith(
                         swerve.poseLockDriveCommand(
                             () -> nextPath.getInitialPose().orElse(Pose2d.kZero))),
@@ -249,6 +254,7 @@ public class Autos {
     }
     return routine.cmd();
   }
+
   public Command LMtoHCMD() {
     final var routine = factory.newRoutine("LM to H");
     final var traj = routine.trajectory("LMtoH");
@@ -403,15 +409,21 @@ public class Autos {
     if (!pose.isPresent()) {
       return Commands.none();
     } else {
-            return AutoAim.translateToPose(swerve, () -> pose.get()).until(
+      return AutoAim.translateToPose(swerve, () -> pose.get())
+          .until(
               () -> {
-                          final var diff = swerve.getPose().minus(pose.get());
-                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0)) //TODO find tolerances
-                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-              }).andThen(Commands.race(
-                          Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                          manipulator.setVelocity(100.0))); //TODO this needs to be changed to match the enum later but i'm on the wrong branch
+                final var diff = swerve.getPose().minus(pose.get());
+                return MathUtil.isNear(
+                        0.0, diff.getX(), Units.inchesToMeters(1.0)) // TODO find tolerances
+                    && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                    && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+              })
+          .andThen(
+              Commands.race(
+                  Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+                  manipulator.setVelocity(
+                      100.0))); // TODO this needs to be changed to match the enum later but i'm on
+      // the wrong branch
     }
   }
 
@@ -419,7 +431,8 @@ public class Autos {
     if (!pose.isPresent()) {
       return Commands.none();
     } else {
-      return AutoAim.translateToPose(swerve, () -> pose.get()).until(() -> manipulator.getSecondBeambreak());
+      return AutoAim.translateToPose(swerve, () -> pose.get())
+          .until(() -> manipulator.getSecondBeambreak() || Robot.isSimulation());
     }
   }
 }
