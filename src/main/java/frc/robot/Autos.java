@@ -172,7 +172,7 @@ public class Autos {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(currentPath.getFinalPose().orElse(Pose2d.kZero));
+                                  .minus(nextPath.getInitialPose().orElse(Pose2d.kZero));
                           return MathUtil.isNear(
                                   0.0,
                                   diff.getX(),
@@ -264,10 +264,8 @@ public class Autos {
             Commands.sequence(
                 traj.resetOdometry(),
                 traj.cmd(),
-                Commands.waitSeconds(0.5)
-                    .raceWith(
                         swerve.poseLockDriveCommand(
-                            () -> traj.getFinalPose().orElse(Pose2d.kZero))),
+                            () -> traj.getFinalPose().orElse(Pose2d.kZero)),
                 scoreInAuto(traj.getFinalPose(), ReefTarget.L4)));
     return routine.cmd();
   }
@@ -281,10 +279,8 @@ public class Autos {
             Commands.sequence(
                 traj.resetOdometry(),
                 traj.cmd(),
-                Commands.waitSeconds(0.5)
-                    .raceWith(
                         swerve.poseLockDriveCommand(
-                            () -> traj.getFinalPose().orElse(Pose2d.kZero))),
+                            () -> traj.getFinalPose().orElse(Pose2d.kZero)),
                 scoreInAuto(traj.getFinalPose(), ReefTarget.L4)));
     return routine.cmd();
   }
