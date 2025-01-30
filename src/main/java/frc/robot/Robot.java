@@ -39,7 +39,6 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
-import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.climber.ClimberIOReal;
@@ -298,7 +297,7 @@ public class Robot extends LoggedRobot {
           () -> currentTarget,
           () -> algaeIntakeTarget,
           () -> algaeScoreTarget,
-          driver.rightTrigger(),
+          driver.rightTrigger().and(() -> AutoAim.isInTolerance(swerve.getPose())),
           driver.rightTrigger(),
           driver.leftTrigger(),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),
@@ -407,7 +406,6 @@ public class Robot extends LoggedRobot {
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
 
     // Default Commands
-
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
@@ -441,13 +439,7 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(
-            () ->
-                superstructure.getState() == SuperState.READY_CORAL
-                    || superstructure.getState() == SuperState.PRE_L1
-                    || superstructure.getState() == SuperState.PRE_L2
-                    || superstructure.getState() == SuperState.PRE_L3
-                    || superstructure.getState() == SuperState.PRE_L4)
+        .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
@@ -456,43 +448,10 @@ public class Robot extends LoggedRobot {
                         AutoAimTargets.getHandedClosestTarget(
                             swerve.getPose(), driver.leftBumper().getAsBoolean())),
                 Commands.waitUntil(
-                        () -> {
-                          final var diff =
-                              swerve
-                                  .getPose()
-                                  .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
-                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-                        })
+                        () -> AutoAim.isInTolerance(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    // driver
-    //     .rightTrigger()
-    //     .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
-    //     .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
-    //     .onFalse(
-    //         Commands.either(
-    //             manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
-    //             Commands.race(
-    //                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-    //                     manipulator.setVelocity(() -> currentTarget.outtakeSpeed))
-    //                 .andThen(
-    //                     Commands.waitSeconds(0.75),
-    //                     Commands.waitUntil(
-    //                         () -> {
-    //                           final var diff =
-    //                               swerve
-    //                                   .getPose()
-    //                                   .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-    //                           return !(MathUtil.isNear(0.0, diff.getX(),
-    // Units.inchesToMeters(6.0))
-    //                               && MathUtil.isNear(0.0, diff.getY(),
-    // Units.inchesToMeters(6.0)));
-    //                         }))
-    //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
-    //             driver.leftTrigger()));
-
+    // TODO remove before merge
     driver.povUp().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
     driver.povDown().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
     // driver
@@ -510,6 +469,7 @@ public class Robot extends LoggedRobot {
 
     driver
         .start()
+        .or(operator.start())
         .onTrue(
             Commands.runOnce(
                 () -> {
@@ -519,14 +479,14 @@ public class Robot extends LoggedRobot {
                 }))
         .onTrue(elevator.runCurrentZeroing());
 
-    operator.a().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L1));
-    operator.x().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L2));
-    operator.b().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L3));
-    operator.y().onTrue(Commands.runOnce(() -> currentTarget = ReefTarget.L4));
-    operator.leftStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
+    operator.a().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L1; algaeIntakeTarget = AlgaeIntakeTarget.GROUND; }));
+    operator.x().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L2; algaeIntakeTarget = AlgaeIntakeTarget.LOW; }));
+    operator.b().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L3; algaeIntakeTarget = AlgaeIntakeTarget.HIGH; }));
+    operator.y().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L4; algaeIntakeTarget = AlgaeIntakeTarget.STACK; }));
+    operator.leftTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
     operator
-        .rightStick()
-        .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
+        .rightTrigger()
+        .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
 
     // Log locations of all autoaim targets
     Logger.recordOutput(
