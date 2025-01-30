@@ -447,8 +447,7 @@ public class Robot extends LoggedRobot {
                     () ->
                         AutoAimTargets.getHandedClosestTarget(
                             swerve.getPose(), driver.leftBumper().getAsBoolean())),
-                Commands.waitUntil(
-                        () -> AutoAim.isInTolerance(swerve.getPose()))
+                Commands.waitUntil(() -> AutoAim.isInTolerance(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     // TODO remove before merge
@@ -479,14 +478,42 @@ public class Robot extends LoggedRobot {
                 }))
         .onTrue(elevator.runCurrentZeroing());
 
-    operator.a().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L1; algaeIntakeTarget = AlgaeIntakeTarget.GROUND; }));
-    operator.x().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L2; algaeIntakeTarget = AlgaeIntakeTarget.LOW; }));
-    operator.b().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L3; algaeIntakeTarget = AlgaeIntakeTarget.HIGH; }));
-    operator.y().onTrue(Commands.runOnce(() -> {currentTarget = ReefTarget.L4; algaeIntakeTarget = AlgaeIntakeTarget.STACK; }));
-    operator.leftTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
     operator
-        .rightTrigger()
-        .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
+        .a()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L1;
+                  algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
+                }));
+    operator
+        .x()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L2;
+                  algaeIntakeTarget = AlgaeIntakeTarget.LOW;
+                }));
+    operator
+        .b()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L3;
+                  algaeIntakeTarget = AlgaeIntakeTarget.HIGH;
+                }));
+    operator
+        .y()
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  currentTarget = ReefTarget.L4;
+                  algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+                }));
+    operator
+        .leftTrigger()
+        .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
+    operator.rightTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
 
     // Log locations of all autoaim targets
     Logger.recordOutput(

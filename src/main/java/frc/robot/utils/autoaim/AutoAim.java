@@ -87,10 +87,10 @@ public class AutoAim {
   }
 
   public static boolean isInTolerance(Pose2d pose) {
-    final var diff =
-                pose
-                    .minus(AutoAimTargets.getClosestTarget(pose));
-            return MathUtil.isNear(0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
-                && MathUtil.isNear(0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
+    final var diff = pose.minus(AutoAimTargets.getClosestTarget(pose));
+    return MathUtil.isNear(
+            0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
+        && MathUtil.isNear(
+            0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
   }
 }
