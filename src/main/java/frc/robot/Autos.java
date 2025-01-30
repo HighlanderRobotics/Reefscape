@@ -163,7 +163,7 @@ public class Autos {
                     .raceWith(
                         swerve.poseLockDriveCommand(
                             () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
-                PROtoD.cmd())); // should be DtoPRO instead?
+                DtoPRO.cmd())); // should be DtoPRO instead?
 
     return routine.cmd();
   }
