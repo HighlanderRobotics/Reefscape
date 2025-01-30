@@ -72,20 +72,6 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command getPROtoD() {
-    var routine = factory.newRoutine("coral intake to D");
-    var traj = routine.trajectory("PROtoD");
-    routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
-    return routine.cmd();
-  }
-
-  public Command getStarttoD() {
-    var routine = factory.newRoutine("start postion to D");
-    var traj = routine.trajectory("StarttoD");
-    routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
-    return routine.cmd();
-  }
-
   public Command autoCycleTest() {
     final var routine = factory.newRoutine("Cycle RHS Start to D");
     final var DtoPRO = routine.trajectory("DtoPRO");
@@ -167,7 +153,14 @@ public class Autos {
 
     return routine.cmd();
   }
-
+  /***
+   * Waits for the current path to be completed then runs the command (score or intake), waits to be close enough then starts the next path
+   * //TODO order does not make sense (?)
+   * @param routine AutoRoutine these paths are in
+   * @param currentPath The path that just completed
+   * @param nextPath The path that is about to run
+   * @param cmd The command we want to run before nextPath
+   */
   public void runPath(
       AutoRoutine routine, AutoTrajectory currentPath, AutoTrajectory nextPath, Command cmd) {
     routine
@@ -175,12 +168,17 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 cmd,
-                Commands.waitSeconds(0.5)
+                Commands.waitUntil(
+                  () -> {
+                    final var diff = swerve.getPose().minus(currentPath.getFinalPose().orElse(Pose2d.kZero));
+                    return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(2.0)) //TODO update when merged
+                        && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
+                        && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                  })
                     .raceWith(
                         swerve.poseLockDriveCommand(
                             () -> nextPath.getInitialPose().orElse(Pose2d.kZero))),
                 nextPath.cmd()));
-    routine.cmd();
   }
 
   // just runs a single path
@@ -198,6 +196,14 @@ public class Autos {
                 cmd));
   }
 
+  /***
+   * Runs a path based on the names of the starting location, middle location, and ending location. The current path is generated based on starting + middle and the next from middle + end
+   * @param routine AutoRoutine these paths are in
+   * @param startLocation Starting location of the path that just completed
+   * @param middleLocation Ending location of the path that just completed/starting location of the next one
+   * @param endLocation Ending location of the next path
+   * @param steps Relevant AutoTrajectories + names
+   */
   public void runPath(
       AutoRoutine routine,
       String startLocation,
@@ -243,7 +249,6 @@ public class Autos {
     }
     return routine.cmd();
   }
-
   public Command LMtoHCMD() {
     final var routine = factory.newRoutine("LM to H");
     final var traj = routine.trajectory("LMtoH");
@@ -396,47 +401,25 @@ public class Autos {
 
   public Command scoreInAuto(Optional<Pose2d> pose, ReefTarget target) {
     if (!pose.isPresent()) {
-      return new InstantCommand();
+      return Commands.none();
     } else {
-      return Commands.sequence(
-          Commands.parallel(
-              AutoAim.translateToPose(swerve, () -> pose.get()),
-              Commands.waitUntil(
-                  () -> {
-                    final var diff = swerve.getPose().minus(pose.get());
-                    return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
-                        && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                        && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-                  }),
-              Commands.race(
-                      Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                      manipulator.setVelocity(() -> target == ReefTarget.L1 ? 12.0 : 100.0))
-                  .andThen(
-                      Commands.waitSeconds(0.75),
-                      Commands.waitUntil(
-                          () -> {
-                            final var diff = swerve.getPose().minus(pose.get());
-                            return !(MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(6.0))
-                                && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(6.0)));
-                          }))));
+            return AutoAim.translateToPose(swerve, () -> pose.get()).until(
+              () -> {
+                          final var diff = swerve.getPose().minus(pose.get());
+                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0)) //TODO find tolerances
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+              }).andThen(Commands.race(
+                          Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+                          manipulator.setVelocity(100.0))); //TODO this needs to be changed to match the enum later but i'm on the wrong branch
     }
   }
 
   public Command intakeInAuto(Optional<Pose2d> pose) {
     if (!pose.isPresent()) {
-      return new InstantCommand();
+      return Commands.none();
     } else {
-      return Commands.sequence(
-          Commands.parallel(
-              AutoAim.translateToPose(swerve, () -> pose.get()),
-              Commands.waitUntil(
-                  () -> {
-                    final var diff = swerve.getPose().minus(pose.get());
-                    return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
-                        && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                        && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-                  }),
-              Commands.waitUntil(() -> manipulator.getSecondBeambreak())));
+      return AutoAim.translateToPose(swerve, () -> pose.get()).until(() -> manipulator.getSecondBeambreak());
     }
   }
 }
