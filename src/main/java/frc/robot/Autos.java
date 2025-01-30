@@ -234,7 +234,7 @@ public class Autos {
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "LO", "J", "PLO", "K", "PLO", "L", "PLO", "A" // each stop we are going to, in order
+      "LO", "J", "PLO", "K", "PLO", "L", "PLO", "A", "PLO" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
@@ -258,12 +258,12 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command PLOtoACMD() {
-    final var routine = factory.newRoutine("LO to J");
+  public Command ROtoECMD() {
+    final var routine = factory.newRoutine("RO to E");
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "PLO", "A" // each stop we are going to, in order
+      "RO", "E", "PRO", "D", "PRO", "C", "PRO", "B", "PRO" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
@@ -274,16 +274,16 @@ public class Autos {
         .active()
         .whileTrue(
             Commands.sequence(
-                steps.get("PLOtoA").resetOdometry(),
-                steps.get("PLOtoA").cmd())); // runs the very first traj
-    /* for (int i = 0; i < stops.length - 2; i++) {
+                steps.get("ROtoE").resetOdometry(),
+                steps.get("ROtoE").cmd())); // runs the very first traj
+    for (int i = 0; i < stops.length - 2; i++) {
       runPath(
           routine,
           stops[i],
           stops[i + 1],
           stops[i + 2],
           steps); // runs each of the following traj + whatever it does at the end of the traj
-    } */
+    }
     return routine.cmd();
   }
 
