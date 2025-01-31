@@ -467,7 +467,8 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    // driver
+    
+                    // driver
     //     .rightTrigger()
     //     .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
     //     .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
@@ -492,7 +493,7 @@ public class Robot extends LoggedRobot {
     //                         }))
     //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
     //             driver.leftTrigger()));
-
+    // TODO: REMOVE AFTER TESTING
     driver.povUp().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
     driver.povDown().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
     // driver
