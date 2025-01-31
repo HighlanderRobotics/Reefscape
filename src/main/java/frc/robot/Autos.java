@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
 import java.util.HashMap;
@@ -26,10 +27,13 @@ public class Autos {
   private final SwerveSubsystem swerve;
   private final ManipulatorSubsystem manipulator;
   private final AutoFactory factory;
+  private final ElevatorSubsystem elevator;
 
-  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
+  public Autos(
+      SwerveSubsystem swerve, ManipulatorSubsystem manipulator, ElevatorSubsystem elevator) {
     this.swerve = swerve;
     this.manipulator = manipulator;
+    this.elevator = elevator;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -92,7 +96,7 @@ public class Autos {
         .observe(DtoPRO.done())
         .onTrue(
             Commands.sequence(
-                // getcoral
+                // getcoralf
                 Commands.waitSeconds(0.5)
                     .raceWith(
                         swerve.poseLockDriveCommand(
@@ -262,12 +266,42 @@ public class Autos {
         .active()
         .whileTrue(
             Commands.sequence(
-                traj.resetOdometry(),
-                traj.cmd(),
-                        swerve.poseLockDriveCommand(
-                            () -> traj.getFinalPose().orElse(Pose2d.kZero)),
-                scoreInAuto(traj.getFinalPose(), ReefTarget.L4)));
+                    traj.resetOdometry(),
+                    traj.cmd()
+                        .raceWith(
+                            Commands.waitUntil(
+                                    () -> {
+                                      final var diff =
+                                          swerve
+                                              .getPose()
+                                              .minus(traj.getFinalPose().orElse(Pose2d.kZero));
+                                      return MathUtil.isNear(
+                                              0.0,
+                                              diff.getX(),
+                                              Units.inchesToMeters(15.0)) // TODO find tolerances
+                                          && MathUtil.isNear(
+                                              0.0, diff.getY(), Units.inchesToMeters(15.0));
+                                    })
+                                .andThen(
+                                    elevator
+                                        .setExtension(ElevatorSubsystem.L4_EXTENSION_METERS)
+                                        .asProxy())))
+                .raceWith(manipulator.backIndex()));
+    routine.observe(traj.done()).onTrue(scoreInAuto(traj.getFinalPose(), ReefTarget.L4));
     return routine.cmd();
+  }
+
+  public Command test() {
+    // final var routine = factory.newRoutine("LM to H");
+    // final var traj = routine.trajectory("LMtoH");
+    // routine
+    //     .active()
+    //     .whileTrue(
+    //         Commands.sequence(
+    //             traj.resetOdometry(),
+    //             traj.cmd(),
+    return scoreInAuto(Optional.of(swerve.getPose()), ReefTarget.L4).asProxy();
+    // return routine.cmd();
   }
 
   public Command RMtoGCmd() {
@@ -279,8 +313,7 @@ public class Autos {
             Commands.sequence(
                 traj.resetOdometry(),
                 traj.cmd(),
-                        swerve.poseLockDriveCommand(
-                            () -> traj.getFinalPose().orElse(Pose2d.kZero)),
+                swerve.poseLockDriveCommand(() -> traj.getFinalPose().orElse(Pose2d.kZero)),
                 scoreInAuto(traj.getFinalPose(), ReefTarget.L4)));
     return routine.cmd();
   }
@@ -410,8 +443,8 @@ public class Autos {
               () -> {
                 final var diff = swerve.getPose().minus(pose.get());
                 return MathUtil.isNear(
-                        0.0, diff.getX(), Units.inchesToMeters(1.0)) // TODO find tolerances
-                    && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                        0.0, diff.getX(), Units.inchesToMeters(2.0)) // TODO find tolerances
+                    && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
                     && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
               })
           .andThen(

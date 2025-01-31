@@ -323,7 +323,7 @@ public class Robot extends LoggedRobot {
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
 
-    autos = new Autos(swerve, manipulator);
+    autos = new Autos(swerve, manipulator, elevator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
@@ -335,6 +335,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
     autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
     autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
+    autoChooser.addOption("test", autos.test());
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
