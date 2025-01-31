@@ -14,6 +14,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
@@ -45,29 +46,29 @@ public class ElevatorIOReal implements ElevatorIO {
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-    config.Slot0.kG = 0.0; // 0.11591;
-    config.Slot0.kS = 0.0; // 0.16898;
-    config.Slot0.kV = 0.0; // 11.3;
-    config.Slot0.kA = 0.0; // 0.0;
-    config.Slot0.kP = 0.0; // 150.0;
-    config.Slot0.kD = 0.0; // 17.53;
+    config.Slot0.kG = 0.3;
+    config.Slot0.kS = 0.0; // 0.15;
+    config.Slot0.kV = /* 3.86476 */ 4.25;
+    config.Slot0.kA = 0.0;
+    config.Slot0.kP = 64.0;
+    config.Slot0.kD = 1.0;
 
     config.CurrentLimits.StatorCurrentLimit = 60.0;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
     config.CurrentLimits.SupplyCurrentLimit = 20.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
-    config.MotionMagic.MotionMagicAcceleration = 8.0;
+    config.MotionMagic.MotionMagicAcceleration = 64.0;
     // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity =
-        50.0 / (ElevatorSubsystem.GEAR_RATIO * 2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
+    config.MotionMagic.MotionMagicCruiseVelocity = 32.0;
+    // 50.0 / (ElevatorSubsystem.GEAR_RATIO * 2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
 
     // Carriage position meters in direction of elevator
     config.Feedback.SensorToMechanismRatio =
         ElevatorSubsystem.GEAR_RATIO / (2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
 
     motor.getConfigurator().apply(config);
-    motor.setPosition(0.0); // Assume we boot 0ed
+    motor.setPosition(Units.inchesToMeters(0.0)); // Assume we boot nearly 0ed
     follower.getConfigurator().apply(config);
     follower.setControl(new Follower(motor.getDeviceID(), true));
 
