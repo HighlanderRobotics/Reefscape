@@ -29,6 +29,8 @@ public class ClimberIOSim implements ClimberIO {
   private final ProfiledPIDController pid =
       new ProfiledPIDController(5.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
+  private double appliedVoltage = 0.0;
+
   @Override
   public void updateInputs(final ClimberIOInputsAutoLogged inputs) {
     armSim.update(0.02);
@@ -39,10 +41,12 @@ public class ClimberIOSim implements ClimberIO {
     inputs.statorCurrentAmps = armSim.getCurrentDrawAmps();
     inputs.supplyCurrentAmps = 0.0;
     inputs.tempDegreesC = 0.0;
+    inputs.appliedVoltage = appliedVoltage;
   }
 
   @Override
   public void setVoltage(final double voltage) {
+    appliedVoltage = voltage;
     armSim.setInputVoltage(voltage);
   }
 

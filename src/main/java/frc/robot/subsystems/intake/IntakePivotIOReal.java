@@ -15,6 +15,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 
 public class IntakePivotIOReal implements IntakePivotIO {
   private final TalonFX motor = new TalonFX(14, "*");
@@ -23,6 +24,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
   private final StatusSignal<Temperature> temp = motor.getDeviceTemp();
   private final StatusSignal<Current> supplyCurrentAmps = motor.getSupplyCurrent();
   private final StatusSignal<Current> statorCurrentAmps = motor.getStatorCurrent();
+  private final StatusSignal<Voltage> appliedVoltage = motor.getMotorVoltage();
   private final StatusSignal<Angle> motorPositionRotations = motor.getPosition();
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
@@ -58,6 +60,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
         temp,
         supplyCurrentAmps,
         statorCurrentAmps,
+        appliedVoltage,
         motorPositionRotations);
   }
 
@@ -68,6 +71,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
         temp,
         supplyCurrentAmps,
         statorCurrentAmps,
+        appliedVoltage,
         motorPositionRotations);
 
     inputs.angularVelocityRotsPerSec = angularVelocityRotsPerSec.getValueAsDouble();
@@ -75,6 +79,7 @@ public class IntakePivotIOReal implements IntakePivotIO {
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
+    inputs.appliedVoltage = appliedVoltage.getValueAsDouble();
   }
 
   @Override
