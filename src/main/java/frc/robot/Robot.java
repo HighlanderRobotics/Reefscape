@@ -467,8 +467,7 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    
-                    // driver
+    // driver
     //     .rightTrigger()
     //     .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
     //     .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
