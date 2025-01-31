@@ -1,7 +1,5 @@
 package frc.robot.subsystems.arm;
 
-import org.checkerframework.checker.units.qual.m;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -88,7 +86,12 @@ public class ShoulderIOReal implements ArmIO {
   @Override
   public void updateInputs(ArmIOInputs inputs) {
     BaseStatusSignal.refreshAll(
-        angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, motorPositionRotations, appliedVoltage);
+        angularVelocityRPS,
+        temp,
+        supplyCurrentAmps,
+        statorCurrentAmps,
+        motorPositionRotations,
+        appliedVoltage);
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);

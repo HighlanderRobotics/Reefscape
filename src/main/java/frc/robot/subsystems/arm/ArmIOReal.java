@@ -58,7 +58,12 @@ public class ArmIOReal implements ArmIO {
   @Override
   public void updateInputs(ArmIOInputs inputs) {
     BaseStatusSignal.refreshAll(
-        angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, motorPositionRotations, appliedVoltage);
+        angularVelocityRPS,
+        temp,
+        supplyCurrentAmps,
+        statorCurrentAmps,
+        motorPositionRotations,
+        appliedVoltage);
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);

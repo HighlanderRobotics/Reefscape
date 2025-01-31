@@ -44,7 +44,13 @@ public class ClimberIOReal implements ClimberIO {
 
     motor.getConfigurator().apply(config);
     BaseStatusSignal.setUpdateFrequencyForAll(
-        50.0, angularVelocityRPS, temp, appliedVoltage, supplyCurrentAmps, statorCurrentAmps, position);
+        50.0,
+        angularVelocityRPS,
+        temp,
+        appliedVoltage,
+        supplyCurrentAmps,
+        statorCurrentAmps,
+        position);
     motor.optimizeBusUtilization();
   }
 
