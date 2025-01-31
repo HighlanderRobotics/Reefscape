@@ -551,10 +551,10 @@ public class Robot extends LoggedRobot {
                   currentTarget = ReefTarget.L4;
                   algaeIntakeTarget = AlgaeIntakeTarget.STACK;
                 }));
-    operator.leftStick().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
+    operator.leftTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
 
     operator
-        .rightStick()
+        .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
     // Log locations of all autoaim targets
