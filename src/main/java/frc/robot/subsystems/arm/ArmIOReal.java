@@ -74,8 +74,8 @@ public class ArmIOReal implements ArmIO {
   }
 
   @Override
-  public void setMotorVoltage(final double appliedVoltage) {
-    motor.setControl(voltageOut.withOutput(appliedVoltage));
+  public void setMotorVoltage(final double voltage) {
+    motor.setControl(voltageOut.withOutput(voltage));
   }
 
   @Override
