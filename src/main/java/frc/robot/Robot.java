@@ -507,17 +507,18 @@ public class Robot extends LoggedRobot {
               new Translation3d(
                   ShoulderSubsystem.X_OFFSET_METERS,
                   0,
-                  elevator.getExtensionMeters() + ShoulderSubsystem.Z_OFFSET_METERS),
-              new Rotation3d(0, (shoulder.getAngle().getRadians() - (Math.PI / 2.0)), 0)),
+                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
+              new Rotation3d(
+                  0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
           new Pose3d( // Manipulator
               new Translation3d(
                   ShoulderSubsystem.X_OFFSET_METERS
-                      - shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                      + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
                   0,
                   elevator.getExtensionMeters()
                       + ShoulderSubsystem.Z_OFFSET_METERS
                       + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
-              new Rotation3d(0, wrist.getAngle().getRadians(), 0))
+              new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
         });
     Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
 

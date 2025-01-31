@@ -12,11 +12,11 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double SHOULDER_FINAL_STAGE_RATIO = 3.0;
   public static final double SHOULDER_GEAR_RATIO = 9.0 * (34.0 / 28.0) * SHOULDER_FINAL_STAGE_RATIO;
   public static final int CANCODER_ID = 5;
-  public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(185.0);
+  public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(120.0);
   public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
   public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(80.0);
 
-  public static final double X_OFFSET_METERS = -0.1016254;
+  public static final double X_OFFSET_METERS = 0.1016254;
   public static final double Z_OFFSET_METERS = 0.207645;
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
 
