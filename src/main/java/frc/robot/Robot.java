@@ -91,7 +91,7 @@ public class Robot extends LoggedRobot {
     L1(ElevatorSubsystem.L1_EXTENSION_METERS, 12.0),
     L2(ElevatorSubsystem.L2_EXTENSION_METERS),
     L3(ElevatorSubsystem.L3_EXTENSION_METERS),
-    L4(ElevatorSubsystem.L4_EXTENSION_METERS, 20.0);
+    L4(ElevatorSubsystem.L4_EXTENSION_METERS, 3.0);
 
     public final double elevatorHeight;
     public final double outtakeSpeed;
@@ -103,7 +103,7 @@ public class Robot extends LoggedRobot {
 
     private ReefTarget(double elevatorHeight) {
       this.elevatorHeight = elevatorHeight;
-      this.outtakeSpeed = 100.0;
+      this.outtakeSpeed = 12.0;
     }
   }
 
@@ -355,7 +355,7 @@ public class Robot extends LoggedRobot {
                 manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
                 Commands.race(
                         Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                        manipulator.setVelocity(() -> currentTarget.outtakeSpeed))
+                        manipulator.setVoltage(() -> currentTarget.outtakeSpeed))
                     .andThen(
                         Commands.waitSeconds(0.75),
                         Commands.waitUntil(

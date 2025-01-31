@@ -41,4 +41,12 @@ public class RollerSubsystem extends SubsystemBase {
   public Command setVelocity(double vel) {
     return this.setVelocity(() -> vel);
   }
+
+  public Command setVoltage(DoubleSupplier volts) {
+    return this.run(() -> io.setVoltage(volts.getAsDouble()));
+  }
+
+  public Command setVoltage(double volts) {
+    return this.setVoltage(() -> volts);
+  }
 }
