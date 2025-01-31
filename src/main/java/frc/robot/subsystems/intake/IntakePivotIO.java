@@ -10,6 +10,7 @@ public interface IntakePivotIO {
     public Rotation2d position = new Rotation2d();
     public double tempDegreesC = 0.0;
     public double supplyCurrentAmps = 0.0;
+    public double appliedVoltage = 0.0;
     public double statorCurrentAmps = 0.0;
   }
 

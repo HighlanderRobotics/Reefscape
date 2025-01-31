@@ -17,6 +17,7 @@ import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
+import edu.wpi.first.units.measure.Voltage;
 
 public class ShoulderIOReal implements ArmIO {
   private final TalonFX motor;
@@ -26,6 +27,7 @@ public class ShoulderIOReal implements ArmIO {
   private final StatusSignal<Temperature> temp;
   private final StatusSignal<Current> supplyCurrentAmps;
   private final StatusSignal<Current> statorCurrentAmps;
+  private final StatusSignal<Voltage> appliedVoltage;
   private final StatusSignal<Angle> motorPositionRotations;
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
@@ -40,6 +42,7 @@ public class ShoulderIOReal implements ArmIO {
     supplyCurrentAmps = motor.getSupplyCurrent();
     statorCurrentAmps = motor.getStatorCurrent();
     motorPositionRotations = motor.getPosition();
+    appliedVoltage = motor.getMotorVoltage();
 
     final TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -74,6 +77,7 @@ public class ShoulderIOReal implements ArmIO {
         50.0,
         angularVelocityRPS,
         temp,
+        appliedVoltage,
         supplyCurrentAmps,
         statorCurrentAmps,
         motorPositionRotations);
@@ -82,13 +86,19 @@ public class ShoulderIOReal implements ArmIO {
   @Override
   public void updateInputs(ArmIOInputs inputs) {
     BaseStatusSignal.refreshAll(
-        angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, motorPositionRotations);
+        angularVelocityRPS,
+        temp,
+        supplyCurrentAmps,
+        statorCurrentAmps,
+        motorPositionRotations,
+        appliedVoltage);
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
     inputs.angularVelocityRPS = angularVelocityRPS.getValueAsDouble();
+    inputs.appliedVoltage = appliedVoltage.getValueAsDouble();
   }
 
   @Override
