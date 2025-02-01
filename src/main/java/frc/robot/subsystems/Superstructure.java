@@ -14,9 +14,6 @@ import frc.robot.subsystems.arm.ShoulderSubsystem;
 import frc.robot.subsystems.arm.WristSubsystem;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
-
-import static frc.robot.subsystems.elevator.ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -273,17 +270,19 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(() -> reefTarget.get().elevatorHeight))
         .whileTrue(Commands.print(reefTarget.get().outtakeSpeed + " "))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .whileTrue(wrist.setTargetAngle(() -> {
-            if (reefTarget.get() == ReefTarget.L1) {
-                return WristSubsystem.WRIST_SCORE_L1_POS;
-            } else if (reefTarget.get() == ReefTarget.L2) {
-                return WristSubsystem.WRIST_SCORE_L2_POS;
-            } else if (reefTarget.get() == ReefTarget.L3) {
-                return WristSubsystem.WRIST_SCORE_L3_POS;
-            } else {
-                return WristSubsystem.WRIST_SCORE_L4_POS;
-            }
-        }))
+        .whileTrue(
+            wrist.setTargetAngle(
+                () -> {
+                  if (reefTarget.get() == ReefTarget.L1) {
+                    return WristSubsystem.WRIST_SCORE_L1_POS;
+                  } else if (reefTarget.get() == ReefTarget.L2) {
+                    return WristSubsystem.WRIST_SCORE_L2_POS;
+                  } else if (reefTarget.get() == ReefTarget.L3) {
+                    return WristSubsystem.WRIST_SCORE_L3_POS;
+                  } else {
+                    return WristSubsystem.WRIST_SCORE_L4_POS;
+                  }
+                }))
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
