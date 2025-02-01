@@ -135,8 +135,8 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.IDLE)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(manipulator.index())
         .whileTrue(funnel.setVoltage(6.0))
         .and(manipulator::getSecondBeambreak)
@@ -177,7 +177,7 @@ public class Superstructure {
         .get(SuperState.READY_CORAL)
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
         .whileTrue(manipulator.index()); // keep indexing to make sure its chilling
 
     // SPIT_CORAL logic + -> IDLE
@@ -267,6 +267,9 @@ public class Superstructure {
     // SCORE_CORAL -> IDLE
     stateTriggers
         .get(SuperState.SCORE_CORAL)
+        .whileTrue(elevator.setExtension(elevator.getExtensionMeters()))
+        .whileTrue(shoulder.setTargetAngle(shoulder.getAngle()))
+        .whileTrue(wrist.setTargetAngle(wrist.getAngle()))
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));

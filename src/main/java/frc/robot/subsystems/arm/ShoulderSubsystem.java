@@ -22,10 +22,12 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
   public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(104.95);
 
-  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(153.8);
-  public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(153.8);
-  public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0);
-  public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(115.0);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS =
+      Rotation2d.fromDegrees(153.8 + 180);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS =
+      Rotation2d.fromDegrees(153.8 + 180);
+  public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0 - 90.0);
+  public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(115.0 + 180);
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
