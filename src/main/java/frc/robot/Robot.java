@@ -335,7 +335,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
     autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
     autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
-    autoChooser.addOption("test", autos.test());
+    autoChooser.addOption("test", autos.debugAuto());
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()

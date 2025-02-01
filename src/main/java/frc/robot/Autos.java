@@ -75,87 +75,6 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command autoCycleTest() {
-    final var routine = factory.newRoutine("Cycle RHS Start to D");
-    final var DtoPRO = routine.trajectory("DtoPRO");
-    final var PROtoD = routine.trajectory("PROtoD");
-    final var StarttoD = routine.trajectory("StarttoD");
-
-    routine.active().whileTrue(Commands.sequence(StarttoD.resetOdometry(), StarttoD.cmd()));
-    routine
-        .observe(StarttoD.done())
-        .onTrue(
-            Commands.sequence(
-                // score
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
-                DtoPRO.cmd()));
-    routine
-        .observe(DtoPRO.done())
-        .onTrue(
-            Commands.sequence(
-                // getcoralf
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> PROtoD.getInitialPose().orElse(Pose2d.kZero))),
-                PROtoD.cmd()));
-    routine
-        .observe(PROtoD.done())
-        .onTrue(
-            Commands.sequence(
-                // score
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
-                DtoPRO.cmd()));
-
-    return routine.cmd();
-  }
-
-  public Command getDCycle() {
-    final var routine = factory.newRoutine("Cycle RHS Start to D");
-    final var startToD = routine.trajectory("RHStoD");
-    final var DtoPRO = routine.trajectory("DtoPRO");
-    final var PROtoD = routine.trajectory("PROtoD");
-
-    routine.active().whileTrue(Commands.sequence(startToD.resetOdometry(), startToD.cmd()));
-    routine
-        .observe(startToD.done())
-        .onTrue(
-            Commands.sequence(
-                // score
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
-                DtoPRO.cmd()));
-    routine
-        .observe(DtoPRO.done())
-        .onTrue(
-            Commands.sequence(
-                // intake
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> PROtoD.getInitialPose().orElse(Pose2d.kZero))),
-                PROtoD.cmd()));
-    routine
-        .observe(PROtoD.done())
-        .onTrue(
-            Commands.sequence(
-                // score
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> DtoPRO.getInitialPose().orElse(Pose2d.kZero))),
-                DtoPRO.cmd())); // should be DtoPRO instead?
-
-    return routine.cmd();
-  }
   /***
    * Waits for the current path to be completed then runs the command (score or intake), waits to be close enough then starts the next path
    * //TODO order does not make sense (?)
@@ -291,7 +210,7 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command test() {
+  public Command debugAuto() {
     // final var routine = factory.newRoutine("LM to H");
     // final var traj = routine.trajectory("LMtoH");
     // routine
