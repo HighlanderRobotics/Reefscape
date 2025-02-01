@@ -19,6 +19,7 @@ import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.AutoAimTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
@@ -219,7 +220,11 @@ public class Autos {
     //         Commands.sequence(
     //             traj.resetOdometry(),
     //             traj.cmd(),
-    return scoreInAuto(Optional.of(swerve.getPose()), ReefTarget.L4).asProxy();
+    return scoreInAuto(
+            Optional.of(AutoAimTargets.getRobotTargetLocation(AutoAimTargets.RED_L.location)),
+            ReefTarget.L4)
+        .asProxy()
+        .alongWith(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS).asProxy());
     // return routine.cmd();
   }
 
@@ -370,7 +375,7 @@ public class Autos {
               Commands.race(
                   Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
                   manipulator.setVelocity(
-                      100.0))); // TODO this needs to be changed to match the enum later but i'm on
+                      10.0))); // TODO this needs to be changed to match the enum later but i'm on
       // the wrong branch
     }
   }
