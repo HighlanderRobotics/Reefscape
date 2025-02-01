@@ -9,6 +9,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class WristIOSim implements ArmIO {
@@ -17,7 +18,7 @@ public class WristIOSim implements ArmIO {
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
           WristSubsystem.WRIST_GEAR_RATIO,
-          0.15,
+          0.04458286,
           Units.inchesToMeters(14.9),
           WristSubsystem.MIN_ARM_ROTATION.getRadians(),
           WristSubsystem.MAX_ARM_ROTATION.getRadians(),
@@ -32,6 +33,7 @@ public class WristIOSim implements ArmIO {
 
   @Override
   public void updateInputs(final ArmIOInputs inputs) {
+    if (DriverStation.isDisabled()) armSim.setInput(0);
     armSim.update(0.02);
 
     inputs.angularVelocityRPS =
