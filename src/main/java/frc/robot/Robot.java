@@ -327,7 +327,6 @@ public class Robot extends LoggedRobot {
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
-    autoChooser.addOption("Cycle Demo", autos.getDCycle());
     autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
     autoChooser.addOption("LM to H", autos.LMtoHCMD());
     autoChooser.addOption("RM to G", autos.RMtoGCmd());
