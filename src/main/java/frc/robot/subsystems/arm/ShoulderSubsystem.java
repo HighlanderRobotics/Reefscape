@@ -28,6 +28,8 @@ public class ShoulderSubsystem extends SubsystemBase {
       Rotation2d.fromDegrees(153.8 + 180);
   public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0 - 90.0);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(115.0 + 180);
+  // TODO: SET TO CORRECT POS
+  public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(0.0);
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
