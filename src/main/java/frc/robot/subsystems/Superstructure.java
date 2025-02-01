@@ -14,6 +14,9 @@ import frc.robot.subsystems.arm.ShoulderSubsystem;
 import frc.robot.subsystems.arm.WristSubsystem;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+
+import static frc.robot.subsystems.elevator.ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -358,21 +361,23 @@ public class Superstructure {
         .and(() -> !manipulator.getFirstBeambreak())
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
+
     // PRE_PROCESSOR logic
-    stateTriggers.get(SuperState.PRE_PROCESSOR).whileTrue(elevator.setExtension(0.0));
     stateTriggers
         .get(SuperState.PRE_PROCESSOR)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_PROCESSOR_POS))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
-
+    // PRE_NET logic
     stateTriggers
         .get(SuperState.PRE_NET)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS));
-    stateTriggers
-        .get(SuperState.PRE_NET)
-        .or(stateTriggers.get(SuperState.PRE_PROCESSOR))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
 
@@ -380,7 +385,6 @@ public class Superstructure {
         .get(SuperState.SCORE_ALGAE)
         .whileTrue(manipulator.setVelocity(40))
         .and(() -> manipulator.getVoltage() < 0.0)
-        .and(manipulator::getFirstBeambreak)
         .onFalse(forceState(SuperState.IDLE));
 
     stateTriggers
