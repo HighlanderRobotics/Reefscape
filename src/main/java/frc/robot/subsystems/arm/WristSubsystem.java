@@ -9,9 +9,9 @@ import org.littletonrobotics.junction.Logger;
 public class WristSubsystem extends SubsystemBase {
   public static final double WRIST_GEAR_RATIO = 1.0;
   // TODO: UPDATE WHEN CAD IS FINISHED
-  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(270.0);
-  public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(90.0);
-  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(256.5);
+  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(180.0);
+  public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
+  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(0.0);
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
