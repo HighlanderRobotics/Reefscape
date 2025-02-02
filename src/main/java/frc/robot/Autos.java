@@ -212,20 +212,19 @@ public class Autos {
   }
 
   public Command debugAuto() {
-    // final var routine = factory.newRoutine("LM to H");
-    // final var traj = routine.trajectory("LMtoH");
-    // routine
-    //     .active()
-    //     .whileTrue(
-    //         Commands.sequence(
-    //             traj.resetOdometry(),
-    //             traj.cmd(),
-    return scoreInAuto(
-            Optional.of(AutoAimTargets.getRobotTargetLocation(AutoAimTargets.RED_L.location)),
-            ReefTarget.L4)
-        .asProxy()
-        .alongWith(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS).asProxy());
-    // return routine.cmd();
+    final var routine = factory.newRoutine("LM to H");
+    final var traj = routine.trajectory("LMtoH");
+    routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
+    routine
+        .observe(traj.done())
+        .onTrue(
+            scoreInAuto(
+                    Optional.of(
+                        AutoAimTargets.getRobotTargetLocation(AutoAimTargets.RED_H.location)),
+                    ReefTarget.L4)
+                .asProxy()
+                .alongWith(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS).asProxy()));
+    return routine.cmd();
   }
 
   public Command RMtoGCmd() {
