@@ -314,14 +314,14 @@ public class Superstructure {
         .get(SuperState.INTAKE_ALGAE_LOW)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
         .whileTrue(manipulator.intakeAlgae())
-        .and(() -> manipulator.getVoltage() < 0.0)
+        .and(() -> manipulator.hasAlgae())
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
         .whileTrue(manipulator.intakeAlgae())
-        .and(() -> manipulator.getVoltage() < 0.0)
+        .and(() -> manipulator.hasAlgae())
         .onTrue(forceState(SuperState.READY_ALGAE));
 
     stateTriggers
@@ -330,7 +330,7 @@ public class Superstructure {
         .whileTrue(manipulator.intakeAlgae())
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
-        .and(() -> manipulator.getVoltage() < 0.0)
+        .and(() -> manipulator.hasAlgae())
         .onTrue(forceState(SuperState.READY_ALGAE));
     // READY_ALGAE logic
     stateTriggers
