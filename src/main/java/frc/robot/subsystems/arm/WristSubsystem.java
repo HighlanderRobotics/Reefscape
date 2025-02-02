@@ -1,5 +1,6 @@
 package frc.robot.subsystems.arm;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -14,8 +15,7 @@ public class WristSubsystem extends SubsystemBase {
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(0.0);
   public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(256.5);
-  public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS =
-      Rotation2d.fromDegrees(180 - 164.9 - 45);
+  public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(164.9);
   public static final Rotation2d WRIST_SCORE_L1_POS = Rotation2d.fromDegrees(100.0 - 180 + 45);
   public static final Rotation2d WRIST_SCORE_L2_POS = Rotation2d.fromDegrees(140.0 - 180 + 45);
   public static final Rotation2d WRIST_SCORE_L3_POS = Rotation2d.fromDegrees(140.0 - 180 + 45);
@@ -50,5 +50,9 @@ public class WristSubsystem extends SubsystemBase {
 
   public Rotation2d getAngle() {
     return inputs.position;
+  }
+
+  public boolean isNearAngle(Rotation2d target) {
+    return MathUtil.isNear(target.getRotations(), inputs.position.getRotations(), 0.01);
   }
 }
