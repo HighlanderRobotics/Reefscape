@@ -20,6 +20,9 @@ public class AutoAim {
   static final double MAX_AUTOAIM_SPEED = 3.0;
   static final double MAX_AUTOAIM_ACCELERATION = 2.0;
 
+  public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
+  public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
+
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     // This feels like a horrible way of getting around lambda final requirements
     // Is there a cleaner way of doing this?
@@ -81,5 +84,13 @@ public class AutoAim {
                   Logger.recordOutput("AutoAim/Target Speeds", speeds);
                   return speeds;
                 }));
+  }
+
+  public static boolean isInTolerance(Pose2d pose) {
+    final var diff = pose.minus(AutoAimTargets.getClosestTarget(pose));
+    return MathUtil.isNear(
+            0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
+        && MathUtil.isNear(
+            0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
   }
 }

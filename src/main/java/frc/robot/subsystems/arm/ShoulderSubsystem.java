@@ -1,5 +1,6 @@
 package frc.robot.subsystems.arm;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +20,16 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double X_OFFSET_METERS = 0.1016254;
   public static final double Z_OFFSET_METERS = 0.207645;
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
+  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(104.95);
+
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(26.0);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS =
+      Rotation2d.fromDegrees(153.8 + 180);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(68.5);
+  public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0 - 45);
+  public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(75);
+  // TODO: SET TO CORRECT POS
+  public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(0.0);
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
@@ -47,5 +58,9 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public Rotation2d getAngle() {
     return inputs.position;
+  }
+
+  public boolean isNearAngle(Rotation2d target) {
+    return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 2.0);
   }
 }
