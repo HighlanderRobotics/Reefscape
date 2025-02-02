@@ -61,8 +61,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
-        // TODO: ADD BACK ACTUAL CHECK
-        .until(() -> /*inputs.statorCurrentAmps > 20.0 */ hasAlgae)
+        .until(() -> inputs.statorCurrentAmps > 20.0)
         .andThen(
             this.runOnce(() -> hasAlgae = true),
             this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
@@ -70,6 +69,10 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public double getVoltage() {
     return io.getVoltage();
+  }
+
+  public double getStatorCurrentAmps() {
+      return inputs.statorCurrentAmps;
   }
 
   public boolean getFirstBeambreak() {
