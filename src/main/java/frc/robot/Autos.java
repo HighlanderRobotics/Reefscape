@@ -184,19 +184,7 @@ public class Autos {
     final var routine = factory.newRoutine("LM to H");
     final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
-    routine
-        .observe(
-            () ->
-                swerve
-                            .getPose()
-                            .minus(
-                                AutoAimTargets.getRobotTargetLocation(
-                                    AutoAimTargets.RED_H.location))
-                            .getTranslation()
-                            .getNorm()
-                        < Units.inchesToMeters(24.0)
-                    && manipulator.getSecondBeambreak())
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS));
+    bindElevatorExtension(routine);
     routine
         .observe(traj.done())
         .onTrue(
@@ -350,7 +338,11 @@ public class Autos {
                 return MathUtil.isNear(
                         0.0, diff.getX(), Units.inchesToMeters(2.0)) // TODO find tolerances
                     && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
-                    && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                    && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0)
+                    && MathUtil.isNear(
+                        ElevatorSubsystem.L4_EXTENSION_METERS,
+                        elevator.getExtensionMeters(),
+                        Units.inchesToMeters(2));
               })
           .andThen(
               Commands.race(
@@ -366,7 +358,32 @@ public class Autos {
       return Commands.none();
     } else {
       return AutoAim.translateToPose(swerve, () -> pose.get())
-          .until(() -> manipulator.getSecondBeambreak() || Robot.isSimulation());
+          .until(
+              () ->
+                  manipulator.getSecondBeambreak()
+                      || manipulator.getFirstBeambreak()
+                      || Robot.isSimulation());
     }
+  }
+
+  public void bindElevatorExtension(AutoRoutine routine) {
+    bindElevatorExtension(routine, 2.5);
+  }
+
+  public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {
+    routine
+        .observe(
+            () ->
+                swerve
+                            .getPose()
+                            .getTranslation()
+                            .minus(
+                                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                    ? AutoAim.BLUE_REEF_CENTER
+                                    : AutoAim.RED_REEF_CENTER)
+                            .getNorm()
+                        < toleranceMeters
+                    && manipulator.getSecondBeambreak())
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS));
   }
 }
