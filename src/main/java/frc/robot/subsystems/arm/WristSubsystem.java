@@ -20,7 +20,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_L2_POS = Rotation2d.fromDegrees(140.0 - 180 + 45);
   public static final Rotation2d WRIST_SCORE_L3_POS = Rotation2d.fromDegrees(140.0 - 180 + 45);
   public static final Rotation2d WRIST_SCORE_L4_POS = Rotation2d.fromDegrees(125.0 - 180 + 45 - 15);
-  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(215.0);
+  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(180 - 215.0);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(0.0);
 
   private final ArmIO io;

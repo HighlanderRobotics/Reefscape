@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -396,7 +397,34 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_ALGAE)
         .whileTrue(manipulator.setVelocity(40))
-        .and(() -> manipulator.getVoltage() < 0.0)
+        .whileTrue(
+            elevator.setExtension(
+                () -> {
+                  if (algaeScoreTarget.get() == AlgaeScoreTarget.PROCESSOR) {
+                    return ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION;
+                  } else {
+                    return ElevatorSubsystem.ALGAE_NET_EXTENSION;
+                  }
+                }))
+        .whileTrue(
+            shoulder.setTargetAngle(
+                () -> {
+                  if (algaeScoreTarget.get() == AlgaeScoreTarget.PROCESSOR) {
+                    return ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS;
+                  } else {
+                    return ShoulderSubsystem.SHOULDER_SHOOT_NET_POS;
+                  }
+                }))
+        .whileTrue(
+            wrist.setTargetAngle(
+                () -> {
+                  if (algaeScoreTarget.get() == AlgaeScoreTarget.PROCESSOR) {
+                    return WristSubsystem.WRIST_SCORE_PROCESSOR_POS;
+                  } else {
+                    return WristSubsystem.WRIST_SHOOT_NET_POS;
+                  }
+                }))
+        .and(() -> !manipulator.hasAlgae())
         .onFalse(forceState(SuperState.IDLE));
 
     stateTriggers
