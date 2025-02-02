@@ -62,9 +62,4 @@ public class RollerIOSim implements RollerIO {
   public void registerSimulationCallback(Consumer<RollerIOInputsAutoLogged> callback) {
     this.callback = Optional.of(callback);
   }
-
-  @Override
-  public double getVoltage() {
-    return appliedVolts;
-  }
 }
