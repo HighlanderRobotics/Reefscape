@@ -9,6 +9,7 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -216,14 +217,27 @@ public class Autos {
     final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
     routine
+        .observe(
+            () ->
+                swerve
+                            .getPose()
+                            .minus(
+                                AutoAimTargets.getRobotTargetLocation(
+                                    AutoAimTargets.RED_H.location))
+                            .getTranslation()
+                            .getNorm()
+                        < Units.inchesToMeters(24.0)
+                    && manipulator.getSecondBeambreak())
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS));
+    routine
         .observe(traj.done())
         .onTrue(
             scoreInAuto(
                     Optional.of(
                         AutoAimTargets.getRobotTargetLocation(AutoAimTargets.RED_H.location)),
                     ReefTarget.L4)
-                .asProxy()
-                .alongWith(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS).asProxy()));
+                .andThen(
+                    swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
     return routine.cmd();
   }
 
@@ -373,8 +387,8 @@ public class Autos {
           .andThen(
               Commands.race(
                   Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                  manipulator.setVelocity(
-                      10.0))); // TODO this needs to be changed to match the enum later but i'm on
+                  manipulator.setVelocity(10.0)))
+          .withTimeout(1); // TODO this needs to be changed to match the enum later but i'm on
       // the wrong branch
     }
   }
