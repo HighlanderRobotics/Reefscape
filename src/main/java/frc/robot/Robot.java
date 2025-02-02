@@ -476,32 +476,6 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    // driver
-    //     .rightTrigger()
-    //     .and(() -> manipulator.getSecondBeambreak() || ROBOT_TYPE == RobotType.SIM)
-    //     .whileTrue(elevator.setExtension(() -> currentTarget.elevatorHeight))
-    //     .onFalse(
-    //         Commands.either(
-    //             manipulator.backIndex().unless(() -> !manipulator.getFirstBeambreak()),
-    //             Commands.race(
-    //                     Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-    //                     manipulator.setVelocity(() -> currentTarget.outtakeSpeed))
-    //                 .andThen(
-    //                     Commands.waitSeconds(0.75),
-    //                     Commands.waitUntil(
-    //                         () -> {
-    //                           final var diff =
-    //                               swerve
-    //                                   .getPose()
-    //                                   .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
-    //                           return !(MathUtil.isNear(0.0, diff.getX(),
-    // Units.inchesToMeters(6.0))
-    //                               && MathUtil.isNear(0.0, diff.getY(),
-    // Units.inchesToMeters(6.0)));
-    //                         }))
-    //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
-    //             driver.leftTrigger()));
-    // TODO: REMOVE AFTER TESTING
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
@@ -514,18 +488,6 @@ public class Robot extends LoggedRobot {
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
         .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(!manipulator.hasAlgae())));
-    // driver
-    //     .leftTrigger()
-    //     .whileTrue(
-    //         AutoAim.translateToPose(
-    //             swerve,
-    //             () ->
-    //                 swerve
-    //                     .getPose()
-    //                     .nearest(
-    //                         Stream.of(HumanPlayerTargets.values())
-    //                             .map((target) -> target.location)
-    //                             .toList())));
 
     driver
         .start()
