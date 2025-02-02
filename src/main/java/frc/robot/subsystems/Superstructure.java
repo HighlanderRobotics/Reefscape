@@ -311,6 +311,9 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(manipulator.intakeAlgae())
         .and(() -> manipulator.hasAlgae())
+        .and(() -> elevator.isNearExtension(0.0))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
@@ -320,6 +323,9 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.intakeAlgae())
         .and(() -> manipulator.hasAlgae())
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
@@ -329,6 +335,9 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.intakeAlgae())
         .and(() -> manipulator.hasAlgae())
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
         .onTrue(forceState(SuperState.READY_ALGAE));
 
     stateTriggers
@@ -338,7 +347,11 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .and(() -> manipulator.hasAlgae())
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .onTrue(forceState(SuperState.READY_ALGAE));
+        
     // READY_ALGAE logic
     stateTriggers
         .get(SuperState.READY_ALGAE)
