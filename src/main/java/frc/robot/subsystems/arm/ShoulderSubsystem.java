@@ -47,7 +47,6 @@ public class ShoulderSubsystem extends SubsystemBase {
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
     return this.run(
         () -> {
-          System.out.println("Setpoint: " + target.get());
           io.setMotorPosition(target.get());
           Logger.recordOutput("Carriage/Shoulder/Setpoint", target.get());
         });

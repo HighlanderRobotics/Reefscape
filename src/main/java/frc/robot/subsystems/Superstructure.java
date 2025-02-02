@@ -276,7 +276,6 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .whileTrue(elevator.setExtension(() -> reefTarget.get().elevatorHeight))
-        .whileTrue(Commands.print(reefTarget.get().outtakeSpeed + " "))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .whileTrue(
             wrist.setTargetAngle(
@@ -310,12 +309,8 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(0.0))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
-        .onTrue(Commands.print(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS.getRadians() + ""))
-        .onTrue(
-            Commands.print(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS.getRadians() + ""))
         .whileTrue(manipulator.intakeAlgae())
         .and(() -> manipulator.hasAlgae())
-        .onTrue(Commands.print(":]"))
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     stateTriggers
