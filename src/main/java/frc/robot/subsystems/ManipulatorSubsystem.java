@@ -87,8 +87,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     bb2 = state;
   }
 
-  public void toggleHasAlgae() {
-    hasAlgae = !hasAlgae;
+  public void setHasAlgae(boolean state) {
+    hasAlgae = state;
   }
 
   public boolean hasAlgae() {
