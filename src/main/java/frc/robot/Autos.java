@@ -183,38 +183,6 @@ public class Autos {
   public Command LMtoHCMD() {
     final var routine = factory.newRoutine("LM to H");
     final var traj = routine.trajectory("LMtoH");
-    routine
-        .active()
-        .whileTrue(
-            Commands.sequence(
-                    traj.resetOdometry(),
-                    traj.cmd()
-                        .raceWith(
-                            Commands.waitUntil(
-                                    () -> {
-                                      final var diff =
-                                          swerve
-                                              .getPose()
-                                              .minus(traj.getFinalPose().orElse(Pose2d.kZero));
-                                      return MathUtil.isNear(
-                                              0.0,
-                                              diff.getX(),
-                                              Units.inchesToMeters(15.0)) // TODO find tolerances
-                                          && MathUtil.isNear(
-                                              0.0, diff.getY(), Units.inchesToMeters(15.0));
-                                    })
-                                .andThen(
-                                    elevator
-                                        .setExtension(ElevatorSubsystem.L4_EXTENSION_METERS)
-                                        .asProxy())))
-                .raceWith(manipulator.backIndex()));
-    routine.observe(traj.done()).onTrue(scoreInAuto(traj.getFinalPose(), ReefTarget.L4));
-    return routine.cmd();
-  }
-
-  public Command debugAuto() {
-    final var routine = factory.newRoutine("LM to H");
-    final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
     routine
         .observe(
