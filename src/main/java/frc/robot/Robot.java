@@ -488,18 +488,6 @@ public class Robot extends LoggedRobot {
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
         .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(!manipulator.hasAlgae())));
-    // driver
-    //     .leftTrigger()
-    //     .whileTrue(
-    //         AutoAim.translateToPose(
-    //             swerve,
-    //             () ->
-    //                 swerve
-    //                     .getPose()
-    //                     .nearest(
-    //                         Stream.of(HumanPlayerTargets.values())
-    //                             .map((target) -> target.location)
-    //                             .toList())));
 
     driver
         .start()
