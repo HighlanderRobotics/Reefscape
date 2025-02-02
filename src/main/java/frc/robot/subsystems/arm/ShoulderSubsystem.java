@@ -1,5 +1,6 @@
 package frc.robot.subsystems.arm;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -58,5 +59,9 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public Rotation2d getAngle() {
     return inputs.position;
+  }
+
+  public boolean isNearAngle(Rotation2d target) {
+    return MathUtil.isNear(target.getRotations(), inputs.position.getRotations(), 0.01);
   }
 }
