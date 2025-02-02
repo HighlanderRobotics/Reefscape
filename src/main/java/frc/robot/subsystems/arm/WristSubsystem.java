@@ -17,6 +17,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(256.5);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS =
       Rotation2d.fromDegrees(180 - 164.9 - 45);
+  public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_SCORE_L1_POS = Rotation2d.fromDegrees(100.0 - 180 - 45);
   public static final Rotation2d WRIST_SCORE_L2_POS = Rotation2d.fromDegrees(-35);
   public static final Rotation2d WRIST_SCORE_L3_POS = Rotation2d.fromDegrees(-35);
