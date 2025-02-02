@@ -302,7 +302,9 @@ public class Superstructure {
     // ANTI_JAM logic
     stateTriggers
         .get(SuperState.ANTI_JAM)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS));
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .whileTrue(manipulator.setVelocity(10))
+        .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(false)));
 
     // INTAKE_ALGAE_{location} -> READY_ALGAE
     stateTriggers
@@ -352,7 +354,7 @@ public class Superstructure {
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .onTrue(forceState(SuperState.READY_ALGAE));
-        
+
     // READY_ALGAE logic
     stateTriggers
         .get(SuperState.READY_ALGAE)
@@ -381,9 +383,12 @@ public class Superstructure {
     // SPIT_ALGAE -> PRE_CLIMB
     stateTriggers
         .get(SuperState.SPIT_ALGAE)
+        .onTrue(Commands.runOnce(() -> stateTimer.reset()))
         // Positive bc algae is backwards
         .whileTrue(manipulator.setVelocity(10))
-        .and(() -> !manipulator.getFirstBeambreak())
+        // Wait 1 second
+        .and(() -> stateTimer.hasElapsed(1))
+        .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(false)))
         .and(preClimbReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
 
