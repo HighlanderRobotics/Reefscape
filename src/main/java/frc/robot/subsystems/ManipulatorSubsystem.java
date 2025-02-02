@@ -24,6 +24,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   private boolean bb1 = false;
   private boolean bb2 = false;
+  private boolean hasAlgae = false;
 
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
@@ -59,8 +60,11 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
-        .until(() -> inputs.statorCurrentAmps > 20.0)
-        .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
+        // TODO: ADD BACK ACTUAL CHECK
+        .until(() -> /*inputs.statorCurrentAmps > 20.0 */ hasAlgae)
+        .andThen(
+            this.runOnce(() -> hasAlgae = true),
+            this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
   public double getVoltage() {
@@ -81,5 +85,13 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public void setSecondBeambreak(boolean state) {
     bb2 = state;
+  }
+
+  public void toggleHasAlgae() {
+    hasAlgae = !hasAlgae;
+  }
+
+  public boolean hasAlgae() {
+    return hasAlgae;
   }
 }
