@@ -72,7 +72,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public double getStatorCurrentAmps() {
-      return inputs.statorCurrentAmps;
+    return inputs.statorCurrentAmps;
   }
 
   public boolean getFirstBeambreak() {

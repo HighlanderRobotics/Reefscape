@@ -313,7 +313,11 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(manipulator.intakeAlgae())
-        .and(() -> Robot.ROBOT_TYPE == RobotType.REAL ? manipulator.getStatorCurrentAmps() > 20 : manipulator.hasAlgae())
+        .and(
+            () ->
+                Robot.ROBOT_TYPE == RobotType.REAL
+                    ? manipulator.getStatorCurrentAmps() > 20
+                    : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(0.0))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
@@ -325,7 +329,11 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.intakeAlgae())
-        .and(() -> Robot.ROBOT_TYPE == RobotType.REAL ? manipulator.getStatorCurrentAmps() > 20 : manipulator.hasAlgae())
+        .and(
+            () ->
+                Robot.ROBOT_TYPE == RobotType.REAL
+                    ? manipulator.getStatorCurrentAmps() > 20
+                    : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
@@ -337,7 +345,11 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.intakeAlgae())
-        .and(() -> Robot.ROBOT_TYPE == RobotType.REAL ? manipulator.getStatorCurrentAmps() > 20 : manipulator.hasAlgae())
+        .and(
+            () ->
+                Robot.ROBOT_TYPE == RobotType.REAL
+                    ? manipulator.getStatorCurrentAmps() > 20
+                    : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
@@ -349,7 +361,11 @@ public class Superstructure {
         .whileTrue(manipulator.intakeAlgae())
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
-        .and(() -> Robot.ROBOT_TYPE == RobotType.REAL ? manipulator.getStatorCurrentAmps() > 20 : manipulator.hasAlgae())
+        .and(
+            () ->
+                Robot.ROBOT_TYPE == RobotType.REAL
+                    ? manipulator.getStatorCurrentAmps() > 20
+                    : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
