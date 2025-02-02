@@ -279,9 +279,7 @@ public class Superstructure {
         .get(SuperState.SCORE_CORAL)
         .whileTrue(elevator.setExtension(() -> reefTarget.get().elevatorHeight))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .whileTrue(
-            wrist.setTargetAngle(
-                () -> reefTarget.get().wristAngle))
+        .whileTrue(wrist.setTargetAngle(() -> reefTarget.get().wristAngle))
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
@@ -484,7 +482,7 @@ public class Superstructure {
   private Command forceState(SuperState nextState) {
     return Commands.runOnce(
         () -> {
-            stateTimer.reset();
+          stateTimer.reset();
           this.prevState = this.state;
           this.state = nextState;
         });
