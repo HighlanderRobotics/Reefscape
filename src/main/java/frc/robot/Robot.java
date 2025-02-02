@@ -502,9 +502,18 @@ public class Robot extends LoggedRobot {
     //                 .raceWith(elevator.setExtension(() -> currentTarget.elevatorHeight)),
     //             driver.leftTrigger()));
     // TODO: REMOVE AFTER TESTING
-    driver.povUp().and(() -> ROBOT_TYPE == RobotType.SIM).onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
-    driver.povDown().and(() -> ROBOT_TYPE == RobotType.SIM).onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
-    driver.povRight().and(() -> ROBOT_TYPE == RobotType.SIM).onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(!manipulator.hasAlgae())));
+    driver
+        .povUp()
+        .and(() -> ROBOT_TYPE == RobotType.SIM)
+        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
+    driver
+        .povDown()
+        .and(() -> ROBOT_TYPE == RobotType.SIM)
+        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
+    driver
+        .povRight()
+        .and(() -> ROBOT_TYPE == RobotType.SIM)
+        .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(!manipulator.hasAlgae())));
     // driver
     //     .leftTrigger()
     //     .whileTrue(
