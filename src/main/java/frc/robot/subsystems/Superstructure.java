@@ -279,17 +279,7 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .whileTrue(
             wrist.setTargetAngle(
-                () -> {
-                  if (reefTarget.get() == ReefTarget.L1) {
-                    return WristSubsystem.WRIST_SCORE_L1_POS;
-                  } else if (reefTarget.get() == ReefTarget.L2) {
-                    return WristSubsystem.WRIST_SCORE_L2_POS;
-                  } else if (reefTarget.get() == ReefTarget.L3) {
-                    return WristSubsystem.WRIST_SCORE_L3_POS;
-                  } else {
-                    return WristSubsystem.WRIST_SCORE_L4_POS;
-                  }
-                }))
+                () -> reefTarget.get().wristAngle))
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
@@ -382,7 +372,6 @@ public class Superstructure {
     // SPIT_ALGAE -> PRE_CLIMB
     stateTriggers
         .get(SuperState.SPIT_ALGAE)
-        .onTrue(Commands.runOnce(() -> stateTimer.reset()))
         // Positive bc algae is backwards
         .whileTrue(manipulator.setVelocity(10))
         // Wait 1 second
@@ -478,6 +467,7 @@ public class Superstructure {
   private Command forceState(SuperState nextState) {
     return Commands.runOnce(
         () -> {
+            stateTimer.reset();
           this.prevState = this.state;
           this.state = nextState;
         });
