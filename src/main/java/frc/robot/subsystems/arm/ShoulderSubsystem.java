@@ -22,8 +22,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
   public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(104.95);
 
-  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS =
-      Rotation2d.fromDegrees(153.8 + 180);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(26.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS =
       Rotation2d.fromDegrees(153.8 + 180);
   public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0 - 45);
@@ -47,6 +46,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
     return this.run(
         () -> {
+          System.out.println("Setpoint: " + target.get());
           io.setMotorPosition(target.get());
           Logger.recordOutput("Carriage/Shoulder/Setpoint", target.get());
         });

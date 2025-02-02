@@ -504,6 +504,7 @@ public class Robot extends LoggedRobot {
     // TODO: REMOVE AFTER TESTING
     driver.povUp().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
     driver.povDown().onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
+    driver.povRight().onTrue(Commands.runOnce(() -> manipulator.toggleHasAlgae()));
     // driver
     //     .leftTrigger()
     //     .whileTrue(
