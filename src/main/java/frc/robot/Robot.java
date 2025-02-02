@@ -17,7 +17,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -26,6 +26,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -239,13 +240,20 @@ public class Robot extends LoggedRobot {
 
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
-          new RollerIOReal(
-              10,
-              RollerIOReal.getDefaultConfig()
-                  .withMotorOutput(
-                      new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
-                  .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                  .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))),
+          ROBOT_TYPE == RobotType.REAL
+              ? new RollerIOReal(
+                  10,
+                  RollerIOReal.getDefaultConfig()
+                      .withMotorOutput(
+                          new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
+                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
+                      .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5)))
+              : new RollerIOSim(
+                  0.01,
+                  2,
+                  new SimpleMotorFeedforward(0.0, 0.24),
+                  new ProfiledPIDController(
+                      0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(15, 1))),
           new BeambreakIOReal(0, true),
           new BeambreakIOReal(1, true));
 
@@ -279,7 +287,8 @@ public class Robot extends LoggedRobot {
                   0.01,
                   2.0,
                   new SimpleMotorFeedforward(0.0, 0.24),
-                  new PIDController(1.0, 0.0, 0.0)),
+                  new ProfiledPIDController(
+                      1.0, 0.0, 0.0, new TrapezoidProfile.Constraints(20, 10))),
           new ServoIOReal(0));
 
   private final ClimberSubsystem climber =

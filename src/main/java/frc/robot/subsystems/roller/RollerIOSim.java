@@ -1,7 +1,7 @@
 package frc.robot.subsystems.roller;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
@@ -13,15 +13,17 @@ public class RollerIOSim implements RollerIO {
   private final DCMotorSim motorSim;
 
   private final SimpleMotorFeedforward feedforward;
-  private final PIDController pid;
+  private final ProfiledPIDController pid;
 
   private Optional<Consumer<RollerIOInputsAutoLogged>> callback = Optional.empty();
+
+  private double appliedVolts = 0.0;
 
   public RollerIOSim(
       double jKgMetersSquared,
       double gearRatio,
       SimpleMotorFeedforward feedforward,
-      PIDController pid) {
+      ProfiledPIDController pid) {
     this.motorSim =
         new DCMotorSim(
             LinearSystemId.createDCMotorSystem(
@@ -45,6 +47,7 @@ public class RollerIOSim implements RollerIO {
 
   @Override
   public void setVoltage(double voltage) {
+    appliedVolts = voltage;
     motorSim.setInputVoltage(MathUtil.clamp(voltage, -12, 12));
   }
 
@@ -62,7 +65,6 @@ public class RollerIOSim implements RollerIO {
 
   @Override
   public double getVoltage() {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getVoltage'");
+    return appliedVolts;
   }
 }
