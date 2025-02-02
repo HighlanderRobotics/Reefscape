@@ -36,11 +36,11 @@ public class Superstructure {
     INTAKE_ALGAE_STACK,
     READY_ALGAE,
     SPIT_ALGAE,
-    PRE_PROCESSOR, // petro
-    PRE_NET, // petro
-    SCORE_ALGAE, // sam
-    PRE_CLIMB, // sam
-    CLIMB // sam
+    PRE_PROCESSOR,
+    PRE_NET,
+    SCORE_ALGAE,
+    PRE_CLIMB,
+    CLIMB
   }
 
   private final Supplier<Pose2d> pose;
