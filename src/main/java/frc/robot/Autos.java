@@ -81,14 +81,14 @@ public class Autos {
    * Waits for the current path to be completed then runs the command (score or intake), waits to be close enough then starts the next path
    * //TODO order does not make sense (?)
    * @param routine AutoRoutine these paths are in
-   * @param currentPath The path that just completed
-   * @param nextPath The path that is about to run
+   * @param prevPath The path that just completed
+   * @param currentPath The path that is about to run
    * @param cmd The command we want to run before nextPath
    */
-  public void runPath(
-      AutoRoutine routine, AutoTrajectory currentPath, AutoTrajectory nextPath, Command cmd) {
+  public void cmdThenPath(
+      AutoRoutine routine, AutoTrajectory prevPath, AutoTrajectory currentPath, Command cmd) {
     routine
-        .observe(currentPath.done())
+        .observe(prevPath.done())
         .onTrue(
             Commands.sequence(
                 cmd,
@@ -97,7 +97,7 @@ public class Autos {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(nextPath.getInitialPose().orElse(Pose2d.kZero));
+                                  .minus(currentPath.getInitialPose().orElse(Pose2d.kZero));
                           return MathUtil.isNear(
                                   0.0,
                                   diff.getX(),
@@ -107,23 +107,8 @@ public class Autos {
                         })
                     .raceWith(
                         swerve.poseLockDriveCommand(
-                            () -> nextPath.getInitialPose().orElse(Pose2d.kZero))),
-                nextPath.cmd()));
-  }
-
-  // just runs a single path
-  public void runPath(AutoRoutine routine, AutoTrajectory path, Command cmd) {
-    routine
-        .active()
-        .whileTrue(
-            Commands.sequence(
-                path.resetOdometry(),
-                Commands.waitSeconds(0.5)
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> path.getInitialPose().orElse(Pose2d.kZero))),
-                path.cmd(),
-                cmd));
+                            () -> currentPath.getInitialPose().orElse(Pose2d.kZero))),
+                currentPath.cmd()));
   }
 
   /***
@@ -134,16 +119,17 @@ public class Autos {
    * @param endLocation Ending location of the next path
    * @param steps Relevant AutoTrajectories + names
    */
-  public void runPath(
+  public void bindSegment(
       AutoRoutine routine,
       String startLocation,
       String middleLocation,
       String endLocation,
       HashMap<String, AutoTrajectory> steps) {
-    runPath(
+    cmdThenPath(
         routine,
         steps.get(startLocation + "to" + middleLocation),
         steps.get(middleLocation + "to" + endLocation),
+        // Commands.waitSeconds(1.0)
         endLocation.substring(0, 1).equals("P") // hp station
             ? intakeInAuto(steps.get(middleLocation + "to" + endLocation).getFinalPose())
             : scoreInAuto(
@@ -170,7 +156,7 @@ public class Autos {
                 steps.get("SLMtoI").resetOdometry(),
                 steps.get("SLMtoI").cmd())); // runs the very first traj
     for (int i = 0; i < stops.length - 2; i++) {
-      runPath(
+      bindSegment(
           routine,
           stops[i],
           stops[i + 1],
@@ -190,6 +176,7 @@ public class Autos {
         .onTrue(
             scoreInAuto(
                     Optional.of(
+                      // TODO fix
                         AutoAimTargets.getRobotTargetLocation(AutoAimTargets.RED_H.location)),
                     ReefTarget.L4)
                 .andThen(
@@ -230,7 +217,7 @@ public class Autos {
                 steps.get("LOtoJ").resetOdometry(),
                 steps.get("LOtoJ").cmd())); // runs the very first traj
     for (int i = 0; i < stops.length - 2; i++) {
-      runPath(
+      bindSegment(
           routine,
           stops[i],
           stops[i + 1],
@@ -259,13 +246,14 @@ public class Autos {
                 steps.get("ROtoE").resetOdometry(),
                 steps.get("ROtoE").cmd())); // runs the very first traj
     for (int i = 0; i < stops.length - 2; i++) {
-      runPath(
+      bindSegment(
           routine,
           stops[i],
           stops[i + 1],
           stops[i + 2],
           steps); // runs each of the following traj + whatever it does at the end of the traj
     }
+    bindElevatorExtension(routine, 2.5, ReefTarget.L2);
     return routine.cmd();
   }
 
@@ -288,7 +276,7 @@ public class Autos {
                 steps.get("LItoK").resetOdometry(),
                 steps.get("LItoK").cmd())); // runs the very first traj
     for (int i = 0; i < stops.length - 2; i++) {
-      runPath(
+      bindSegment(
           routine,
           stops[i],
           stops[i + 1],
@@ -317,7 +305,7 @@ public class Autos {
                 steps.get("RItoD").resetOdometry(),
                 steps.get("RItoD").cmd())); // runs the very first traj
     for (int i = 0; i < stops.length - 2; i++) {
-      runPath(
+      bindSegment(
           routine,
           stops[i],
           stops[i + 1],
@@ -340,14 +328,14 @@ public class Autos {
                     && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
                     && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0)
                     && MathUtil.isNear(
-                        ElevatorSubsystem.L4_EXTENSION_METERS,
+                        target.elevatorHeight,
                         elevator.getExtensionMeters(),
                         Units.inchesToMeters(2));
               })
           .andThen(
               Commands.race(
                   Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                  manipulator.setVelocity(10.0)))
+                  manipulator.setVoltage(target.outtakeSpeed)))
           .withTimeout(1); // TODO this needs to be changed to match the enum later but i'm on
       // the wrong branch
     }
@@ -367,10 +355,11 @@ public class Autos {
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 2.5);
+    bindElevatorExtension(routine, 2.5, ReefTarget.L4);
   }
 
-  public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {
+  public void bindElevatorExtension(
+      AutoRoutine routine, double toleranceMeters, ReefTarget target) {
     routine
         .observe(
             () ->
@@ -384,6 +373,6 @@ public class Autos {
                             .getNorm()
                         < toleranceMeters
                     && manipulator.getSecondBeambreak())
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS));
+        .whileTrue(elevator.setExtension(target.elevatorHeight));
   }
 }
