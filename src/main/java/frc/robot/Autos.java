@@ -23,6 +23,7 @@ import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.AutoAimTargets;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Autos {
@@ -125,16 +126,40 @@ public class Autos {
       String middleLocation,
       String endLocation,
       HashMap<String, AutoTrajectory> steps) {
+    bindSegment(routine, startLocation, middleLocation, endLocation, steps, ReefTarget.L4);
+  }
+
+  /***
+   * Runs a path based on the names of the starting location, middle location, and ending location. The current path is generated based on starting + middle and the next from middle + end
+   * @param routine AutoRoutine these paths are in
+   * @param startLocation Starting location of the path that just completed
+   * @param middleLocation Ending location of the path that just completed/starting location of the next one
+   * @param endLocation Ending location of the next path
+   * @param steps Relevant AutoTrajectories + names
+   */
+  public void bindSegment(
+      AutoRoutine routine,
+      String startLocation,
+      String middleLocation,
+      String endLocation,
+      HashMap<String, AutoTrajectory> steps,
+      ReefTarget target) {
     cmdThenPath(
         routine,
         steps.get(startLocation + "to" + middleLocation),
         steps.get(middleLocation + "to" + endLocation),
         // Commands.waitSeconds(1.0)
-        endLocation.substring(0, 1).equals("P") // hp station
+        startLocation.substring(0, 1).equals("P") // hp station
             ? intakeInAuto(steps.get(middleLocation + "to" + endLocation).getFinalPose())
-            : scoreInAuto(
-                steps.get(middleLocation + "to" + endLocation).getFinalPose(),
-                ReefTarget.L4)); // i've been told we're only scoring on l4 in auto
+                .alongWith(Commands.print("Scoring In Auto"))
+            : // Commands.waitSeconds(1.0).alongWith(Commands.print(":3"))
+            scoreInAuto(
+                () ->
+                    steps
+                        .get(middleLocation + "to" + endLocation)
+                        .getFinalPose()
+                        .orElse(Pose2d.kZero),
+                target)); // i've been told we're only scoring on l4 in auto
   }
 
   public Command SLMtoICMD() {
@@ -175,9 +200,9 @@ public class Autos {
         .observe(traj.done())
         .onTrue(
             scoreInAuto(
-                    Optional.of(
-                      // TODO fix
-                        AutoAimTargets.getRobotTargetLocation(AutoAimTargets.RED_H.location)),
+                    () ->
+                        // TODO fix
+                        AutoAimTargets.getRobotTargetLocation(AutoAimTargets.RED_H.location),
                     ReefTarget.L4)
                 .andThen(
                     swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
@@ -194,7 +219,7 @@ public class Autos {
                 traj.resetOdometry(),
                 traj.cmd(),
                 swerve.poseLockDriveCommand(() -> traj.getFinalPose().orElse(Pose2d.kZero)),
-                scoreInAuto(traj.getFinalPose(), ReefTarget.L4)));
+                scoreInAuto(() -> traj.getFinalPose().orElse(Pose2d.kZero), ReefTarget.L4)));
     return routine.cmd();
   }
 
@@ -251,7 +276,9 @@ public class Autos {
           stops[i],
           stops[i + 1],
           stops[i + 2],
-          steps); // runs each of the following traj + whatever it does at the end of the traj
+          steps,
+          ReefTarget
+              .L2); // runs each of the following traj + whatever it does at the end of the traj
     }
     bindElevatorExtension(routine, 2.5, ReefTarget.L2);
     return routine.cmd();
@@ -315,30 +342,30 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command scoreInAuto(Optional<Pose2d> pose, ReefTarget target) {
-    if (!pose.isPresent()) {
-      return Commands.none();
-    } else {
-      return AutoAim.translateToPose(swerve, () -> pose.get())
-          .until(
-              () -> {
-                final var diff = swerve.getPose().minus(pose.get());
-                return MathUtil.isNear(
-                        0.0, diff.getX(), Units.inchesToMeters(2.0)) // TODO find tolerances
-                    && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
-                    && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0)
-                    && MathUtil.isNear(
-                        target.elevatorHeight,
-                        elevator.getExtensionMeters(),
-                        Units.inchesToMeters(2));
-              })
-          .andThen(
-              Commands.race(
-                  Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-                  manipulator.setVoltage(target.outtakeSpeed)))
-          .withTimeout(1); // TODO this needs to be changed to match the enum later but i'm on
-      // the wrong branch
-    }
+  public Command scoreInAuto(Supplier<Pose2d> pose, ReefTarget target) {
+    return AutoAim.translateToPose(swerve, () -> pose.get())
+        .alongWith(
+            Commands.waitUntil(
+                    () -> {
+                      final var diff = swerve.getPose().minus(pose.get());
+                      return MathUtil.isNear(
+                              0.0, diff.getX(), Units.inchesToMeters(2.0)) // TODO find tolerances
+                          && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
+                          && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0)
+                          && MathUtil.isNear(
+                              target.elevatorHeight,
+                              elevator.getExtensionMeters(),
+                              Units.inchesToMeters(2));
+                    })
+                .andThen(
+                    Commands.print(":]"),
+                    Commands.race(
+                            Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
+                            manipulator.setVoltage(target.outtakeSpeed))
+                        .withTimeout(1)
+                        .asProxy()))
+        .finallyDo(
+            (interrupted) -> System.out.println("Score in auto ends interrupted: " + interrupted));
   }
 
   public Command intakeInAuto(Optional<Pose2d> pose) {
