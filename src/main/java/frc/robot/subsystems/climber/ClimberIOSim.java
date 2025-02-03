@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.climber;
 
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -9,31 +9,30 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-public class ShoulderIOSim implements ArmIO {
-  // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
+public class ClimberIOSim implements ClimberIO {
+  // this is stolen from the shoulder but its like fine our physics sim isnt really good enough for
+  // full climb sim
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
-          ShoulderSubsystem.SHOULDER_GEAR_RATIO,
-          3.0,
+          ClimberSubsystem.CLIMB_GEAR_RATIO,
+          0.3,
           Units.inchesToMeters(13.5),
-          ShoulderSubsystem.MIN_SHOULDER_ROTATION.getRadians(),
-          ShoulderSubsystem.MAX_SHOULDER_ROTATION.getRadians(),
+          0.0,
+          Units.degreesToRadians(270.0),
           true,
           0.0);
 
-  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0); // 1.31085, 0.278);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(30.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(5.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   private double appliedVoltage = 0.0;
 
   @Override
-  public void updateInputs(final ArmIOInputs inputs) {
-    if (DriverStation.isDisabled()) armSim.setInput(0);
+  public void updateInputs(final ClimberIOInputsAutoLogged inputs) {
     armSim.update(0.02);
 
     inputs.angularVelocityRPS =
@@ -46,15 +45,20 @@ public class ShoulderIOSim implements ArmIO {
   }
 
   @Override
-  public void setMotorVoltage(final double voltage) {
+  public void setVoltage(final double voltage) {
     appliedVoltage = voltage;
     armSim.setInputVoltage(voltage);
   }
 
   @Override
-  public void setMotorPosition(final Rotation2d targetPosition) {
-    setMotorVoltage(
-        pid.calculate(armSim.getAngleRads(), targetPosition.getRadians())
+  public void setPosition(final double position) {
+    setVoltage(
+        pid.calculate(
+                armSim.getAngleRads(),
+                Math.asin(
+                    (Units.rotationsToRadians(position)
+                            * ClimberSubsystem.CLIMBER_DRUM_RADIUS_METERS)
+                        / ClimberSubsystem.CLIMBER_ARM_LENGTH_METERS))
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));
   }
 }

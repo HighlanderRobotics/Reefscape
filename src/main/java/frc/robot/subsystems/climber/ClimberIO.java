@@ -1,22 +1,22 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.climber;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
-public interface ArmIO {
+public interface ClimberIO {
   @AutoLog
-  class ArmIOInputs {
+  class ClimberIOInputs {
     public double angularVelocityRPS = 0.0;
     public Rotation2d position = new Rotation2d();
-    public double appliedVoltage = 0.0;
     public double tempDegreesC = 0.0;
     public double supplyCurrentAmps = 0.0;
+    public double appliedVoltage = 0.0;
     public double statorCurrentAmps = 0.0;
   }
 
-  void updateInputs(final ArmIOInputs inputs);
+  public void updateInputs(ClimberIOInputsAutoLogged inputs);
 
-  void setMotorVoltage(final double voltage);
+  public void setVoltage(final double volts);
 
-  void setMotorPosition(final Rotation2d targetPosition);
+  public void setPosition(final double position);
 }

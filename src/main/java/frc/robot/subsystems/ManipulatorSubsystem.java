@@ -15,9 +15,16 @@ import org.littletonrobotics.junction.Logger;
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
+  public static final double ALGAE_INTAKE_VOLTAGE = -10.0;
+  public static final double ALGAE_HOLDING_VOLTAGE = -1.0;
+
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
       secondBBInputs = new BeambreakIOInputsAutoLogged();
+
+  private boolean bb1 = false;
+  private boolean bb2 = false;
+  private boolean hasAlgae = false;
 
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
@@ -35,27 +42,56 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     Logger.processInputs(NAME + "/First Beambreak", firstBBInputs);
     Logger.processInputs(NAME + "/Second Beambreak", secondBBInputs);
+    Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
   }
 
   public Command index() {
     return Commands.sequence(
-        setVelocity(10.0).until(() -> firstBBInputs.get || secondBBInputs.get),
-        setVelocity(3.0).until(() -> !firstBBInputs.get && secondBBInputs.get),
-        setVelocity(-2.0).until(() -> firstBBInputs.get),
-        setVelocity(1.0).until(() -> !firstBBInputs.get),
+        setVelocity(10.0).until(() -> firstBBInputs.get),
+        setVelocity(3.0).until(() -> secondBBInputs.get),
+        // TODO tune timeout
+        setVelocity(1.0).withTimeout(0.5),
         setVelocity(0));
-  }
+  } // TODO check if anything got lost in merge?
 
   public Command backIndex() {
     return Commands.sequence(
         setVelocity(-INDEXING_VELOCITY).until(() -> !secondBBInputs.get), index());
   }
 
+  public Command intakeAlgae() {
+    return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
+        .until(() -> inputs.statorCurrentAmps > 20.0)
+        .andThen(
+            this.runOnce(() -> hasAlgae = true),
+            this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
+  }
+
+  public double getStatorCurrentAmps() {
+    return inputs.statorCurrentAmps;
+  }
+
   public boolean getFirstBeambreak() {
-    return firstBBInputs.get;
+    return firstBBInputs.get || bb1;
   }
 
   public boolean getSecondBeambreak() {
-    return secondBBInputs.get;
+    return secondBBInputs.get || bb2;
+  }
+
+  public void setFirstBeambreak(boolean state) {
+    bb1 = state;
+  }
+
+  public void setSecondBeambreak(boolean state) {
+    bb2 = state;
+  }
+
+  public void setHasAlgae(boolean state) {
+    hasAlgae = state;
+  }
+
+  public boolean hasAlgae() {
+    return hasAlgae;
   }
 }

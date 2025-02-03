@@ -32,6 +32,8 @@ public class IntakePivotIOSim implements IntakePivotIO {
   // TODO: TUNE
   private final ArmFeedforward pivotFf = new ArmFeedforward(0.0, 0.3856, 0.543); // 0.543
 
+  private double appliedVoltage = 0.0;
+
   @Override
   public void updateInputs(IntakePivotIOInputs inputs) {
     intakePivotSim.update(0.02);
@@ -42,10 +44,12 @@ public class IntakePivotIOSim implements IntakePivotIO {
     inputs.statorCurrentAmps = intakePivotSim.getCurrentDrawAmps();
     inputs.supplyCurrentAmps = 0.0;
     inputs.tempDegreesC = 0.0;
+    inputs.appliedVoltage = appliedVoltage;
   }
 
   @Override
   public void setMotorVoltage(double voltage) {
+    appliedVoltage = voltage;
     intakePivotSim.setInputVoltage(MathUtil.clamp(voltage, -12, 12));
   }
 
