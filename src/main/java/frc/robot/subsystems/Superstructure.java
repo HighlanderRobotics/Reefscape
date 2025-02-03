@@ -355,7 +355,7 @@ public class Superstructure {
                     ? manipulator.getStatorCurrentAmps() > 20
                     : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .onTrue(forceState(SuperState.READY_ALGAE));
 

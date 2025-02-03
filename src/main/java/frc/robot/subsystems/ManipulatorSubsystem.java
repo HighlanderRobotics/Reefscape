@@ -63,7 +63,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
         .until(() -> inputs.statorCurrentAmps > 20.0)
         .andThen(
-            this.runOnce(() -> hasAlgae = true),
             this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
