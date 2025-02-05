@@ -292,7 +292,8 @@ public class Robot extends LoggedRobot {
                   new SimpleMotorFeedforward(0.0, 0.24),
                   new ProfiledPIDController(
                       1.0, 0.0, 0.0, new TrapezoidProfile.Constraints(20, 10))),
-          new ServoIOReal(0));
+          new ServoIOReal(0),
+          new ServoIOReal(1));
 
   private final ClimberSubsystem climber =
       new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
