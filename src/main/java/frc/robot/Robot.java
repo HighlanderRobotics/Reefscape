@@ -139,7 +139,7 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private ReefTarget currentTarget = ReefTarget.L4;
+  private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
@@ -310,8 +310,8 @@ public class Robot extends LoggedRobot {
           () -> currentTarget,
           () -> algaeIntakeTarget,
           () -> algaeScoreTarget,
-          driver.rightTrigger().negate().or(() -> AutoAim.isInTolerance(swerve.getPose())),
-          driver.rightTrigger(),
+          driver.rightTrigger().negate().or(() -> AutoAim.isInTolerance(swerve.getPose())).or(() -> Autos.autoScore),
+          driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),
           driver.rightTrigger(),
@@ -412,13 +412,13 @@ public class Robot extends LoggedRobot {
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
-    autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
+    // autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
     autoChooser.addOption("LM to H", autos.LMtoHCMD());
     autoChooser.addOption("RM to G", autos.RMtoGCmd());
-    autoChooser.addOption("4.5 L Outside", autos.LOtoJCMD());
+    // autoChooser.addOption("4.5 L Outside", autos.LOtoJCMD());
     autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
-    autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
-    autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
+    // autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
+    // autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
@@ -465,7 +465,8 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.PRE_L1
                     || superstructure.getState() == SuperState.PRE_L2
                     || superstructure.getState() == SuperState.PRE_L3
-                    || superstructure.getState() == SuperState.PRE_L4)
+                    || superstructure.getState() == SuperState.PRE_L4
+                    || Autos.autoPreScore)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
@@ -629,6 +630,14 @@ public class Robot extends LoggedRobot {
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
+  }
+
+  public static void setCurrentTarget(ReefTarget target) {
+    currentTarget = target;
+  }
+
+  public ReefTarget getCurrentTarget() {
+    return currentTarget;
   }
 
   @Override
