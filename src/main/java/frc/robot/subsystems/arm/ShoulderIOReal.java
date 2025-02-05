@@ -110,4 +110,9 @@ public class ShoulderIOReal implements ArmIO {
   public void setMotorPosition(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
+
+  @Override
+  public void resetEncoder(final Rotation2d rotation) {
+    motor.setPosition(rotation.getRotations());
+  }
 }

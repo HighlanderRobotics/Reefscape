@@ -83,6 +83,11 @@ public class ArmIOReal implements ArmIO {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 
+  @Override
+  public void resetEncoder(final Rotation2d rotation) {
+    motor.setPosition(rotation.getRotations());
+  }
+
   public static TalonFXConfiguration getDefaultConfiguration() {
     return new TalonFXConfiguration()
         .withCurrentLimits(
