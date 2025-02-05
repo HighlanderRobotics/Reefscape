@@ -310,7 +310,11 @@ public class Robot extends LoggedRobot {
           () -> currentTarget,
           () -> algaeIntakeTarget,
           () -> algaeScoreTarget,
-          driver.rightTrigger().negate().or(() -> AutoAim.isInTolerance(swerve.getPose())).or(() -> Autos.autoScore),
+          driver
+              .rightTrigger()
+              .negate()
+              .or(() -> AutoAim.isInTolerance(swerve.getPose()))
+              .or(() -> Autos.autoScore),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),
@@ -415,8 +419,8 @@ public class Robot extends LoggedRobot {
     // autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
     autoChooser.addOption("LM to H", autos.LMtoHCMD());
     autoChooser.addOption("RM to G", autos.RMtoGCmd());
-    // autoChooser.addOption("4.5 L Outside", autos.LOtoJCMD());
-    autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
+    autoChooser.addOption("4.5 L Outside", autos.LOtoJ());
+    // autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
     // autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
     // autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
 
@@ -465,8 +469,7 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.PRE_L1
                     || superstructure.getState() == SuperState.PRE_L2
                     || superstructure.getState() == SuperState.PRE_L3
-                    || superstructure.getState() == SuperState.PRE_L4
-                    || Autos.autoPreScore)
+                    || superstructure.getState() == SuperState.PRE_L4)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
@@ -489,16 +492,20 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
+        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
+        .onTrue(
+            Commands.runOnce(() -> manipulator.setSecondBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
         .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(!manipulator.hasAlgae())));
 
+    RobotModeTriggers.autonomous()
+        .and(() -> ROBOT_TYPE == RobotType.SIM)
+        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
     driver
         .start()
         .onTrue(
