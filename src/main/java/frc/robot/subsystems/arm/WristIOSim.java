@@ -25,9 +25,9 @@ public class WristIOSim implements ArmIO {
           true,
           WristSubsystem.WRIST_RETRACTED_POS.getRadians());
 
-  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 1.0, 0.0);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(30.0, 1.0, 2.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(30.0, 0.0, 1.7, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   private double appliedVoltage = 0.0;
 
