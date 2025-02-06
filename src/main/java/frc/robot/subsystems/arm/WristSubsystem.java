@@ -33,6 +33,8 @@ public class WristSubsystem extends SubsystemBase {
 
   private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
 
+  public boolean hasZeroed = false;
+
   public WristSubsystem(ArmIO io) {
     this.io = io;
   }
