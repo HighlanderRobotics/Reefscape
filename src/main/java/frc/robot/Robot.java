@@ -60,6 +60,9 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.AutoAimTargets;
+import frc.robot.utils.gamepiece.FieldSim;
+import frc.robot.utils.gamepiece.GamePiece;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -142,6 +145,8 @@ public class Robot extends LoggedRobot {
   private ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+
+  private ArrayList<GamePiece> gamePieces = new ArrayList<>();
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
   private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
@@ -420,6 +425,7 @@ public class Robot extends LoggedRobot {
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
 
     // Default Commands
+    Logger.recordOutput("Field Sim", FieldSim.getGamePieces().get(0));
 
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
