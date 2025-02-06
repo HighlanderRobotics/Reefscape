@@ -24,6 +24,7 @@ import org.littletonrobotics.junction.Logger;
 public class Superstructure {
   public static enum SuperState {
     IDLE,
+    HOME,
     READY_CORAL,
     SPIT_CORAL,
     PRE_L1,
@@ -173,6 +174,18 @@ public class Superstructure {
         .get(SuperState.IDLE)
         .and(preClimbReq)
         .onTrue(this.forceState(SuperState.PRE_CLIMB));
+
+    stateTriggers
+        .get(SuperState.IDLE)
+        .and(() -> !elevator.hasZeroed || !wrist.hasZeroed)
+        .onTrue(this.forceState(SuperState.HOME));
+
+    stateTriggers
+        .get(SuperState.HOME)
+        .whileTrue(elevator.runCurrentZeroing())
+        .whileTrue(wrist.currentZero(() -> shoulder.getInputs()))
+        .and(() -> elevator.hasZeroed && wrist.hasZeroed)
+        .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
     stateTriggers

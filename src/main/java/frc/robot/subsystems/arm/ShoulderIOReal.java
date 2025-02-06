@@ -61,9 +61,11 @@ public class ShoulderIOReal implements ArmIO {
     final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
     cancoderConfig.MagnetSensor.MagnetOffset = 0.0;
+    cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
 
     config.Feedback.FeedbackRemoteSensorID = ShoulderSubsystem.CANCODER_ID;
     config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
+    config.Feedback.FeedbackRotorOffset = 0.0;
     config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
     config.Feedback.RotorToSensorRatio =
         ShoulderSubsystem.SHOULDER_GEAR_RATIO / ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
@@ -109,5 +111,10 @@ public class ShoulderIOReal implements ArmIO {
   @Override
   public void setMotorPosition(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
+  }
+
+  @Override
+  public void resetEncoder(final Rotation2d rotation) {
+    motor.setPosition(rotation.getRotations());
   }
 }
