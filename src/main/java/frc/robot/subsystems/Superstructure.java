@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -39,7 +40,8 @@ public class Superstructure {
     READY_ALGAE,
     SPIT_ALGAE,
     PRE_PROCESSOR,
-    PRE_NET,
+    PRE_NET_1,
+    PRE_NET_2,
     SCORE_ALGAE,
     PRE_CLIMB,
     CLIMB
@@ -371,7 +373,7 @@ public class Superstructure {
         .get(SuperState.READY_ALGAE)
         .and(preScoreReq)
         .and(() -> algaeScoreTarget.get() == AlgaeScoreTarget.NET)
-        .onTrue(forceState(SuperState.PRE_NET));
+        .onTrue(forceState(SuperState.PRE_NET_1));
     // READY_ALGAE -> PRE_PROCESSOR
     stateTriggers
         .get(SuperState.READY_ALGAE)
@@ -405,12 +407,21 @@ public class Superstructure {
         .onTrue(forceState(SuperState.SCORE_ALGAE));
     // PRE_NET logic
     stateTriggers
-        .get(SuperState.PRE_NET)
+        .get(SuperState.PRE_NET_1)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
-        // Make the wrist not collide with the robot
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+        // Put wrist out of the way
+        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(-40)))
+        .and(() -> wrist.isNearAngle(Rotation2d.fromDegrees(-40)))
+        .onTrue(forceState(SuperState.PRE_NET_2));
+
+    stateTriggers
+        .get(SuperState.PRE_NET_2)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+        // Wait for wrist to swing around before seating shoulder
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
