@@ -209,18 +209,25 @@ public class Autos {
     routine
         .observe(steps.get("LOtoJ").done())
         .onTrue(scoreInAuto().andThen(steps.get("JtoPLO").cmd()));
-    // routine
-    //     .observe(steps.get("JtoPLO").done())
-    //     .onTrue(
-    //         intakeInAuto(steps.get("JtoPLO").getFinalPose()).andThen(steps.get("PLOtoK").cmd()));
-    // routine
-    //     .observe(steps.get("PLOtoK").done())
-    //     .onTrue(scoreInAuto().andThen(steps.get("KtoPLO").cmd()));
-    // routine
-    //     .observe(steps.get("KtoPLO").done())
-    //     .onTrue(
-    //         intakeInAuto(steps.get("KtoPLO").getFinalPose()).andThen(steps.get("PLOtoA").cmd()));
-    // routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
+    routine
+        .observe(steps.get("JtoPLO").done())
+        .onTrue(
+            intakeInAuto(steps.get("JtoPLO").getFinalPose()).andThen(steps.get("PLOtoK").cmd()));
+    routine
+        .observe(steps.get("PLOtoK").done())
+        .onTrue(scoreInAuto().andThen(steps.get("KtoPLO").cmd()));
+    routine
+        .observe(steps.get("KtoPLO").done())
+        .onTrue(
+            intakeInAuto(steps.get("KtoPLO").getFinalPose()).andThen(steps.get("PLOtoL").cmd()));
+    routine
+        .observe(steps.get("PLOtoL").done())
+        .onTrue(scoreInAuto().andThen(steps.get("LtoPLO").cmd()));
+    routine
+        .observe(steps.get("LtoPLO").done())
+        .onTrue(
+            intakeInAuto(steps.get("LtoPLO").getFinalPose()).andThen(steps.get("PLOtoA").cmd()));
+    routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
     return routine.cmd();
   }
   // public Command LOtoJCMD() {
@@ -392,14 +399,17 @@ public class Autos {
 
   public Command intakeInAuto(Optional<Pose2d> pose) {
     if (!pose.isPresent()) {
+      System.out.println("no pose :(");
       return Commands.none();
     } else {
-      return AutoAim.translateToPose(swerve, () -> pose.get())
-          .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak())
-          .alongWith(
-              Robot.isSimulation()
-                  ? Commands.runOnce(() -> manipulator.setSecondBeambreak(false))
-                  : Commands.none());
+      return Commands.sequence(
+          Robot.isSimulation()
+              ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
+              : Commands.none(),
+          Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
+          AutoAim.translateToPose(swerve, () -> pose.get())
+              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()),
+          Commands.runOnce(() -> autoPreScore = true));
     }
   }
 
@@ -421,6 +431,7 @@ public class Autos {
                             .getNorm()
                         < toleranceMeters
                     && (manipulator.getSecondBeambreak()))
-        .onTrue(Commands.run(() -> autoPreScore = true));
+        .onTrue(Commands.runOnce(() -> autoPreScore = true).andThen(Commands.print(":)")))
+        .onFalse(Commands.runOnce(() -> autoPreScore = false).andThen(Commands.print(":(")));
   }
 }

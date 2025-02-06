@@ -414,15 +414,7 @@ public class Robot extends LoggedRobot {
 
     autos = new Autos(swerve, manipulator, elevator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
-    autoChooser.addOption("Triangle Test", autos.getTestTriangle());
-    autoChooser.addOption("Sprint Test", autos.getTestSprint());
-    // autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
-    autoChooser.addOption("LM to H", autos.LMtoHCMD());
-    autoChooser.addOption("RM to G", autos.RMtoGCmd());
-    autoChooser.addOption("4.5 L Outside", autos.LOtoJ());
-    // autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
-    // autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
-    // autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
+    
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
@@ -435,6 +427,9 @@ public class Robot extends LoggedRobot {
 
     new Trigger(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak())
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
+
+    new Trigger(() -> DriverStation.getAlliance().isPresent())
+        .onTrue(Commands.runOnce(() -> addAutos()));
 
     elevator.setDefaultCommand(
         Commands.sequence(
@@ -563,6 +558,19 @@ public class Robot extends LoggedRobot {
             .toArray(Pose2d[]::new));
   }
 
+  private void addAutos() {
+    autoChooser.addOption("Triangle Test", autos.getTestTriangle());
+    autoChooser.addOption("Sprint Test", autos.getTestSprint());
+    // autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
+    autoChooser.addOption("LM to H", autos.LMtoHCMD());
+    autoChooser.addOption("RM to G", autos.RMtoGCmd());
+    autoChooser.addOption("4.5 L Outside", autos.LOtoJ());
+    // autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
+    // autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
+    // autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
+
+  }
+
   /** Scales a joystick value for teleop driving */
   private static double modifyJoystick(double val) {
     return MathUtil.applyDeadband(Math.abs(Math.pow(val, 2)) * Math.signum(val), 0.02);
@@ -637,6 +645,8 @@ public class Robot extends LoggedRobot {
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
+    Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
+    Logger.recordOutput("Autos/Score", Autos.autoScore);
   }
 
   public static void setCurrentTarget(ReefTarget target) {
