@@ -201,6 +201,7 @@ public class Autos {
 
   public Command ROtoE() {
     final var routine = factory.newRoutine("RO to E");
+    bindElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -230,6 +231,7 @@ public class Autos {
 
   public Command LItoK() {
     final var routine = factory.newRoutine("LI to K");
+    bindElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -259,6 +261,7 @@ public class Autos {
 
   public Command RItoD() {
     final var routine = factory.newRoutine("RI to D");
+    bindElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
