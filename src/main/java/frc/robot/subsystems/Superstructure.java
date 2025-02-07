@@ -406,24 +406,42 @@ public class Superstructure {
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
     // PRE_NET logic
+    // stateTriggers
+    //     .get(SuperState.PRE_NET_1)
+    //     .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
+    //     // Put wrist out of the way
+    //     .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(-40)))
+    //     .and(() -> wrist.isNearAngle(Rotation2d.fromDegrees(-40)))
+    //     .onTrue(forceState(SuperState.PRE_NET_2));
+
+    // stateTriggers
+    //     .get(SuperState.PRE_NET_2)
+    //     .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
+    //     .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+    //     // Wait for wrist to swing around before seating shoulder
+    //     .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+    //     .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+    //     .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+    //     .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
+    //     .and(scoreReq)
+    //     .onTrue(forceState(SuperState.SCORE_ALGAE));
+
     stateTriggers
         .get(SuperState.PRE_NET_1)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-        // Put wrist out of the way
-        .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(-40)))
-        .and(() -> wrist.isNearAngle(Rotation2d.fromDegrees(-40)))
-        .onTrue(forceState(SuperState.PRE_NET_2));
-
-    stateTriggers
-        .get(SuperState.PRE_NET_2)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-        // Wait for wrist to swing around before seating shoulder
+        .whileTrue(
+            Commands.sequence(
+                wrist.setTargetAngle(Rotation2d.fromDegrees(-40)),
+                Commands.waitUntil(
+                    () ->
+                        elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION)
+                            && wrist.isNearAngle(Rotation2d.fromDegrees(-40))),
+                wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS),
+                Commands.waitUntil(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS)),
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS)))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-        .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
 
     stateTriggers
