@@ -26,16 +26,14 @@ public class Autos {
   private final SwerveSubsystem swerve;
   private final ManipulatorSubsystem manipulator;
   private final AutoFactory factory;
-  private final ElevatorSubsystem elevator;
 
   public static boolean autoPreScore = false;
   public static boolean autoScore = false; // TODO perhaps this should not be static
 
   public Autos(
-      SwerveSubsystem swerve, ManipulatorSubsystem manipulator, ElevatorSubsystem elevator) {
+      SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
     this.swerve = swerve;
     this.manipulator = manipulator;
-    this.elevator = elevator;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -76,65 +74,6 @@ public class Autos {
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
     return routine.cmd();
   }
-
-  // /***
-  //  * Runs a path based on the names of the starting location, middle location, and ending
-  // location. The current path is generated based on starting + middle and the next from middle +
-  // end
-  //  * @param routine AutoRoutine these paths are in
-  //  * @param startLocation Starting location of the path that just completed
-  //  * @param middleLocation Ending location of the path that just completed/starting location of
-  // the next one
-  //  * @param endLocation Ending location of the next path
-  //  * @param steps Relevant AutoTrajectories + names
-  //  */
-  // public void bindSegment(
-  //     AutoRoutine routine,
-  //     String startLocation,
-  //     String middleLocation,
-  //     String endLocation,
-  //     HashMap<String, AutoTrajectory> steps,
-  //     ReefTarget target) {
-  //   cmdThenPath(
-  //       routine,
-  //       steps.get(startLocation + "to" + middleLocation),
-  //       steps.get(middleLocation + "to" + endLocation),
-  //       // Commands.waitSeconds(1.0)
-  //       startLocation.substring(0, 1).equals("P") // hp station
-  //           ? intakeInAuto(steps.get(middleLocation + "to" + endLocation).getFinalPose())
-  //               .alongWith(Commands.print("Scoring In Auto"))
-  //           : // Commands.waitSeconds(1.0).alongWith(Commands.print(":3"))
-  //           scoreInAuto()); // i've been told we're only scoring on l4 in auto
-  // }
-
-  // public Command SLMtoICMD() {
-  //   final var routine = factory.newRoutine("SLM to I");
-  //   HashMap<String, AutoTrajectory> steps =
-  //       new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
-  //   String[] stops = {
-  //     "SLM", "I", "PLO", "L", "PLO", "K", "PLO", "J" // each stop we are going to, in order
-  //   }; // i don't love repeating the plos but ???
-  //   for (int i = 0; i < stops.length - 1; i++) {
-  //     String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
-  //     steps.put(
-  //         name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
-  //   }
-  //   routine
-  //       .active()
-  //       .whileTrue(
-  //           Commands.sequence(
-  //               steps.get("SLMtoI").resetOdometry(),
-  //               steps.get("SLMtoI").cmd())); // runs the very first traj
-  //   for (int i = 0; i < stops.length - 2; i++) {
-  //     bindSegment(
-  //         routine,
-  //         stops[i],
-  //         stops[i + 1],
-  //         stops[i + 2],
-  //         steps); // runs each of the following traj + whatever it does at the end of the traj
-  //   }
-  //   return routine.cmd();
-  // }
 
   public Command LMtoHCMD() {
     final var routine = factory.newRoutine("LM to H");
@@ -289,33 +228,6 @@ public class Autos {
     return routine.cmd();
   }
 
-  // public Command scoreInAuto(Supplier<Pose2d> pose, ReefTarget target) {
-  //   return AutoAim.translateToPose(swerve, () -> pose.get())
-  //       .alongWith(
-  //           Commands.waitUntil(
-  //                   () -> {
-  //                     final var diff = swerve.getPose().minus(pose.get());
-  //                     return MathUtil.isNear(
-  //                             0.0, diff.getX(), Units.inchesToMeters(2.0)) // TODO find
-  // tolerances
-  //                         && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
-  //                         && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0)
-  //                         && MathUtil.isNear(
-  //                             target.elevatorHeight,
-  //                             elevator.getExtensionMeters(),
-  //                             Units.inchesToMeters(2));
-  //                   })
-  //               .andThen(
-  //                   Commands.print(":]"),
-  //                   Commands.race(
-  //                           Commands.waitUntil(() -> !manipulator.getSecondBeambreak()),
-  //                           manipulator.setVoltage(target.outtakeSpeed))
-  //                       .withTimeout(1)
-  //                       .asProxy()))
-  //       .finallyDo(
-  //           (interrupted) -> System.out.println("Score in auto ends interrupted: " +
-  // interrupted));
-  // }
   public Command scoreInAuto() {
     return Commands.runOnce(
             () -> {

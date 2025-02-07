@@ -412,7 +412,7 @@ public class Robot extends LoggedRobot {
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
 
-    autos = new Autos(swerve, manipulator, elevator);
+    autos = new Autos(swerve, manipulator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
 
     // Run auto when auto starts. Matches Choreolib's defer impl
