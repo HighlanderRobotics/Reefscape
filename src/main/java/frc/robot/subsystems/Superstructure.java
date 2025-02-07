@@ -20,7 +20,6 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -42,8 +41,7 @@ public class Superstructure {
     READY_ALGAE,
     SPIT_ALGAE,
     PRE_PROCESSOR,
-    PRE_NET_1,
-    PRE_NET_2,
+    PRE_NET,
     SCORE_ALGAE,
     PRE_CLIMB,
     CLIMB
@@ -55,22 +53,25 @@ public class Superstructure {
   private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
   private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
-  @AutoLogOutput(key="Superstructure/Pre Score Request")
+  @AutoLogOutput(key = "Superstructure/Pre Score Request")
   private final Trigger preScoreReq;
-  @AutoLogOutput(key="Superstructure/Score Request")
+
+  @AutoLogOutput(key = "Superstructure/Score Request")
   private final Trigger scoreReq;
 
-  @AutoLogOutput(key="Superstructure/Algae Intake Request")
+  @AutoLogOutput(key = "Superstructure/Algae Intake Request")
   private final Trigger intakeAlgaeReq;
 
-  @AutoLogOutput(key="Superstructure/Pre Climb Request")
+  @AutoLogOutput(key = "Superstructure/Pre Climb Request")
   private final Trigger preClimbReq;
-  @AutoLogOutput(key="Superstructure/Climb Confirm Request")
+
+  @AutoLogOutput(key = "Superstructure/Climb Confirm Request")
   private final Trigger climbConfReq;
-  @AutoLogOutput(key="Superstructure/Climb Cancel Request")
+
+  @AutoLogOutput(key = "Superstructure/Climb Cancel Request")
   private final Trigger climbCancelReq;
 
-  @AutoLogOutput(key="Superstructure/Anti Jam Request")
+  @AutoLogOutput(key = "Superstructure/Anti Jam Request")
   private final Trigger antiJamReq;
 
   private SuperState state = SuperState.IDLE;
@@ -382,7 +383,7 @@ public class Superstructure {
         .get(SuperState.READY_ALGAE)
         .and(preScoreReq)
         .and(() -> algaeScoreTarget.get() == AlgaeScoreTarget.NET)
-        .onTrue(forceState(SuperState.PRE_NET_1));
+        .onTrue(forceState(SuperState.PRE_NET));
     // READY_ALGAE -> PRE_PROCESSOR
     stateTriggers
         .get(SuperState.READY_ALGAE)
@@ -415,42 +416,26 @@ public class Superstructure {
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
     // PRE_NET logic
-    // stateTriggers
-    //     .get(SuperState.PRE_NET_1)
-    //     .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-    //     // Put wrist out of the way
-    //     .whileTrue(wrist.setTargetAngle(Rotation2d.fromDegrees(-40)))
-    //     .and(() -> wrist.isNearAngle(Rotation2d.fromDegrees(-40)))
-    //     .onTrue(forceState(SuperState.PRE_NET_2));
-
-    // stateTriggers
-    //     .get(SuperState.PRE_NET_2)
-    //     .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-    //     .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-    //     // Wait for wrist to swing around before seating shoulder
-    //     .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-    //     .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
-    //     .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
-    //     .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-    //     .and(scoreReq)
-    //     .onTrue(forceState(SuperState.SCORE_ALGAE));
-
     stateTriggers
-        .get(SuperState.PRE_NET_1)
+        .get(SuperState.PRE_NET)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(
             Commands.sequence(
-                wrist.setTargetAngle(Rotation2d.fromDegrees(-40)),
-                Commands.waitUntil(
-                    () ->
-                        elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION)
-                            && wrist.isNearAngle(Rotation2d.fromDegrees(-40))),
-                wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS),
-                Commands.waitUntil(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS)),
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS)))
+                Commands.parallel(
+                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS),
+                        wrist.setTargetAngle(Rotation2d.fromDegrees(-40)))
+                    .until(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION)),
+                Commands.parallel(
+                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS),
+                        wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+                    .until(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS)),
+                Commands.parallel(
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
+        .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
 
     stateTriggers
