@@ -51,6 +51,7 @@ public class Superstructure {
   private final Supplier<ChassisSpeeds> chassisVel;
   private final Supplier<ReefTarget> reefTarget;
   private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
+  private AlgaeIntakeTarget prevAlgaeIntakeTarget;
   private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
   @AutoLogOutput(key = "Superstructure/Pre Score Request")
@@ -118,6 +119,7 @@ public class Superstructure {
     this.chassisVel = chassisVel;
     this.reefTarget = reefTarget;
     this.algaeIntakeTarget = algaeIntakeTarget;
+    prevAlgaeIntakeTarget = algaeIntakeTarget.get();
     this.algaeScoreTarget = algaeScoreTarget;
 
     this.preScoreReq = preScoreReq;
@@ -377,6 +379,20 @@ public class Superstructure {
         .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
         .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
         .and(intakeAlgaeReq.negate())
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
+        .and(
+            () -> {
+              var diff = prevAlgaeIntakeTarget != algaeIntakeTarget.get();
+              // This is ugly but we need to enforce update order
+              prevAlgaeIntakeTarget = algaeIntakeTarget.get();
+              return diff;
+            })
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_ALGAE logic
