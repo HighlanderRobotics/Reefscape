@@ -58,6 +58,7 @@ import frc.robot.subsystems.vision.VisionIOReal;
 import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
+import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
@@ -544,9 +545,15 @@ public class Robot extends LoggedRobot {
 
     // Log locations of all autoaim targets
     Logger.recordOutput(
-        "AutoAim/Targets",
+        "AutoAim/Targets/Coral",
         Stream.of(CoralTargets.values())
             .map((target) -> CoralTargets.getRobotTargetLocation(target.location))
+            .toArray(Pose2d[]::new));
+    // Log locations of all autoaim targets
+    Logger.recordOutput(
+        "AutoAim/Targets/Algae",
+        Stream.of(AlgaeIntakeTargets.values())
+            .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
             .toArray(Pose2d[]::new));
   }
 

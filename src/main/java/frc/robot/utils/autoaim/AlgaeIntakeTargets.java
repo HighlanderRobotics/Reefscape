@@ -1,16 +1,15 @@
 package frc.robot.utils.autoaim;
 
-import java.util.Arrays;
-import java.util.List;
-import frc.robot.Robot;
-
 import choreo.util.ChoreoAllianceFlipUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import frc.robot.Robot;
+import java.util.Arrays;
+import java.util.List;
 
 public enum AlgaeIntakeTargets {
-    // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls
+  // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls
   // were extended beyond the coral station
   // All angles from the center of the coral with 0° across the width of the field, counterclockwise
   BLUE_AB(new Pose2d(3.64, 4.03, Rotation2d.fromDegrees(180))),
@@ -19,7 +18,7 @@ public enum AlgaeIntakeTargets {
   BLUE_GH(new Pose2d(5.31, 4.03, Rotation2d.fromDegrees(0))),
   BLUE_IJ(new Pose2d(4.89, 4.75, Rotation2d.fromDegrees(60))),
   BLUE_KL(new Pose2d(4.06, 4.75, Rotation2d.fromDegrees(120))),
-  
+
   RED_AB(ChoreoAllianceFlipUtil.flip(BLUE_AB.location)),
   RED_CD(ChoreoAllianceFlipUtil.flip(BLUE_CD.location)),
   RED_EF(ChoreoAllianceFlipUtil.flip(BLUE_EF.location)),
@@ -53,5 +52,4 @@ public enum AlgaeIntakeTargets {
   public static Pose2d getClosestTarget(Pose2d pose) {
     return pose.nearest(transformedPoses);
   }
-
 }
