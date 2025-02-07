@@ -28,6 +28,8 @@ public class WristSubsystem extends SubsystemBase {
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
+  private Rotation2d setpoint = Rotation2d.kZero;
+
   public WristSubsystem(ArmIO io) {
     this.io = io;
   }
@@ -42,7 +44,8 @@ public class WristSubsystem extends SubsystemBase {
     return this.run(
         () -> {
           io.setMotorPosition(target.get());
-          Logger.recordOutput("Carriage/Wrist/Setpoint", target.get());
+          setpoint = target.get();
+          Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
         });
   }
 
@@ -52,6 +55,10 @@ public class WristSubsystem extends SubsystemBase {
 
   public Rotation2d getAngle() {
     return inputs.position;
+  }
+
+  public Rotation2d getSetpoint() {
+    return setpoint;
   }
 
   public boolean isNearAngle(Rotation2d target) {

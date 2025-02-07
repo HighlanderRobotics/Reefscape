@@ -615,6 +615,30 @@ public class Robot extends LoggedRobot {
                       + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
               new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
         });
+    Logger.recordOutput(
+        "Mechanism Setpoints",
+        new Pose3d[] {
+          new Pose3d( // first stage
+              new Translation3d(0, 0, elevator.getSetpoint() / 2.0), new Rotation3d()),
+          // carriage
+          new Pose3d(new Translation3d(0, 0, elevator.getSetpoint()), new Rotation3d()),
+          new Pose3d( // arm
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS,
+                  0,
+                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getSetpoint()),
+              new Rotation3d(
+                  0, -Units.degreesToRadians(2.794042) - shoulder.getSetpoint().getRadians(), 0.0)),
+          new Pose3d( // Manipulator
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS
+                      + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                  0,
+                  elevator.getSetpoint()
+                      + ShoulderSubsystem.Z_OFFSET_METERS
+                      + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+              new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
+        });
     Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
 
     carriageLigament.setLength(elevator.getExtensionMeters());

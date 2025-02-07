@@ -20,7 +20,6 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -55,22 +54,25 @@ public class Superstructure {
   private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
   private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
-  @AutoLogOutput(key="Superstructure/Pre Score Request")
+  @AutoLogOutput(key = "Superstructure/Pre Score Request")
   private final Trigger preScoreReq;
-  @AutoLogOutput(key="Superstructure/Score Request")
+
+  @AutoLogOutput(key = "Superstructure/Score Request")
   private final Trigger scoreReq;
 
-  @AutoLogOutput(key="Superstructure/Algae Intake Request")
+  @AutoLogOutput(key = "Superstructure/Algae Intake Request")
   private final Trigger intakeAlgaeReq;
 
-  @AutoLogOutput(key="Superstructure/Pre Climb Request")
+  @AutoLogOutput(key = "Superstructure/Pre Climb Request")
   private final Trigger preClimbReq;
-  @AutoLogOutput(key="Superstructure/Climb Confirm Request")
+
+  @AutoLogOutput(key = "Superstructure/Climb Confirm Request")
   private final Trigger climbConfReq;
-  @AutoLogOutput(key="Superstructure/Climb Cancel Request")
+
+  @AutoLogOutput(key = "Superstructure/Climb Cancel Request")
   private final Trigger climbCancelReq;
 
-  @AutoLogOutput(key="Superstructure/Anti Jam Request")
+  @AutoLogOutput(key = "Superstructure/Anti Jam Request")
   private final Trigger antiJamReq;
 
   private SuperState state = SuperState.IDLE;
