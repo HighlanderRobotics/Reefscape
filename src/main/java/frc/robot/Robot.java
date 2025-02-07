@@ -428,9 +428,10 @@ public class Robot extends LoggedRobot {
 
     elevator.setDefaultCommand(
         Commands.sequence(
-            elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
-            elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
-            elevator.setVoltage(0.0)));
+                elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
+                elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
+                elevator.setVoltage(0.0))
+            .withName("Elevator Default Command"));
 
     manipulator.setDefaultCommand(manipulator.index());
 
@@ -500,8 +501,7 @@ public class Robot extends LoggedRobot {
                   if (ROBOT_TYPE == RobotType.SIM) {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
-                }))
-        .onTrue(elevator.runCurrentZeroing());
+                }));
 
     operator
         .a()

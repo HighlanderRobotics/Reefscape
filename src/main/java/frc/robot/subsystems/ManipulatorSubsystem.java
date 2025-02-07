@@ -43,6 +43,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     Logger.processInputs(NAME + "/First Beambreak", firstBBInputs);
     Logger.processInputs(NAME + "/Second Beambreak", secondBBInputs);
     Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
+    Logger.recordOutput(NAME + "/First Beambreak Override", bb1);
+    Logger.recordOutput(NAME + "/Second Beambreak Override", bb2);
   }
 
   public Command index() {
