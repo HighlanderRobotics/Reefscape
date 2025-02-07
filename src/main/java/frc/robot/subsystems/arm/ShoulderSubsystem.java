@@ -33,6 +33,8 @@ public class ShoulderSubsystem extends SubsystemBase {
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
+  private Rotation2d setpoint = Rotation2d.kZero;
+
   public ShoulderSubsystem(final ArmIO io) {
     this.io = io;
   }
@@ -47,7 +49,8 @@ public class ShoulderSubsystem extends SubsystemBase {
     return this.run(
         () -> {
           io.setMotorPosition(target.get());
-          Logger.recordOutput("Carriage/Shoulder/Setpoint", target.get());
+          setpoint = target.get();
+          Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
         });
   }
 
@@ -57,6 +60,10 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public Rotation2d getAngle() {
     return inputs.position;
+  }
+
+  public Rotation2d getSetpoint() {
+    return setpoint;
   }
 
   public boolean isNearAngle(Rotation2d target) {

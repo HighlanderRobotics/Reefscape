@@ -150,7 +150,7 @@ public class Superstructure {
         .get(SuperState.IDLE)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
         .whileTrue(funnel.setVoltage(6.0))
         .and(manipulator::getSecondBeambreak)

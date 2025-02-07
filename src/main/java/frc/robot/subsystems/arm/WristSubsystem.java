@@ -13,8 +13,8 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(180.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
 
-  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(0.0);
-  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(256.5);
+  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(-30.0);
+  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(0.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(-30);
   public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_SCORE_L1_POS = Rotation2d.fromDegrees(-40);
@@ -27,6 +27,8 @@ public class WristSubsystem extends SubsystemBase {
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+
+  private Rotation2d setpoint = Rotation2d.kZero;
 
   public WristSubsystem(ArmIO io) {
     this.io = io;
@@ -42,7 +44,8 @@ public class WristSubsystem extends SubsystemBase {
     return this.run(
         () -> {
           io.setMotorPosition(target.get());
-          Logger.recordOutput("Carriage/Wrist/Setpoint", target.get());
+          setpoint = target.get();
+          Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
         });
   }
 
@@ -52,6 +55,10 @@ public class WristSubsystem extends SubsystemBase {
 
   public Rotation2d getAngle() {
     return inputs.position;
+  }
+
+  public Rotation2d getSetpoint() {
+    return setpoint;
   }
 
   public boolean isNearAngle(Rotation2d target) {
