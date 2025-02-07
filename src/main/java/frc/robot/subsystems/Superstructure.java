@@ -286,6 +286,27 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L1)
+        .and(() -> reefTarget.get() != ReefTarget.L1)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L2)
+        .and(() -> reefTarget.get() != ReefTarget.L2)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L3)
+        .and(() -> reefTarget.get() != ReefTarget.L3)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L4)
+        .and(() -> reefTarget.get() != ReefTarget.L4)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
     // SCORE_CORAL -> IDLE
     stateTriggers
         .get(SuperState.SCORE_CORAL)
