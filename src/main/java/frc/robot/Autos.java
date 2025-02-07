@@ -7,10 +7,8 @@ package frc.robot;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -196,6 +194,52 @@ public class Autos {
     routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
     return routine.cmd();
   }
+
+  public void runPath(
+      AutoRoutine routine,
+      String startPos,
+      String endPos,
+      String nextPos,
+      HashMap<String, AutoTrajectory> steps) {
+    routine
+        .observe(steps.get(startPos + "to" + endPos).done())
+        .onTrue(
+            Commands.sequence(
+                endPos.startsWith("P")
+                    ? intakeInAuto(steps.get(startPos + "to" + endPos).getFinalPose())
+                    : scoreInAuto(),
+                steps.get(endPos + "to" + nextPos).cmd()));
+  }
+
+  public Command LOtoJcmd() {
+    final var routine = factory.newRoutine("LO to J");
+    bindElevatorExtension(routine);
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "LO", "J", "PLO", "K", "PLO", "L", "PLO", "A", "PLO" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(name, routine.trajectory(name));
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(Commands.sequence(steps.get("LOtoJ").resetOdometry(), steps.get("LOtoJ").cmd()));
+    // run middle paths
+    // and puts that name + corresponding traj to the map
+    for (int i = 0; i < stops.length - 2; i++) {
+      String startPos = stops[i];
+      String endPos = stops[i + 1];
+      String nextPos = stops[i + 2];
+      runPath(routine, startPos, endPos, nextPos, steps);
+    }
+    // final path
+    routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
+    return routine.cmd();
+  }
+
   // public Command LOtoJCMD() {
   //   final var routine = factory.newRoutine("LO to J");
   //   HashMap<String, AutoTrajectory> steps =
@@ -378,7 +422,7 @@ public class Autos {
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 3); //TODO tune
+    bindElevatorExtension(routine, 3); // TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {

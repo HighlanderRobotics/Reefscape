@@ -564,6 +564,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("LM to H", autos.LMtoHCMD());
     autoChooser.addOption("RM to G", autos.RMtoGCmd());
     autoChooser.addOption("4.5 L Outside", autos.LOtoJ());
+    autoChooser.addOption("TEST 4.5 L Outside", autos.LOtoJcmd());
     // autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
     // autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
     // autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
