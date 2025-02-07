@@ -154,47 +154,6 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command LOtoJ() {
-    final var routine = factory.newRoutine("LO to J");
-    bindElevatorExtension(routine);
-    HashMap<String, AutoTrajectory> steps =
-        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
-    String[] stops = {
-      "LO", "J", "PLO", "K", "PLO", "L", "PLO", "A", "PLO" // each stop we are going to, in order
-    }; // i don't love repeating the plos but ???
-    for (int i = 0; i < stops.length - 1; i++) {
-      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
-      steps.put(
-          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
-    }
-    routine
-        .active()
-        .whileTrue(Commands.sequence(steps.get("LOtoJ").resetOdometry(), steps.get("LOtoJ").cmd()));
-    routine
-        .observe(steps.get("LOtoJ").done())
-        .onTrue(scoreInAuto().andThen(steps.get("JtoPLO").cmd()));
-    routine
-        .observe(steps.get("JtoPLO").done())
-        .onTrue(
-            intakeInAuto(steps.get("JtoPLO").getFinalPose()).andThen(steps.get("PLOtoK").cmd()));
-    routine
-        .observe(steps.get("PLOtoK").done())
-        .onTrue(scoreInAuto().andThen(steps.get("KtoPLO").cmd()));
-    routine
-        .observe(steps.get("KtoPLO").done())
-        .onTrue(
-            intakeInAuto(steps.get("KtoPLO").getFinalPose()).andThen(steps.get("PLOtoL").cmd()));
-    routine
-        .observe(steps.get("PLOtoL").done())
-        .onTrue(scoreInAuto().andThen(steps.get("LtoPLO").cmd()));
-    routine
-        .observe(steps.get("LtoPLO").done())
-        .onTrue(
-            intakeInAuto(steps.get("LtoPLO").getFinalPose()).andThen(steps.get("PLOtoA").cmd()));
-    routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
-    return routine.cmd();
-  }
-
   public void runPath(
       AutoRoutine routine,
       String startPos,
@@ -211,7 +170,7 @@ public class Autos {
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
-  public Command LOtoJcmd() {
+  public Command LOtoJ() {
     final var routine = factory.newRoutine("LO to J");
     bindElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
@@ -240,124 +199,92 @@ public class Autos {
     return routine.cmd();
   }
 
-  // public Command LOtoJCMD() {
-  //   final var routine = factory.newRoutine("LO to J");
-  //   HashMap<String, AutoTrajectory> steps =
-  //       new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
-  //   String[] stops = {
-  //     "LO", "J", "PLO", "K", "PLO", "L", "PLO", "A", "PLO" // each stop we are going to, in order
-  //   }; // i don't love repeating the plos but ???
-  //   for (int i = 0; i < stops.length - 1; i++) {
-  //     String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
-  //     steps.put(
-  //         name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
-  //   }
-  //   routine
-  //       .active()
-  //       .whileTrue(
-  //           Commands.sequence(
-  //               steps.get("LOtoJ").resetOdometry(),
-  //               steps.get("LOtoJ").cmd())); // runs the very first traj
-  //   for (int i = 0; i < stops.length - 2; i++) {
-  //     bindSegment(
-  //         routine,
-  //         stops[i],
-  //         stops[i + 1],
-  //         stops[i + 2],
-  //         steps); // runs each of the following traj + whatever it does at the end of the traj
-  //   }
-  //   return routine.cmd();
-  // }
+  public Command ROtoE() {
+    final var routine = factory.newRoutine("RO to E");
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "RO", "E", "PRO", "D", "PRO", "C", "PRO", "B", "PRO" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(Commands.sequence(steps.get("ROtoE").resetOdometry(), steps.get("ROtoE").cmd()));
+    // run middle paths
+    // and puts that name + corresponding traj to the map
+    for (int i = 0; i < stops.length - 2; i++) {
+      String startPos = stops[i];
+      String endPos = stops[i + 1];
+      String nextPos = stops[i + 2];
+      runPath(routine, startPos, endPos, nextPos, steps);
+    }
+    // final path
+    routine.observe(steps.get("PROtoB").done()).onTrue(scoreInAuto());
+    return routine.cmd();
+  }
 
-  // public Command ROtoECMD() {
-  //   final var routine = factory.newRoutine("RO to E");
-  //   HashMap<String, AutoTrajectory> steps =
-  //       new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
-  //   String[] stops = {
-  //     "RO", "E", "PRO", "D", "PRO", "C", "PRO", "B", "PRO" // each stop we are going to, in order
-  //   }; // i don't love repeating the plos but ???
-  //   for (int i = 0; i < stops.length - 1; i++) {
-  //     String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
-  //     steps.put(
-  //         name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
-  //   }
-  //   routine
-  //       .active()
-  //       .whileTrue(
-  //           Commands.sequence(
-  //               steps.get("ROtoE").resetOdometry(),
-  //               steps.get("ROtoE").cmd())); // runs the very first traj
-  //   for (int i = 0; i < stops.length - 2; i++) {
-  //     bindSegment(
-  //         routine,
-  //         stops[i],
-  //         stops[i + 1],
-  //         stops[i + 2],
-  //         steps,
-  //         ReefTarget
-  //             .L2); // runs each of the following traj + whatever it does at the end of the traj
-  //   }
-  //   bindElevatorExtension(routine);
-  //   return routine.cmd();
-  // }
+  public Command LItoK() {
+    final var routine = factory.newRoutine("LI to K");
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "LI", "K", "PLI", "L", "PLI", "A", "PLI", "B", "PLI" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(Commands.sequence(steps.get("LItoK").resetOdometry(), steps.get("LItoK").cmd()));
+    // run middle paths
+    // and puts that name + corresponding traj to the map
+    for (int i = 0; i < stops.length - 2; i++) {
+      String startPos = stops[i];
+      String endPos = stops[i + 1];
+      String nextPos = stops[i + 2];
+      runPath(routine, startPos, endPos, nextPos, steps);
+    }
+    // final path
+    routine.observe(steps.get("PLItoB").done()).onTrue(scoreInAuto());
+    return routine.cmd();
+  }
 
-  // public Command LItoKCMD() {
-  //   final var routine = factory.newRoutine("LI to K");
-  //   HashMap<String, AutoTrajectory> steps =
-  //       new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
-  //   String[] stops = {
-  //     "LI", "K", "PLI", "L", "PLI", "A", "PLI", "B", "PLI" // each stop we are going to, in order
-  //   }; // i don't love repeating the plos but ???
-  //   for (int i = 0; i < stops.length - 1; i++) {
-  //     String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
-  //     steps.put(
-  //         name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
-  //   }
-  //   routine
-  //       .active()
-  //       .whileTrue(
-  //           Commands.sequence(
-  //               steps.get("LItoK").resetOdometry(),
-  //               steps.get("LItoK").cmd())); // runs the very first traj
-  //   for (int i = 0; i < stops.length - 2; i++) {
-  //     bindSegment(
-  //         routine,
-  //         stops[i],
-  //         stops[i + 1],
-  //         stops[i + 2],
-  //         steps); // runs each of the following traj + whatever it does at the end of the traj
-  //   }
-  //   return routine.cmd();
-  // }
-
-  // public Command RItoDCMD() {
-  //   final var routine = factory.newRoutine("RI to D");
-  //   HashMap<String, AutoTrajectory> steps =
-  //       new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
-  //   String[] stops = {
-  //     "RI", "D", "PRI", "C", "PRI", "B", "PRI", "A", "PRI" // each stop we are going to, in order
-  //   }; // i don't love repeating the plos but ???
-  //   for (int i = 0; i < stops.length - 1; i++) {
-  //     String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
-  //     steps.put(
-  //         name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
-  //   }
-  //   routine
-  //       .active()
-  //       .whileTrue(
-  //           Commands.sequence(
-  //               steps.get("RItoD").resetOdometry(),
-  //               steps.get("RItoD").cmd())); // runs the very first traj
-  //   for (int i = 0; i < stops.length - 2; i++) {
-  //     bindSegment(
-  //         routine,
-  //         stops[i],
-  //         stops[i + 1],
-  //         stops[i + 2],
-  //         steps); // runs each of the following traj + whatever it does at the end of the traj
-  //   }
-  //   return routine.cmd();
-  // }
+  public Command RItoD() {
+    final var routine = factory.newRoutine("RI to D");
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "RI", "D", "PRI", "C", "PRI", "B", "PRI", "A", "PRI" // each stop we are going to, in order
+    }; // i don't love repeating the plos but ???
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(Commands.sequence(steps.get("RItoD").resetOdometry(), steps.get("RItoD").cmd()));
+    // run middle paths
+    // and puts that name + corresponding traj to the map
+    for (int i = 0; i < stops.length - 2; i++) {
+      String startPos = stops[i];
+      String endPos = stops[i + 1];
+      String nextPos = stops[i + 2];
+      runPath(routine, startPos, endPos, nextPos, steps);
+    }
+    // final path
+    routine.observe(steps.get("PRItoA").done()).onTrue(scoreInAuto());
+    return routine.cmd();
+  }
 
   // public Command scoreInAuto(Supplier<Pose2d> pose, ReefTarget target) {
   //   return AutoAim.translateToPose(swerve, () -> pose.get())
