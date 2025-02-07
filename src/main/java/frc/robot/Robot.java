@@ -481,6 +481,28 @@ public class Robot extends LoggedRobot {
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
+                    || superstructure.getState() == SuperState.INTAKE_ALGAE_LOW)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                Commands.waitUntil(
+                        () -> {
+                          final var diff =
+                              swerve
+                                  .getPose()
+                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
+                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                        })
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
         .povUp()
@@ -647,7 +669,9 @@ public class Robot extends LoggedRobot {
                       + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
               new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
         });
-    Logger.recordOutput("AutoAim/Target", CoralTargets.getClosestTarget(swerve.getPose()));
+    Logger.recordOutput("AutoAim/CoralTarget", CoralTargets.getClosestTarget(swerve.getPose()));
+    Logger.recordOutput(
+        "AutoAim/AlgaeIntakeTarget", AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
 
     carriageLigament.setLength(elevator.getExtensionMeters());
     // Minus 90 to make it relative to horizontal
