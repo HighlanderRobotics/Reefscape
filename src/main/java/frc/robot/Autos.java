@@ -79,40 +79,6 @@ public class Autos {
     return routine.cmd();
   }
 
-  /***
-   * Waits for the current path to be completed then runs the command (score or intake), waits to be close enough then starts the next path
-   * //TODO order does not make sense (?)
-   * @param routine AutoRoutine these paths are in
-   * @param prevPath The path that just completed
-   * @param currentPath The path that is about to run
-   * @param cmd The command we want to run before nextPath
-   */
-  public void cmdThenPath(
-      AutoRoutine routine, AutoTrajectory prevPath, AutoTrajectory currentPath, Command cmd) {
-    routine
-        .observe(prevPath.done())
-        .onTrue(
-            Commands.sequence(
-                cmd,
-                Commands.waitUntil(
-                        () -> {
-                          final var diff =
-                              swerve
-                                  .getPose()
-                                  .minus(currentPath.getInitialPose().orElse(Pose2d.kZero));
-                          return MathUtil.isNear(
-                                  0.0,
-                                  diff.getX(),
-                                  Units.inchesToMeters(2.0)) // TODO update when merged
-                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(2.0))
-                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-                        })
-                    .raceWith(
-                        swerve.poseLockDriveCommand(
-                            () -> currentPath.getInitialPose().orElse(Pose2d.kZero))),
-                currentPath.cmd()));
-  }
-
   // /***
   //  * Runs a path based on the names of the starting location, middle location, and ending
   // location. The current path is generated based on starting + middle and the next from middle +
