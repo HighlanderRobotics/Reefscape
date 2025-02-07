@@ -560,17 +560,12 @@ public class Robot extends LoggedRobot {
   private void addAutos() {
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
-    // autoChooser.addOption("L4 Auto Run", autos.SLMtoICMD());
-    autoChooser.addOption("LM to H", autos.LMtoHCMD());
-    autoChooser.addOption("RM to G", autos.RMtoGCmd());
+    autoChooser.addOption("LM to H", autos.LMtoH());
+    autoChooser.addOption("RM to G", autos.RMtoG());
     autoChooser.addOption("4.5 L Outside", autos.LOtoJ());
     autoChooser.addOption("4.5 R Outside", autos.ROtoE());
     autoChooser.addOption("4.5 L Inside", autos.LItoK());
     autoChooser.addOption("4.5 R Inside", autos.RItoD());
-    // autoChooser.addOption("4.5 R Outside", autos.ROtoECMD());
-    // autoChooser.addOption("4.5 L Inside", autos.LItoKCMD());
-    // autoChooser.addOption("4.5 R Inside", autos.RItoDCMD());
-
   }
 
   /** Scales a joystick value for teleop driving */

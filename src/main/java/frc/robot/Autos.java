@@ -75,7 +75,7 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command LMtoHCMD() {
+  public Command LMtoH() {
     final var routine = factory.newRoutine("LM to H");
     final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
@@ -84,7 +84,7 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command RMtoGCmd() {
+  public Command RMtoG() {
     final var routine = factory.newRoutine("RM to G");
     final var traj = routine.trajectory("RMtoG");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
