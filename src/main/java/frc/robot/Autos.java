@@ -399,7 +399,6 @@ public class Autos {
 
   public Command intakeInAuto(Optional<Pose2d> pose) {
     if (!pose.isPresent()) {
-      System.out.println("no pose :(");
       return Commands.none();
     } else {
       return Commands.sequence(
@@ -408,13 +407,12 @@ public class Autos {
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
           AutoAim.translateToPose(swerve, () -> pose.get())
-              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()),
-          Commands.runOnce(() -> autoPreScore = true));
+              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 2.5);
+    bindElevatorExtension(routine, 3); //TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {
@@ -431,7 +429,7 @@ public class Autos {
                             .getNorm()
                         < toleranceMeters
                     && (manipulator.getSecondBeambreak()))
-        .onTrue(Commands.runOnce(() -> autoPreScore = true).andThen(Commands.print(":)")))
-        .onFalse(Commands.runOnce(() -> autoPreScore = false).andThen(Commands.print(":(")));
+        .onTrue(Commands.runOnce(() -> autoPreScore = true))
+        .onFalse(Commands.runOnce(() -> autoPreScore = false));
   }
 }

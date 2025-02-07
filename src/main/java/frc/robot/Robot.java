@@ -414,7 +414,6 @@ public class Robot extends LoggedRobot {
 
     autos = new Autos(swerve, manipulator, elevator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
-    
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
@@ -429,7 +428,7 @@ public class Robot extends LoggedRobot {
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
     new Trigger(() -> DriverStation.getAlliance().isPresent())
-        .onTrue(Commands.runOnce(() -> addAutos()));
+        .onTrue(Commands.runOnce(() -> addAutos()).ignoringDisable(true));
 
     elevator.setDefaultCommand(
         Commands.sequence(
