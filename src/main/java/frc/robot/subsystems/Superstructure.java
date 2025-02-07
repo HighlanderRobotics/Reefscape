@@ -76,6 +76,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Anti Jam Request")
   private final Trigger antiJamReq;
 
+  @AutoLogOutput(key = "Superstructure/Home Request")
+  private final Trigger homeReq;
+
   private SuperState state = SuperState.IDLE;
   private SuperState prevState = SuperState.IDLE;
   private Map<SuperState, Trigger> stateTriggers = new HashMap<SuperState, Trigger>();
@@ -108,7 +111,8 @@ public class Superstructure {
       Trigger climbReq,
       Trigger climbConfReq,
       Trigger climbCancelReq,
-      Trigger antiJamReq) {
+      Trigger antiJamReq,
+      Trigger homeReq) {
     this.elevator = elevator;
     this.manipulator = manipulator;
     this.shoulder = shoulder;
@@ -133,6 +137,8 @@ public class Superstructure {
     this.climbCancelReq = climbCancelReq;
 
     this.antiJamReq = antiJamReq;
+
+    this.homeReq = homeReq;
 
     stateTimer.start();
 
@@ -193,6 +199,9 @@ public class Superstructure {
         .get(SuperState.IDLE)
         .and(() -> !elevator.hasZeroed || !wrist.hasZeroed)
         .onTrue(this.forceState(SuperState.HOME));
+
+    // We might want to make this work when we have a piece as well?
+    stateTriggers.get(SuperState.IDLE).and(homeReq).onTrue(this.forceState(SuperState.HOME));
 
     stateTriggers
         .get(SuperState.HOME)
