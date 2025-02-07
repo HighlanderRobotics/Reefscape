@@ -4,10 +4,17 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.subsystems.arm.ShoulderSubsystem;
+import frc.robot.subsystems.arm.WristSubsystem;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import org.littletonrobotics.junction.Logger;
@@ -65,6 +72,23 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         .andThen(
             this.runOnce(() -> hasAlgae = true),
             this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
+  }
+
+  public Pose3d getPose(
+      ShoulderSubsystem shoulder,
+      ElevatorSubsystem elevator,
+      WristSubsystem wrist,
+      Pose2d robotPose) {
+    return new Pose3d( // Manipulator
+        new Translation3d(
+            ShoulderSubsystem.X_OFFSET_METERS
+                + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS
+                + robotPose.getX(),
+            robotPose.getY(),
+            elevator.getExtensionMeters()
+                + ShoulderSubsystem.Z_OFFSET_METERS
+                + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+        new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI));
   }
 
   public double getStatorCurrentAmps() {

@@ -12,8 +12,15 @@ public class GamePiece implements StructSerializable, ProtobufSerializable {
     CORAL,
     ALGAE;
 
-    public static int getNumber() {
-      return 127;
+    public int getNumber() {
+      switch (this) {
+        case CORAL:
+          return 1;
+        case ALGAE:
+          return 2;
+        default:
+          return 0;
+      }
     }
 
     public static Piece forNumber(int value) {

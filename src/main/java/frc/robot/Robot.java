@@ -425,7 +425,7 @@ public class Robot extends LoggedRobot {
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
 
     // Default Commands
-    Logger.recordOutput("Field Sim", FieldSim.getGamePieces().get(0));
+    FieldSim.updateLogging();
 
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
