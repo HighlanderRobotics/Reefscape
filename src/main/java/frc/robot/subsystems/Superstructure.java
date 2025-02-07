@@ -372,6 +372,14 @@ public class Superstructure {
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .onTrue(forceState(SuperState.READY_ALGAE));
 
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
+        .and(intakeAlgaeReq.negate())
+        .onTrue(this.forceState(SuperState.IDLE));
+
     // READY_ALGAE logic
     stateTriggers
         .get(SuperState.READY_ALGAE)
@@ -469,7 +477,7 @@ public class Superstructure {
                   }
                 }))
         .and(() -> stateTimer.hasElapsed(1))
-        .onFalse(forceState(SuperState.IDLE));
+        .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.PRE_CLIMB)
