@@ -14,9 +14,15 @@ public interface ArmIO {
     public double statorCurrentAmps = 0.0;
   }
 
-  void updateInputs(final ArmIOInputs inputs);
+  public void updateInputs(final ArmIOInputs inputs);
 
-  void setMotorVoltage(final double voltage);
+  public void setMotorVoltage(final double voltage);
 
-  void setMotorPosition(final Rotation2d targetPosition);
+  public void setMotorPosition(final Rotation2d targetPosition);
+
+  public default void resetEncoder(final Rotation2d rotation) {}
+
+  public default void resetEncoder() {
+    resetEncoder(Rotation2d.kZero);
+  }
 }
