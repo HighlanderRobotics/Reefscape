@@ -20,6 +20,8 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Superstructure {
@@ -53,15 +55,22 @@ public class Superstructure {
   private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
   private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
+  @AutoLogOutput(key="Superstructure/Pre Score Request")
   private final Trigger preScoreReq;
+  @AutoLogOutput(key="Superstructure/Score Request")
   private final Trigger scoreReq;
 
+  @AutoLogOutput(key="Superstructure/Algae Intake Request")
   private final Trigger intakeAlgaeReq;
 
+  @AutoLogOutput(key="Superstructure/Pre Climb Request")
   private final Trigger preClimbReq;
+  @AutoLogOutput(key="Superstructure/Climb Confirm Request")
   private final Trigger climbConfReq;
+  @AutoLogOutput(key="Superstructure/Climb Cancel Request")
   private final Trigger climbCancelReq;
 
+  @AutoLogOutput(key="Superstructure/Anti Jam Request")
   private final Trigger antiJamReq;
 
   private SuperState state = SuperState.IDLE;
@@ -132,7 +141,7 @@ public class Superstructure {
 
   /** This file is not a subsystem, so this MUST be called manually. */
   public void periodic() {
-    Logger.recordOutput("Superstructure State", state);
+    Logger.recordOutput("Superstructure/Superstructure State", state);
   }
 
   private void configureStateTransitionCommands() {
@@ -258,9 +267,9 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L3_POS))
+        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L3_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
@@ -270,9 +279,9 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L4_POS))
+        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
