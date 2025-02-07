@@ -59,7 +59,7 @@ import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
-import frc.robot.utils.autoaim.AutoAimTargets;
+import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -467,14 +467,14 @@ public class Robot extends LoggedRobot {
                 AutoAim.translateToPose(
                     swerve,
                     () ->
-                        AutoAimTargets.getHandedClosestTarget(
+                        CoralTargets.getHandedClosestTarget(
                             swerve.getPose(), driver.leftBumper().getAsBoolean())),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                                  .minus(CoralTargets.getClosestTarget(swerve.getPose()));
                           return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
@@ -545,8 +545,8 @@ public class Robot extends LoggedRobot {
     // Log locations of all autoaim targets
     Logger.recordOutput(
         "AutoAim/Targets",
-        Stream.of(AutoAimTargets.values())
-            .map((target) -> AutoAimTargets.getRobotTargetLocation(target.location))
+        Stream.of(CoralTargets.values())
+            .map((target) -> CoralTargets.getRobotTargetLocation(target.location))
             .toArray(Pose2d[]::new));
   }
 
@@ -640,7 +640,7 @@ public class Robot extends LoggedRobot {
                       + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
               new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
         });
-    Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
+    Logger.recordOutput("AutoAim/Target", CoralTargets.getClosestTarget(swerve.getPose()));
 
     carriageLigament.setLength(elevator.getExtensionMeters());
     // Minus 90 to make it relative to horizontal
