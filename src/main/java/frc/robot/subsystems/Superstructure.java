@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,6 +20,7 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Superstructure {
@@ -50,17 +52,28 @@ public class Superstructure {
   private final Supplier<ChassisSpeeds> chassisVel;
   private final Supplier<ReefTarget> reefTarget;
   private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
+  private AlgaeIntakeTarget prevAlgaeIntakeTarget;
   private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
+  @AutoLogOutput(key = "Superstructure/Pre Score Request")
   private final Trigger preScoreReq;
+
+  @AutoLogOutput(key = "Superstructure/Score Request")
   private final Trigger scoreReq;
 
+  @AutoLogOutput(key = "Superstructure/Algae Intake Request")
   private final Trigger intakeAlgaeReq;
 
+  @AutoLogOutput(key = "Superstructure/Pre Climb Request")
   private final Trigger preClimbReq;
+
+  @AutoLogOutput(key = "Superstructure/Climb Confirm Request")
   private final Trigger climbConfReq;
+
+  @AutoLogOutput(key = "Superstructure/Climb Cancel Request")
   private final Trigger climbCancelReq;
 
+  @AutoLogOutput(key = "Superstructure/Anti Jam Request")
   private final Trigger antiJamReq;
 
   private SuperState state = SuperState.IDLE;
@@ -107,6 +120,7 @@ public class Superstructure {
     this.chassisVel = chassisVel;
     this.reefTarget = reefTarget;
     this.algaeIntakeTarget = algaeIntakeTarget;
+    prevAlgaeIntakeTarget = algaeIntakeTarget.get();
     this.algaeScoreTarget = algaeScoreTarget;
 
     this.preScoreReq = preScoreReq;
@@ -131,7 +145,7 @@ public class Superstructure {
 
   /** This file is not a subsystem, so this MUST be called manually. */
   public void periodic() {
-    Logger.recordOutput("Superstructure State", state);
+    Logger.recordOutput("Superstructure/Superstructure State", state);
   }
 
   private void configureStateTransitionCommands() {
@@ -139,7 +153,7 @@ public class Superstructure {
         .get(SuperState.IDLE)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
         .whileTrue(funnel.setVoltage(6.0))
         .and(manipulator::getSecondBeambreak)
@@ -269,9 +283,9 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L3_POS))
+        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L3_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
@@ -281,12 +295,33 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L4_POS))
+        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L1)
+        .and(() -> reefTarget.get() != ReefTarget.L1)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L2)
+        .and(() -> reefTarget.get() != ReefTarget.L2)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L3)
+        .and(() -> reefTarget.get() != ReefTarget.L3)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L4)
+        .and(() -> reefTarget.get() != ReefTarget.L4)
+        .onTrue(forceState(SuperState.READY_CORAL));
+
     // SCORE_CORAL -> IDLE
     stateTriggers
         .get(SuperState.SCORE_CORAL)
@@ -361,16 +396,38 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
         .whileTrue(manipulator.intakeAlgae())
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
         .and(
             () ->
                 Robot.ROBOT_TYPE == RobotType.REAL
                     ? manipulator.getStatorCurrentAmps() > 20
                     : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
         .onTrue(forceState(SuperState.READY_ALGAE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
+        .and(intakeAlgaeReq.negate())
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
+        .and(
+            () -> {
+              var diff = prevAlgaeIntakeTarget != algaeIntakeTarget.get();
+              // This is ugly but we need to enforce update order
+              prevAlgaeIntakeTarget = algaeIntakeTarget.get();
+              return diff;
+            })
+        .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_ALGAE logic
     stateTriggers
@@ -420,8 +477,21 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.PRE_NET)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+        .whileTrue(
+            Commands.sequence(
+                Commands.parallel(
+                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS),
+                        wrist.setTargetAngle(Rotation2d.fromDegrees(-40)))
+                    .until(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION)),
+                Commands.parallel(
+                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS),
+                        wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+                    .until(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS)),
+                Commands.parallel(
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
@@ -458,7 +528,7 @@ public class Superstructure {
                   }
                 }))
         .and(() -> stateTimer.hasElapsed(1))
-        .onFalse(forceState(SuperState.IDLE));
+        .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.PRE_CLIMB)

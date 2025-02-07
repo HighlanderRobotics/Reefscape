@@ -23,16 +23,17 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(104.95);
 
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(26.0);
-  public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS =
-      Rotation2d.fromDegrees(153.8 + 180);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(35);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(68.5);
-  public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(120.0 - 45);
-  public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(75);
+  public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(75);
+  public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   // TODO: SET TO CORRECT POS
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(0.0);
 
   private final ArmIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+
+  private Rotation2d setpoint = Rotation2d.kZero;
 
   public ShoulderSubsystem(final ArmIO io) {
     this.io = io;
@@ -48,7 +49,8 @@ public class ShoulderSubsystem extends SubsystemBase {
     return this.run(
         () -> {
           io.setMotorPosition(target.get());
-          Logger.recordOutput("Carriage/Shoulder/Setpoint", target.get());
+          setpoint = target.get();
+          Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
         });
   }
 
@@ -60,8 +62,12 @@ public class ShoulderSubsystem extends SubsystemBase {
     return inputs.position;
   }
 
+  public Rotation2d getSetpoint() {
+    return setpoint;
+  }
+
   public boolean isNearAngle(Rotation2d target) {
-    return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 2.0);
+    return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
   }
 
   public ArmIOInputsAutoLogged getInputs() {
