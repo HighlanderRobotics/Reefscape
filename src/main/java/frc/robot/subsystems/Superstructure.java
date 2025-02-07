@@ -199,12 +199,9 @@ public class Superstructure {
         .get(SuperState.IDLE)
         .and(() -> !elevator.hasZeroed || !wrist.hasZeroed)
         .onTrue(this.forceState(SuperState.HOME));
-    
+
     // We might want to make this work when we have a piece as well?
-    stateTriggers
-        .get(SuperState.IDLE)
-        .and(homeReq)
-        .onTrue(this.forceState(SuperState.HOME));
+    stateTriggers.get(SuperState.IDLE).and(homeReq).onTrue(this.forceState(SuperState.HOME));
 
     stateTriggers
         .get(SuperState.HOME)
