@@ -16,6 +16,8 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
+
+import edu.wpi.first.hal.AllianceStationID;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -29,9 +31,11 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.simulation.DriverStationSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -492,6 +496,41 @@ public class Robot extends LoggedRobot {
             Commands.parallel(
                 AutoAim.translateToPose(
                     swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                Commands.waitUntil(
+                        () -> {
+                          final var diff =
+                              swerve
+                                  .getPose()
+                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
+                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
+                        })
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.READY_ALGAE
+                    || superstructure.getState() == SuperState.PRE_NET)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToXCoord(
+                    // TODO: PUT ACUAL NET POSE
+                    swerve,
+                    () ->
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? AutoAim.BLUE_NET_X
+                            : AutoAim.RED_NET_X,
+                    () ->
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? Rotation2d.fromDegrees(0)
+                            : Rotation2d.fromDegrees(180),
+                    () ->
+                        modifyJoystick(driver.getLeftX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed()),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
