@@ -207,7 +207,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(elevator.runCurrentZeroing())
         .whileTrue(wrist.currentZero(() -> shoulder.getInputs()))
-        .and(() -> elevator.hasZeroed && wrist.hasZeroed)
+        .and(() -> (elevator.hasZeroed && wrist.hasZeroed) || Robot.ROBOT_TYPE == RobotType.SIM)
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
