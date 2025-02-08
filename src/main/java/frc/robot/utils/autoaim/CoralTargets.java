@@ -8,7 +8,7 @@ import frc.robot.Robot;
 import java.util.Arrays;
 import java.util.List;
 
-public enum AutoAimTargets {
+public enum CoralTargets {
   // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls
   // were extended beyond the coral station
   // All angles from the center of the coral with 0° across the width of the field, counterclockwise
@@ -41,7 +41,7 @@ public enum AutoAimTargets {
   public final Pose2d location;
   public final boolean leftHanded;
 
-  private AutoAimTargets(Pose2d location, boolean leftHanded) {
+  private CoralTargets(Pose2d location, boolean leftHanded) {
     this.location = location;
     this.leftHanded = leftHanded;
   }
@@ -49,8 +49,8 @@ public enum AutoAimTargets {
   private static final List<Pose2d> transformedPoses =
       Arrays.stream(values())
           .map(
-              (AutoAimTargets targets) -> {
-                return AutoAimTargets.getRobotTargetLocation(targets.location);
+              (CoralTargets targets) -> {
+                return CoralTargets.getRobotTargetLocation(targets.location);
               })
           .toList();
 
@@ -74,8 +74,8 @@ public enum AutoAimTargets {
         Arrays.stream(values())
             .filter((target) -> target.leftHanded == leftHandeed)
             .map(
-                (AutoAimTargets targets) -> {
-                  return AutoAimTargets.getRobotTargetLocation(targets.location);
+                (CoralTargets targets) -> {
+                  return CoralTargets.getRobotTargetLocation(targets.location);
                 })
             .toList());
   }

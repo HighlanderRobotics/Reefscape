@@ -198,6 +198,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.IDLE)
         .and(() -> !elevator.hasZeroed || !wrist.hasZeroed)
+        .and(() -> Robot.ROBOT_TYPE != RobotType.SIM)
         .onTrue(this.forceState(SuperState.HOME));
 
     // We might want to make this work when we have a piece as well?
