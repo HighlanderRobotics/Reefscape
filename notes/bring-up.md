@@ -10,6 +10,7 @@
 
 ## Mechanism Bring Up
 
+- [ ] Calibrate swerve offsets
 - [ ] Calibrate shoulder cancoder
 - [ ] Verify elevator, shoulder, wrist position sensing
 - [ ] Tune wrist PIDF
@@ -37,6 +38,7 @@
 - [ ] Tune algae removal extensions
 - [ ] Tune algae stack intake
 - [ ] Tune algae net extension
+- [ ] Finely tune swerve
 - [ ] Tune auto align controllers
 - [ ] Validate auto align positions
 - [ ] Validate algae auto align positions
