@@ -36,7 +36,7 @@ public enum AlgaeIntakeTargets {
       Arrays.stream(values())
           .map(
               (AlgaeIntakeTargets targets) -> {
-                return CoralTargets.getRobotTargetLocation(targets.location);
+                return AlgaeIntakeTargets.getRobotTargetLocation(targets.location);
               })
           .toList();
 
