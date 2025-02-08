@@ -32,8 +32,8 @@
 
 ## Loom Testing
 
-- [ ] Validate reef scoring
 - [ ] Tune reef scoring extensions
+- [ ] Validate reef scoring
 - [ ] Tune algae removal extensions
 - [ ] Tune algae stack intake
 - [ ] Tune algae net extension
