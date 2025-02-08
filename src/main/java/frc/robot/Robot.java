@@ -469,8 +469,7 @@ public class Robot extends LoggedRobot {
                     () ->
                         CoralTargets.getHandedClosestTarget(
                             swerve.getPose(), driver.leftBumper().getAsBoolean())),
-                Commands.waitUntil(
-                        () -> AutoAim.isInToleranceCoral(swerve.getPose()))
+                Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
         .rightBumper()
@@ -483,8 +482,7 @@ public class Robot extends LoggedRobot {
             Commands.parallel(
                 AutoAim.translateToPose(
                     swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
-                Commands.waitUntil(
-                        () -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
+                Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
