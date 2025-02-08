@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class ShoulderSubsystem extends SubsystemBase {
   // TODO: UPDATE WITH CAD
@@ -35,6 +36,8 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   private Rotation2d setpoint = Rotation2d.kZero;
 
+  private LoggedNetworkBoolean dashboardZero = new LoggedNetworkBoolean("Zero Shoulder");
+
   public ShoulderSubsystem(final ShoulderIO io) {
     this.io = io;
   }
@@ -43,6 +46,15 @@ public class ShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Carriage/Shoulder", inputs);
+    if (dashboardZero.get()) {
+      rezero();
+      dashboardZero.set(false);
+    }
+  }
+
+  public void rezero() {
+    io.resetEncoder(
+        inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCW_90deg));
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {

@@ -8,7 +8,6 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -94,7 +93,8 @@ public class ShoulderIOReal implements ShoulderIO {
         appliedVoltage);
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
-    inputs.cancoderPosition = Rotation2d.fromRotations(cancoderPositionRotations.getValueAsDouble());
+    inputs.cancoderPosition =
+        Rotation2d.fromRotations(cancoderPositionRotations.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
