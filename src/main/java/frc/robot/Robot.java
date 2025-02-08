@@ -461,13 +461,7 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(
-            () ->
-                superstructure.getState() == SuperState.READY_CORAL
-                    || superstructure.getState() == SuperState.PRE_L1
-                    || superstructure.getState() == SuperState.PRE_L2
-                    || superstructure.getState() == SuperState.PRE_L3
-                    || superstructure.getState() == SuperState.PRE_L4)
+        .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
@@ -526,12 +520,12 @@ public class Robot extends LoggedRobot {
                             ? AutoAim.BLUE_NET_X
                             : AutoAim.RED_NET_X,
                     () ->
+                        modifyJoystick(driver.getLeftX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                    () ->
                         DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
                             ? Rotation2d.fromDegrees(0)
-                            : Rotation2d.fromDegrees(180),
-                    () ->
-                        modifyJoystick(driver.getLeftX())
-                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed()),
+                            : Rotation2d.fromDegrees(180)),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
@@ -599,6 +593,7 @@ public class Robot extends LoggedRobot {
                   currentTarget = ReefTarget.L4;
                   algaeIntakeTarget = AlgaeIntakeTarget.STACK;
                 }));
+
     operator.leftTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
 
     operator

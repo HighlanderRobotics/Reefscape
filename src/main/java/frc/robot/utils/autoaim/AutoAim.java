@@ -93,9 +93,9 @@ public class AutoAim {
 
   public static Command translateToXCoord(
       SwerveSubsystem swerve,
-      DoubleSupplier xTargetS,
-      Supplier<Rotation2d> headingTarget,
-      DoubleSupplier yTargetV) {
+      DoubleSupplier x,
+      DoubleSupplier yVel,
+      Supplier<Rotation2d> headingTarget) {
     // This feels like a horrible way of getting around lambda final requirements
     // Is there a cleaner way of doing this?
     // The y of this isn't used
@@ -116,7 +116,7 @@ public class AutoAim {
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.runOnce(
             () -> {
-              cachedTarget[0] = new Pose2d(xTargetS.getAsDouble(), 0, headingTarget.get());
+              cachedTarget[0] = new Pose2d(x.getAsDouble(), 0, headingTarget.get());
               Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
               headingController.reset(swerve.getPose().getRotation().getRadians(), 0.0);
               vxController.reset(swerve.getPose().getX(), 0.0);
@@ -135,7 +135,7 @@ public class AutoAim {
                                       swerve.getPose().getX(), cachedTarget[0].getX())
                                   + vxController.getSetpoint().velocity,
                               // Use the inputted y velocity target
-                              yTargetV.getAsDouble(),
+                              yVel.getAsDouble(),
                               headingController.calculate(
                                       swerve.getPose().getRotation().getRadians(),
                                       cachedTarget[0].getRotation().getRadians())
