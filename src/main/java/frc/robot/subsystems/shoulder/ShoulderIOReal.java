@@ -29,6 +29,7 @@ public class ShoulderIOReal implements ShoulderIO {
   private final StatusSignal<Current> statorCurrentAmps;
   private final StatusSignal<Voltage> appliedVoltage;
   private final StatusSignal<Angle> motorPositionRotations;
+  private final StatusSignal<Angle> cancoderPositionRotations;
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
   private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
@@ -43,6 +44,7 @@ public class ShoulderIOReal implements ShoulderIO {
     statorCurrentAmps = motor.getStatorCurrent();
     motorPositionRotations = motor.getPosition();
     appliedVoltage = motor.getMotorVoltage();
+    cancoderPositionRotations = cancoder.getAbsolutePosition();
 
     final TalonFXConfiguration config = new TalonFXConfiguration();
 
@@ -58,17 +60,12 @@ public class ShoulderIOReal implements ShoulderIO {
     config.MotionMagic.MotionMagicCruiseVelocity = 2.0;
     config.MotionMagic.MotionMagicAcceleration = 10.0;
 
+    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+
     final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
     cancoderConfig.MagnetSensor.MagnetOffset = 0.0;
     cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
-
-    config.Feedback.FeedbackRemoteSensorID = ShoulderSubsystem.CANCODER_ID;
-    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-    config.Feedback.FeedbackRotorOffset = 0.0;
-    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
-    config.Feedback.RotorToSensorRatio =
-        ShoulderSubsystem.SHOULDER_GEAR_RATIO / ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
 
     cancoder.getConfigurator().apply(cancoderConfig);
     motor.getConfigurator().apply(config);
@@ -93,9 +90,11 @@ public class ShoulderIOReal implements ShoulderIO {
         supplyCurrentAmps,
         statorCurrentAmps,
         motorPositionRotations,
+        cancoderPositionRotations,
         appliedVoltage);
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
+    inputs.cancoderPosition = Rotation2d.fromRotations(cancoderPositionRotations.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
