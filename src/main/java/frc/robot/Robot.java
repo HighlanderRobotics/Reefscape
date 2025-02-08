@@ -316,7 +316,7 @@ public class Robot extends LoggedRobot {
           () -> currentTarget,
           () -> algaeIntakeTarget,
           () -> algaeScoreTarget,
-          driver.rightTrigger().negate().or(() -> AutoAim.isInTolerance(swerve.getPose())),
+          driver.rightTrigger().negate().or(() -> AutoAim.isInToleranceCoral(swerve.getPose())),
           driver.rightTrigger(),
           driver.leftTrigger(),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),

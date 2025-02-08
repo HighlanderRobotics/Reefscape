@@ -151,8 +151,16 @@ public class AutoAim {
                 }));
   }
 
-  public static boolean isInTolerance(Pose2d pose) {
+  public static boolean isInToleranceCoral(Pose2d pose) {
     final var diff = pose.minus(CoralTargets.getClosestTarget(pose));
+    return MathUtil.isNear(
+            0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
+        && MathUtil.isNear(
+            0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
+  }
+
+  public static boolean isInToleranceAlgae(Pose2d pose) {
+    final var diff = pose.minus(AlgaeIntakeTargets.getClosestTarget(pose));
     return MathUtil.isNear(
             0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
         && MathUtil.isNear(
