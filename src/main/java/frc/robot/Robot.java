@@ -470,15 +470,7 @@ public class Robot extends LoggedRobot {
                         CoralTargets.getHandedClosestTarget(
                             swerve.getPose(), driver.leftBumper().getAsBoolean())),
                 Commands.waitUntil(
-                        () -> {
-                          final var diff =
-                              swerve
-                                  .getPose()
-                                  .minus(CoralTargets.getClosestTarget(swerve.getPose()));
-                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
-                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-                        })
+                        () -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
         .rightBumper()
@@ -492,15 +484,7 @@ public class Robot extends LoggedRobot {
                 AutoAim.translateToPose(
                     swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
                 Commands.waitUntil(
-                        () -> {
-                          final var diff =
-                              swerve
-                                  .getPose()
-                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
-                          return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
-                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
-                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
-                        })
+                        () -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
