@@ -1,8 +1,11 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -578,5 +581,79 @@ public class Superstructure {
           this.prevState = this.state;
           this.state = nextState;
         });
+  }
+
+  public boolean checkCollisions(
+      double elevatorExtension, Rotation2d shoulderAngle, Rotation2d wristAngle) {
+    // Check if arm collides with hp, cross bar, bumper
+    final var armRect =
+        new Rectangle2d(
+            new Pose2d( // arm
+                new Translation2d(
+                    ShoulderSubsystem.X_OFFSET_METERS,
+                    ShoulderSubsystem.Z_OFFSET_METERS + elevatorExtension),
+                new Rotation2d(-Units.degreesToRadians(2.794042) - shoulderAngle.getRadians())),
+            Units.inchesToMeters(2.787574),
+            Units.inchesToMeters(13.5 + 1.393787 + 1.393787));
+    // Check if back of manip collides w ..
+    final var manipRect =
+        new Rectangle2d(
+            new Pose2d( // Manipulator
+                new Translation2d(
+                        ShoulderSubsystem.X_OFFSET_METERS
+                            + shoulderAngle.getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                        elevatorExtension
+                            + ShoulderSubsystem.Z_OFFSET_METERS
+                            + shoulderAngle.getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                    .plus(new Translation2d(Units.inchesToMeters(8.0), 0.0).rotateBy(wristAngle)),
+                new Rotation2d(wristAngle.getRadians())),
+            Units.inchesToMeters(8.0),
+            Units.inchesToMeters(1.5));
+    // Check if centering of manip collides w ..
+    final var centeringRect =
+        new Rectangle2d(
+            new Pose2d( // Manipulator
+                new Translation2d(
+                        ShoulderSubsystem.X_OFFSET_METERS
+                            + shoulderAngle.getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                        elevatorExtension
+                            + ShoulderSubsystem.Z_OFFSET_METERS
+                            + shoulderAngle.getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                    .plus(new Translation2d(Units.inchesToMeters(1.0), 0.0).rotateBy(wristAngle)),
+                new Rotation2d(wristAngle.getRadians())),
+            Units.inchesToMeters(3.0),
+            Units.inchesToMeters(1.0));
+    // Check if tusk collides w ..
+    final var tuskRect =
+        new Rectangle2d(
+            new Pose2d( // Manipulator
+                new Translation2d(
+                        ShoulderSubsystem.X_OFFSET_METERS
+                            + shoulderAngle.getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                        elevatorExtension
+                            + ShoulderSubsystem.Z_OFFSET_METERS
+                            + shoulderAngle.getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                    .plus(
+                        new Translation2d(Units.inchesToMeters(15.0), Units.inchesToMeters(-3.5))
+                            .rotateBy(wristAngle)),
+                new Rotation2d(wristAngle.getRadians())),
+            Units.inchesToMeters(3.0),
+            Units.inchesToMeters(3.0));
+    return checkCollision(armRect)
+        && checkCollision(manipRect)
+        && checkCollision(centeringRect)
+        && checkCollision(tuskRect);
+  }
+
+  /** Checks if a rectangle is colliding with the funnel, crossbar, or bumpers */
+  private boolean checkCollision(Rectangle2d rect) {
+    return // Hp
+    rect.contains(new Translation2d(Units.inchesToMeters(2.173), Units.inchesToMeters(23.368176)))
+        // Crossbar
+        && rect.contains(
+            new Translation2d(Units.inchesToMeters(3.000), Units.inchesToMeters(43.557883)))
+        // Bumpers
+        && rect.contains(
+            new Translation2d(Units.inchesToMeters(14.850000), Units.inchesToMeters(5.698368)));
   }
 }
