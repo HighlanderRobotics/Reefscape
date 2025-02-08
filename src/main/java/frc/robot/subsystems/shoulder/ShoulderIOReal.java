@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.shoulder;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -19,7 +19,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
-public class ShoulderIOReal implements ArmIO {
+public class ShoulderIOReal implements ShoulderIO {
   private final TalonFX motor;
   private final CANcoder cancoder;
 
@@ -86,7 +86,7 @@ public class ShoulderIOReal implements ArmIO {
   }
 
   @Override
-  public void updateInputs(ArmIOInputs inputs) {
+  public void updateInputs(ShoulderIOInputs inputs) {
     BaseStatusSignal.refreshAll(
         angularVelocityRPS,
         temp,

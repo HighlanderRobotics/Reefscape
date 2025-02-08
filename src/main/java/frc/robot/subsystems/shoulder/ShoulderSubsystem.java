@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.shoulder;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -30,12 +30,12 @@ public class ShoulderSubsystem extends SubsystemBase {
   // TODO: SET TO CORRECT POS
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(0.0);
 
-  private final ArmIO io;
-  private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+  private final ShoulderIO io;
+  private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
 
   private Rotation2d setpoint = Rotation2d.kZero;
 
-  public ShoulderSubsystem(final ArmIO io) {
+  public ShoulderSubsystem(final ShoulderIO io) {
     this.io = io;
   }
 
@@ -70,7 +70,7 @@ public class ShoulderSubsystem extends SubsystemBase {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
   }
 
-  public ArmIOInputsAutoLogged getInputs() {
+  public ShoulderIOInputsAutoLogged getInputs() {
     return inputs;
   }
 }

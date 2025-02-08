@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.wrist;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -19,7 +19,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
-public class ArmIOReal implements ArmIO {
+public class WristIOReal implements WristIO {
   private final TalonFX motor;
 
   private final StatusSignal<AngularVelocity> angularVelocityRPS;
@@ -32,7 +32,7 @@ public class ArmIOReal implements ArmIO {
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
   private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
 
-  public ArmIOReal(final int motorId, final TalonFXConfiguration config) {
+  public WristIOReal(final int motorId, final TalonFXConfiguration config) {
     motor = new TalonFX(motorId, "*");
 
     angularVelocityRPS = motor.getVelocity();

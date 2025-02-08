@@ -41,7 +41,6 @@ import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperState;
-import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
@@ -52,10 +51,14 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.roller.RollerIOSim;
 import frc.robot.subsystems.servo.ServoIOReal;
+import frc.robot.subsystems.shoulder.ShoulderIOReal;
+import frc.robot.subsystems.shoulder.ShoulderIOSim;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOReal;
 import frc.robot.subsystems.vision.VisionIOSim;
+import frc.robot.subsystems.wrist.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
@@ -266,9 +269,9 @@ public class Robot extends LoggedRobot {
   private final WristSubsystem wrist =
       new WristSubsystem(
           ROBOT_TYPE == RobotType.REAL
-              ? new ArmIOReal(
+              ? new WristIOReal(
                   12,
-                  ArmIOReal.getDefaultConfiguration()
+                  WristIOReal.getDefaultConfiguration()
                       .withSlot0(
                           new Slot0Configs()
                               .withGravityType(GravityTypeValue.Arm_Cosine)
@@ -320,7 +323,8 @@ public class Robot extends LoggedRobot {
               .y()
               .debounce(0.5)
               .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
-          driver.a());
+          driver.a(),
+          driver.start());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default

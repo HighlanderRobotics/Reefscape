@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.shoulder;
 
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -12,7 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-public class ShoulderIOSim implements ArmIO {
+public class ShoulderIOSim implements ShoulderIO {
   // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
@@ -32,7 +32,7 @@ public class ShoulderIOSim implements ArmIO {
   private double appliedVoltage = 0.0;
 
   @Override
-  public void updateInputs(final ArmIOInputs inputs) {
+  public void updateInputs(final ShoulderIOInputs inputs) {
     if (DriverStation.isDisabled()) armSim.setInput(0);
     armSim.update(0.02);
 
