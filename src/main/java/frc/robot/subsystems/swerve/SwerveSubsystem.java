@@ -325,6 +325,11 @@ public class SwerveSubsystem extends SubsystemBase {
       i++;
     }
     Logger.recordOutput("Vision/Camera Poses", cameraPoses);
+    Pose3d[] arr = new Pose3d[cameras.length];
+    for (int k = 0; k < cameras.length; k++) {
+      arr[k] = getPose3d().transformBy(cameras[k].inputs.constants.robotToCamera());
+    }
+    Logger.recordOutput("Vision/Camera Poses on Robot", arr);
   }
 
   /**
