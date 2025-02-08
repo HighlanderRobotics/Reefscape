@@ -13,10 +13,10 @@ import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
-import frc.robot.subsystems.arm.ShoulderSubsystem;
-import frc.robot.subsystems.arm.WristSubsystem;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -207,7 +207,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(elevator.runCurrentZeroing())
         .whileTrue(wrist.currentZero(() -> shoulder.getInputs()))
-        .and(() -> elevator.hasZeroed && wrist.hasZeroed)
+        .and(() -> (elevator.hasZeroed && wrist.hasZeroed) || Robot.ROBOT_TYPE == RobotType.SIM)
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic

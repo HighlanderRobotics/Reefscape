@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.shoulder;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
 public class ShoulderSubsystem extends SubsystemBase {
   // TODO: UPDATE WITH CAD
@@ -30,12 +31,14 @@ public class ShoulderSubsystem extends SubsystemBase {
   // TODO: SET TO CORRECT POS
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(0.0);
 
-  private final ArmIO io;
-  private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
+  private final ShoulderIO io;
+  private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
 
   private Rotation2d setpoint = Rotation2d.kZero;
 
-  public ShoulderSubsystem(final ArmIO io) {
+  private LoggedNetworkBoolean dashboardZero = new LoggedNetworkBoolean("Zero Shoulder");
+
+  public ShoulderSubsystem(final ShoulderIO io) {
     this.io = io;
   }
 
@@ -43,6 +46,15 @@ public class ShoulderSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Carriage/Shoulder", inputs);
+    if (dashboardZero.get()) {
+      rezero();
+      dashboardZero.set(false);
+    }
+  }
+
+  public void rezero() {
+    io.resetEncoder(
+        inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCW_90deg));
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
@@ -70,7 +82,7 @@ public class ShoulderSubsystem extends SubsystemBase {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
   }
 
-  public ArmIOInputsAutoLogged getInputs() {
+  public ShoulderIOInputsAutoLogged getInputs() {
     return inputs;
   }
 }

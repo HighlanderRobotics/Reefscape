@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.wrist;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
@@ -6,6 +6,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.shoulder.ShoulderIOInputsAutoLogged;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -28,7 +29,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(75);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(-45.0);
 
-  private final ArmIO io;
+  private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
   private Rotation2d setpoint = Rotation2d.kZero;
@@ -37,7 +38,7 @@ public class WristSubsystem extends SubsystemBase {
 
   public boolean hasZeroed = false;
 
-  public WristSubsystem(ArmIO io) {
+  public WristSubsystem(WristIO io) {
     this.io = io;
   }
 
@@ -72,7 +73,7 @@ public class WristSubsystem extends SubsystemBase {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 2.0);
   }
 
-  public Command currentZero(Supplier<ArmIOInputsAutoLogged> shoulderInputs) {
+  public Command currentZero(Supplier<ShoulderIOInputsAutoLogged> shoulderInputs) {
     return Commands.sequence(
         this.runOnce(() -> currentFilter.reset()),
         this.run(() -> io.setMotorVoltage(-1.0))
