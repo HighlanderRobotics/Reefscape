@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.wrist;
 
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -12,7 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-public class WristIOSim implements ArmIO {
+public class WristIOSim implements WristIO {
   // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(

@@ -13,10 +13,10 @@ import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
-import frc.robot.subsystems.arm.ShoulderSubsystem;
-import frc.robot.subsystems.arm.WristSubsystem;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
@@ -76,6 +76,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Anti Jam Request")
   private final Trigger antiJamReq;
 
+  @AutoLogOutput(key = "Superstructure/Home Request")
+  private final Trigger homeReq;
+
   private SuperState state = SuperState.IDLE;
   private SuperState prevState = SuperState.IDLE;
   private Map<SuperState, Trigger> stateTriggers = new HashMap<SuperState, Trigger>();
@@ -108,7 +111,8 @@ public class Superstructure {
       Trigger climbReq,
       Trigger climbConfReq,
       Trigger climbCancelReq,
-      Trigger antiJamReq) {
+      Trigger antiJamReq,
+      Trigger homeReq) {
     this.elevator = elevator;
     this.manipulator = manipulator;
     this.shoulder = shoulder;
@@ -133,6 +137,8 @@ public class Superstructure {
     this.climbCancelReq = climbCancelReq;
 
     this.antiJamReq = antiJamReq;
+
+    this.homeReq = homeReq;
 
     stateTimer.start();
 
@@ -195,11 +201,14 @@ public class Superstructure {
         .and(() -> Robot.ROBOT_TYPE != RobotType.SIM)
         .onTrue(this.forceState(SuperState.HOME));
 
+    // We might want to make this work when we have a piece as well?
+    stateTriggers.get(SuperState.IDLE).and(homeReq).onTrue(this.forceState(SuperState.HOME));
+
     stateTriggers
         .get(SuperState.HOME)
         .whileTrue(elevator.runCurrentZeroing())
         .whileTrue(wrist.currentZero(() -> shoulder.getInputs()))
-        .and(() -> elevator.hasZeroed && wrist.hasZeroed)
+        .and(() -> (elevator.hasZeroed && wrist.hasZeroed) || Robot.ROBOT_TYPE == RobotType.SIM)
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
