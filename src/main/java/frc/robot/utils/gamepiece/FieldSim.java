@@ -142,6 +142,7 @@ public class FieldSim implements StructSerializable, ProtobufSerializable {
       Logger.recordOutput("FieldSim/Drop Status", "Cannot Drop");
       return;
     }
+    System.out.println("JGEIOHJOJGIOGJEIOGJ");
 
     if (gamePieces.get(heldPiece).getType().equals(GamePiece.Piece.ALGAE)) {
       manipulator.setHasAlgae(false);

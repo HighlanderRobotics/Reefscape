@@ -489,14 +489,14 @@ public class Superstructure {
                   }
                 }))
         .and(() -> stateTimer.hasElapsed(1))
-        .onTrue(Commands.runOnce(() -> Logger.recordOutput("FieldSim/Spit", "Algae")))
+        .onTrue(Commands.print("gaper bingzoid"))
         .onTrue(
             Commands.runOnce(
                 () ->
                     FieldSim.drop(
                         manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)))
         .and(() -> !manipulator.hasAlgae())
-        .onFalse(forceState(SuperState.IDLE));
+        .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.PRE_CLIMB)
