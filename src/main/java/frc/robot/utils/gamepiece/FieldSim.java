@@ -8,20 +8,27 @@ import edu.wpi.first.util.struct.StructSerializable;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.utils.gamepiece.GamePiece.Piece;
 import java.util.ArrayList;
-import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 
 public class FieldSim implements StructSerializable, ProtobufSerializable {
 
   private static ArrayList<GamePiece> gamePieces = new ArrayList<GamePiece>();
-  private static GamePiece heldGamePiece = null;
+  private static int heldPiece = -1;
 
   // example pieces
 
   static {
-    gamePieces.add(new GamePiece(new Pose3d(3, 3, 0, new Rotation3d()), GamePiece.Piece.CORAL));
-    gamePieces.add(new GamePiece(new Pose3d(4, 4, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
-    Logger.recordOutput("FieldSim/Held Piece", heldGamePiece);
+    gamePieces.add(new GamePiece(new Pose3d(3, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+
+    gamePieces.add(new GamePiece(new Pose3d(4, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+
+    gamePieces.add(new GamePiece(new Pose3d(5, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+
+    gamePieces.add(new GamePiece(new Pose3d(6, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+
+    gamePieces.add(new GamePiece(new Pose3d(7, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+    gamePieces.add(new GamePiece(new Pose3d(4, 4, 3, new Rotation3d()), GamePiece.Piece.CORAL));
+    Logger.recordOutput("FieldSim/Held Piece", heldPiece);
   }
 
   public static void addGamePiece(GamePiece gamePiece) {
@@ -35,6 +42,11 @@ public class FieldSim implements StructSerializable, ProtobufSerializable {
       Pose3d pose = gamePiece.getPose();
       Logger.recordOutput("FieldSim/GamePiece" + i + "/Pose", pose);
     }
+    Logger.recordOutput("FieldSim/HeldPiece", heldPiece);
+    if (heldPiece != -1) {
+      Logger.recordOutput("FieldSim/Held Piece", gamePieces.get(heldPiece).getPose());
+      Logger.recordOutput("FieldSim/Type", gamePieces.get(heldPiece).getType());
+    }
   }
 
   public static void addGamePiece(Pose3d pose, GamePiece.Piece type) {
@@ -42,41 +54,53 @@ public class FieldSim implements StructSerializable, ProtobufSerializable {
     updateLogging();
   }
 
-  private static Optional<GamePiece> getClosestGamePiece(Pose3d pose) {
+  private static int getClosestGamePiece(Pose3d pose) {
     double closestDistance = Double.MAX_VALUE;
-    GamePiece closestGamePiece = null;
+    int closestGamePiece = -1;
 
-    for (GamePiece gamePiece : gamePieces) {
-      if (gamePiece.getPose() == null) {
+    for (int i = 0; i < gamePieces.size(); i++) {
+      for (GamePiece piece : gamePieces) {
+        System.out.println(piece);
+      }
+      if (gamePieces.get(i).getPose() == null || gamePieces.get(i).getType() == Piece.NONE) {
+        System.out.println("Game Piece is null");
         continue;
       }
-      double distance = pose.getTranslation().getDistance(gamePiece.getPose().getTranslation());
+
+      double distance =
+          pose.getTranslation().getDistance(gamePieces.get(i).getPose().getTranslation());
+      System.out.println(distance + " /  " + closestDistance + " / " + i);
       if (distance < closestDistance) {
         closestDistance = distance;
-        closestGamePiece = gamePiece;
+        closestGamePiece = i;
       }
     }
 
-    return Optional.ofNullable(closestGamePiece);
+    return closestGamePiece;
   }
 
   private static boolean inRange(Pose3d pose) {
-    GamePiece closestGamePiece = getClosestGamePiece(pose).orElse(null);
-    if (closestGamePiece != null) {
+    int closestGamePiece = getClosestGamePiece(pose);
+    if (closestGamePiece != -1) {
       Logger.recordOutput("FieldSim/Manipulator", pose);
       Logger.recordOutput("FieldSim/isNull", false);
-      Logger.recordOutput("FieldSim/closestGamePiece", closestGamePiece.getPose());
-      return MathUtil.isNear(closestGamePiece.getPose().getX(), pose.getX(), 0.5)
-          && MathUtil.isNear(closestGamePiece.getPose().getY(), pose.getY(), 0.5)
-          && MathUtil.isNear(closestGamePiece.getPose().getZ(), pose.getZ(), 0.5);
+      Logger.recordOutput("FieldSim/closestGamePiece", gamePieces.get(closestGamePiece).getPose());
+      boolean inRange =
+          MathUtil.isNear(gamePieces.get(closestGamePiece).getPose().getX(), pose.getX(), 0.5)
+              && MathUtil.isNear(
+                  gamePieces.get(closestGamePiece).getPose().getY(), pose.getY(), 0.5)
+              && MathUtil.isNear(
+                  gamePieces.get(closestGamePiece).getPose().getZ(), pose.getZ(), 0.5);
+      Logger.recordOutput("FieldSim/In Range", inRange);
+      return inRange;
     } else {
       Logger.recordOutput("FieldSim/isNull", true);
       return false;
     }
   }
 
-  public static GamePiece getHeldGamePiece() {
-    return heldGamePiece;
+  public static int getHeldPiece() {
+    return heldPiece;
   }
 
   public static ArrayList<GamePiece> getGamePieces() {
@@ -85,43 +109,51 @@ public class FieldSim implements StructSerializable, ProtobufSerializable {
 
   public static void pickup(Pose3d pose, ManipulatorSubsystem manipulator) {
     Logger.recordOutput("FieldSim/Pickup", "Pickup");
-    getClosestGamePiece(pose)
-        .ifPresent(
-            gamePiece -> {
-              if (inRange(pose)) {
-                heldGamePiece = gamePiece;
-                gamePiece.pickup();
+    int gamePiece = getClosestGamePiece(pose);
 
-                if (gamePiece.getType().equals(GamePiece.Piece.ALGAE)) {
-                  manipulator.setHasAlgae(true);
+    System.out.println(gamePiece + " game piece");
+    if (inRange(pose)) {
 
-                } else {
-                  manipulator.setFirstBeambreak(true);
-                  manipulator.setSecondBeambreak(true);
-                }
-                updateLogging();
-              } else {
-                Logger.recordOutput("FieldSim/Pickup", "Not in range");
-                Logger.recordOutput("FieldSim/range", inRange(pose));
-              }
-            });
+      Logger.recordOutput("FieldSim/Type", gamePieces.get(gamePiece).getType());
+      updateLogging();
+      if (gamePieces.get(gamePiece).getType().equals(GamePiece.Piece.ALGAE)) {
+        Logger.recordOutput("FieldSim/Pickup", "Pickup algae");
+
+        manipulator.setHasAlgae(true);
+
+      } else {
+        Logger.recordOutput("FieldSim/Pickup", "Pickup coral");
+        manipulator.setFirstBeambreak(true);
+        manipulator.setSecondBeambreak(true);
+      }
+    } else {
+      Logger.recordOutput("FieldSim/Pickup", "Not in range");
+      Logger.recordOutput("FieldSim/range", inRange(pose));
+    }
+    gamePieces.get(gamePiece).pickup();
+    heldPiece = gamePiece;
+
+    updateLogging();
   }
 
   public static void drop(Pose3d pose, ManipulatorSubsystem manipulator) {
-
-    if (heldGamePiece == null) {
+    Logger.recordOutput("FieldSim/Type", gamePieces.get(heldPiece).getType());
+    if (heldPiece == -1) {
+      Logger.recordOutput("FieldSim/Drop Status", "Cannot Drop");
       return;
     }
-    heldGamePiece.drop(pose);
-    if (heldGamePiece.getType().equals(GamePiece.Piece.ALGAE)) {
+
+    if (gamePieces.get(heldPiece).getType().equals(GamePiece.Piece.ALGAE)) {
       manipulator.setHasAlgae(false);
 
     } else {
       manipulator.setFirstBeambreak(false);
       manipulator.setSecondBeambreak(false);
     }
-    heldGamePiece = new GamePiece(pose, Piece.NONE);
+
+    gamePieces.get(heldPiece).drop(pose);
     updateLogging();
+    heldPiece = -1;
     ;
   }
 }
