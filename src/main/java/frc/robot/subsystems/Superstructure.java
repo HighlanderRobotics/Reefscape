@@ -157,7 +157,11 @@ public class Superstructure {
   /** This file is not a subsystem, so this MUST be called manually. */
   public void periodic() {
     Logger.recordOutput("Superstructure/Superstructure State", state);
-    Logger.recordOutput("Collision Statics", getStaticColliders(elevator.getExtensionMeters()));
+    if (Robot.isSimulation()) {
+      Logger.recordOutput("Superstructure/Check Collisions", checkCollisions());
+      Logger.recordOutput(
+          "Superstructure/Collision Statics", getStaticColliders(elevator.getExtensionMeters()));
+    }
   }
 
   private void configureStateTransitionCommands() {
@@ -586,12 +590,11 @@ public class Superstructure {
         });
   }
 
-  @AutoLogOutput(key = "Superstructure/Check Collisions")
   public boolean checkCollisions() {
     return checkCollisions(elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
   }
 
-  public boolean checkCollisions(
+  public static boolean checkCollisions(
       double elevatorExtension, Rotation2d shoulderAngle, Rotation2d wristAngle) {
     // Check if arm collides with hp, cross bar, bumper
     final var armRect =
@@ -673,7 +676,7 @@ public class Superstructure {
     };
   }
 
-  private Translation2d[] getStaticColliders(double elevatorExtension) {
+  private static Translation2d[] getStaticColliders(double elevatorExtension) {
     return new Translation2d[] {
       // funnel
       new Translation2d(Units.inchesToMeters(2.173), Units.inchesToMeters(23.368176)),
@@ -688,7 +691,7 @@ public class Superstructure {
   }
 
   /** Checks if a rectangle is colliding with the funnel, crossbar, or bumpers */
-  private boolean checkCollision(Rectangle2d rect, double elevatorExtension) {
+  private static boolean checkCollision(Rectangle2d rect, double elevatorExtension) {
     return Stream.of(getStaticColliders(elevatorExtension))
         .anyMatch((c) -> rect.getDistance(c) <= Units.inchesToMeters(0.0));
   }
