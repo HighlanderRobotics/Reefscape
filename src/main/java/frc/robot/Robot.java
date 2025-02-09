@@ -566,6 +566,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 R Outside", autos.ROtoE());
     autoChooser.addOption("4.5 L Inside", autos.LItoK());
     autoChooser.addOption("4.5 R Inside", autos.RItoD());
+    autoChooser.addOption("Push Auto", autos.PMtoPL());
   }
 
   /** Scales a joystick value for teleop driving */

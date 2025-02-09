@@ -15,7 +15,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.ManipulatorSubsystem;
-import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
 import java.util.HashMap;
@@ -30,8 +29,7 @@ public class Autos {
   public static boolean autoPreScore = false;
   public static boolean autoScore = false; // TODO perhaps this should not be static
 
-  public Autos(
-      SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
+  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
     this.swerve = swerve;
     this.manipulator = manipulator;
     factory =
@@ -103,9 +101,10 @@ public class Autos {
         .observe(steps.get(startPos + "to" + endPos).done())
         .onTrue(
             Commands.sequence(
-                endPos.startsWith("P")
+                endPos.length() == 3
                     ? intakeInAuto(steps.get(startPos + "to" + endPos).getFinalPose())
-                    : scoreInAuto(),
+                    : Commands.sequence(
+                        endPos.length() == 1 ? scoreInAuto() : Commands.print("pushed bot")),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -225,6 +224,37 @@ public class Autos {
     }
     // final path
     routine.observe(steps.get("PRItoA").done()).onTrue(scoreInAuto());
+    return routine.cmd();
+  }
+
+  public Command PMtoPL() {
+    final var routine = factory.newRoutine("PM to PL");
+    bindElevatorExtension(routine);
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "PM", "PL", "PM", "PR", "I", "PLO", "K", "PLO", "L" // each stop we are going to, in order
+    };
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(
+            Commands.sequence(steps.get("PMtoPL").resetOdometry(), steps.get("PMtoPL").cmd()));
+    // run middle paths
+    // and puts that name + corresponding traj to the map
+    for (int i = 0; i < stops.length - 2; i++) {
+      String startPos = stops[i];
+      String endPos = stops[i + 1];
+      String nextPos = stops[i + 2];
+      runPath(routine, startPos, endPos, nextPos, steps);
+    }
+    // final path
+    routine.observe(steps.get("PLOtoL").done()).onTrue(scoreInAuto());
     return routine.cmd();
   }
 
