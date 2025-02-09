@@ -61,6 +61,8 @@ import frc.robot.subsystems.vision.VisionIOReal;
 import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.subsystems.wrist.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
+import frc.robot.utils.LoggedTunableBoolean;
+import frc.robot.utils.LoggedTunableNumber;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
@@ -334,6 +336,16 @@ public class Robot extends LoggedRobot {
   // Main benefit to that is reducing startup time, which idt we care about too much
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
 
+  public static final boolean TUNING_MODE = true;
+  private final LoggedTunableNumber elevatorManualTarget =
+      new LoggedTunableNumber("Manual Target/Elevator", 0.0);
+  private final LoggedTunableNumber shoulderManualTarget =
+      new LoggedTunableNumber("Manual Target/Shoulder", 0.0);
+  private final LoggedTunableNumber wristManualTarget =
+      new LoggedTunableNumber("Manual Target/Wrist", 0.0);
+  private final LoggedTunableBoolean manualTarget =
+      new LoggedTunableBoolean("Manual Target/Enable", false);
+
   // Mechanisms
   private final LoggedMechanism2d elevatorMech2d =
       new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -582,6 +594,16 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
+    new Trigger(() -> manualTarget.get())
+        // .and(() -> superstructure.getState() == SuperState.IDLE)
+        .onTrue(Commands.print("Manual Control"))
+        .whileTrue(
+            Commands.parallel(
+                Commands.print("Manual Control Activated"),
+                elevator.setExtension(elevatorManualTarget::get),
+                shoulder.setTargetAngle(() -> Rotation2d.fromDegrees(shoulderManualTarget.get())),
+                wrist.setTargetAngle(() -> Rotation2d.fromDegrees(wristManualTarget.get()))));
+
     // Log locations of all autoaim targets
     Logger.recordOutput(
         "AutoAim/Targets/Coral",
@@ -635,6 +657,7 @@ public class Robot extends LoggedRobot {
           "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
 
+    Logger.recordOutput("Manual Override", manualTarget.get());
     Logger.recordOutput("Targets/Reef Target", currentTarget);
     Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
     Logger.recordOutput("Targets/Algae Score Target", algaeScoreTarget);

@@ -1,8 +1,12 @@
 package frc.robot.subsystems;
 
+import com.google.common.collect.Streams;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -20,6 +24,7 @@ import frc.robot.subsystems.wrist.WristSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -152,6 +157,11 @@ public class Superstructure {
   /** This file is not a subsystem, so this MUST be called manually. */
   public void periodic() {
     Logger.recordOutput("Superstructure/Superstructure State", state);
+    if (Robot.isSimulation()) {
+      Logger.recordOutput("Superstructure/Check Collisions", checkCollisions());
+      Logger.recordOutput(
+          "Superstructure/Collision Statics", getStaticColliders(elevator.getExtensionMeters()));
+    }
   }
 
   private void configureStateTransitionCommands() {
@@ -579,5 +589,111 @@ public class Superstructure {
           this.prevState = this.state;
           this.state = nextState;
         });
+  }
+
+  public boolean checkCollisions() {
+    return checkCollisions(elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
+  }
+
+  public static boolean checkCollisions(
+      double elevatorExtension, Rotation2d shoulderAngle, Rotation2d wristAngle) {
+    // Check if arm collides with hp, cross bar, bumper
+    final var armRect =
+        new Rectangle2d(
+            new Pose2d( // arm
+                new Translation2d(
+                    ShoulderSubsystem.X_OFFSET_METERS
+                        + shoulderAngle.getCos() * ShoulderSubsystem.ARM_LENGTH_METERS / 2.0,
+                    ShoulderSubsystem.Z_OFFSET_METERS
+                        + elevatorExtension
+                        + shoulderAngle.getSin() * ShoulderSubsystem.ARM_LENGTH_METERS / 2.0),
+                new Rotation2d(
+                    (Math.PI / 2) + Units.degreesToRadians(2.794042) + shoulderAngle.getRadians())),
+            Units.inchesToMeters(2.787574),
+            ShoulderSubsystem.ARM_LENGTH_METERS);
+    // Check if back of manip collides w ..
+    final var manipRect =
+        new Rectangle2d(
+            new Pose2d( // Manipulator
+                new Translation2d(
+                        ShoulderSubsystem.X_OFFSET_METERS
+                            + shoulderAngle.getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                        elevatorExtension
+                            + ShoulderSubsystem.Z_OFFSET_METERS
+                            + shoulderAngle.getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                    .plus(
+                        new Translation2d(0.0, Units.inchesToMeters(8.0 / 2)).rotateBy(wristAngle)),
+                new Rotation2d(wristAngle.getRadians())),
+            Units.inchesToMeters(1.5),
+            Units.inchesToMeters(8.0));
+    // Check if centering of manip collides w ..
+    final var centeringRect =
+        new Rectangle2d(
+            manipRect.getCenter(), Units.inchesToMeters(3.0 * 2), Units.inchesToMeters(1.0));
+    // Check if tusk collides w ..
+    final var tuskRect =
+        new Rectangle2d(
+            new Pose2d( // Manipulator
+                new Translation2d(
+                        ShoulderSubsystem.X_OFFSET_METERS
+                            + shoulderAngle.getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                        elevatorExtension
+                            + ShoulderSubsystem.Z_OFFSET_METERS
+                            + shoulderAngle.getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                    .plus(
+                        new Translation2d(Units.inchesToMeters(15.0), Units.inchesToMeters(-3.5))
+                            .rotateBy(wristAngle)),
+                new Rotation2d(wristAngle.getRadians())),
+            Units.inchesToMeters(3.0),
+            Units.inchesToMeters(3.0));
+    Logger.recordOutput(
+        "Collision Boxes",
+        Streams.concat(
+                Stream.of(getPoints(armRect)),
+                Stream.of(getPoints(manipRect)),
+                Stream.of(getPoints(centeringRect)),
+                Stream.of(getPoints(tuskRect)))
+            .toArray(Translation2d[]::new));
+    return checkCollision(armRect, elevatorExtension)
+        || checkCollision(manipRect, elevatorExtension)
+        || checkCollision(centeringRect, elevatorExtension)
+        || checkCollision(tuskRect, elevatorExtension);
+  }
+
+  private static Translation2d[] getPoints(Rectangle2d rect) {
+    return new Translation2d[] {
+      new Translation2d(rect.getXWidth() / 2.0, rect.getYWidth() / 2.0)
+          .rotateBy(rect.getRotation())
+          .plus(rect.getCenter().getTranslation()),
+      new Translation2d(-rect.getXWidth() / 2.0, rect.getYWidth() / 2.0)
+          .rotateBy(rect.getRotation())
+          .plus(rect.getCenter().getTranslation()),
+      new Translation2d(rect.getXWidth() / 2.0, -rect.getYWidth() / 2.0)
+          .rotateBy(rect.getRotation())
+          .plus(rect.getCenter().getTranslation()),
+      new Translation2d(-rect.getXWidth() / 2.0, -rect.getYWidth() / 2.0)
+          .rotateBy(rect.getRotation())
+          .plus(rect.getCenter().getTranslation())
+    };
+  }
+
+  private static Translation2d[] getStaticColliders(double elevatorExtension) {
+    return new Translation2d[] {
+      // funnel
+      new Translation2d(Units.inchesToMeters(2.173), Units.inchesToMeters(23.368176)),
+      // crossbar
+      new Translation2d(Units.inchesToMeters(0.7), Units.inchesToMeters(37.683)),
+      new Translation2d(
+          Units.inchesToMeters(3.000), Units.inchesToMeters(43.557883) + elevatorExtension / 2.0),
+      // bumpers
+      new Translation2d(Units.inchesToMeters(14.850000), Units.inchesToMeters(5.698368)),
+      new Translation2d(Units.inchesToMeters(14.85 + 3.0), Units.inchesToMeters(5.698368))
+    };
+  }
+
+  /** Checks if a rectangle is colliding with the funnel, crossbar, or bumpers */
+  private static boolean checkCollision(Rectangle2d rect, double elevatorExtension) {
+    return Stream.of(getStaticColliders(elevatorExtension))
+        .anyMatch((c) -> rect.getDistance(c) <= Units.inchesToMeters(0.0));
   }
 }
