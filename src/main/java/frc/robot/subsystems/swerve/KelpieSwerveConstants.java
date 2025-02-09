@@ -9,12 +9,21 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.math.MatBuilder;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
-import frc.robot.subsystems.vision.Vision;
+import frc.robot.subsystems.vision.Vision.VisionConstants;
 
-public class CompSwerveConstants extends SwerveConstants {
+public class KelpieSwerveConstants extends SwerveConstants {
   @Override
   public double getMaxLinearSpeed() {
     // From https://www.swervedrivespecialties.com/products/mk4n-swerve-module, L2+ with KrakenX60
@@ -157,8 +166,119 @@ public class CompSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public Vision.VisionConstants[] getVisionConstants() {
-    return new Vision.VisionConstants[] {};
+  public VisionConstants[] getVisionConstants() { // TODO calibrate - stolen from alpha rn
+    final Matrix<N3, N3> BACK_LEFT_CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(),
+            Nat.N3(),
+            901.8012064300815,
+            0.0,
+            830.4004635040717,
+            0.0,
+            903.1944838156696,
+            704.0648345598304,
+            0.0,
+            0.0,
+            1.0);
+    final Matrix<N8, N1> BACK_LEFT_DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(),
+            Nat.N1(),
+            0.05096564042945532,
+            -0.08005742255822096,
+            9.362839975047e-5,
+            -2.1069595324007255e-5,
+            0.03230467950441941,
+            -0.0037459354189258794,
+            0.012202835675939619,
+            0.0034143496721838872);
+    final Matrix<N3, N3> BACK_RIGHT_CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(),
+            Nat.N3(),
+            901.8012064300815,
+            0.0,
+            830.4004635040717,
+            0.0,
+            903.1944838156696,
+            704.0648345598304,
+            0.0,
+            0.0,
+            1.0);
+    final Matrix<N8, N1> BACK_RIGHT_DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(),
+            Nat.N1(),
+            0.05096564042945532,
+            -0.08005742255822096,
+            9.362839975047e-5,
+            -2.1069595324007255e-5,
+            0.03230467950441941,
+            -0.0037459354189258794,
+            0.012202835675939619,
+            0.0034143496721838872);
+    final Matrix<N3, N3> FRONT_CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(),
+            Nat.N3(),
+            901.8012064300815,
+            0.0,
+            830.4004635040717,
+            0.0,
+            903.1944838156696,
+            704.0648345598304,
+            0.0,
+            0.0,
+            1.0);
+    final Matrix<N8, N1> FRONT_DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(),
+            Nat.N1(),
+            0.05096564042945532,
+            -0.08005742255822096,
+            9.362839975047e-5,
+            -2.1069595324007255e-5,
+            0.03230467950441941,
+            -0.0037459354189258794,
+            0.012202835675939619,
+            0.0034143496721838872);
+    final VisionConstants backLeftCamConstants =
+        new VisionConstants(
+            "Back_Left_Camera", // TODO adjust names in pv dashboard
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(-11.566),
+                    Units.inchesToMeters(11.396),
+                    Units.inchesToMeters(8.938)),
+                new Rotation3d(
+                    Units.degreesToRadians(0.0),
+                    Units.degreesToRadians(-28.125),
+                    Units.degreesToRadians(150))),
+            BACK_LEFT_CAMERA_MATRIX,
+            BACK_LEFT_DIST_COEFFS);
+    final VisionConstants backRightCamConstants =
+        new VisionConstants(
+            "Back_Right_Camera",
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(-11.566),
+                    Units.inchesToMeters(-11.396),
+                    Units.inchesToMeters(8.938)),
+                new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
+            BACK_RIGHT_CAMERA_MATRIX,
+            BACK_RIGHT_DIST_COEFFS);
+    final VisionConstants frontCamConstants =
+        new VisionConstants(
+            "Front_Camera",
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(11.879),
+                    Units.inchesToMeters(-11.664), // TODO scoring side is considered front?
+                    Units.inchesToMeters(8.804)),
+                new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(30))),
+            FRONT_CAMERA_MATRIX,
+            FRONT_DIST_COEFFS);
+    return new VisionConstants[] {backLeftCamConstants, backRightCamConstants, frontCamConstants};
   }
 
   @Override

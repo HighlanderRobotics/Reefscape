@@ -96,7 +96,7 @@ public class Robot extends LoggedRobot {
   public enum RobotHardware {
     BANSHEE(new BansheeSwerveConstants()),
     ALPHA(new AlphaSwerveConstants()),
-    COMP(new CompSwerveConstants());
+    KELPIE(new KelpieSwerveConstants());
 
     public final SwerveConstants swerveConstants;
 
@@ -107,7 +107,7 @@ public class Robot extends LoggedRobot {
 
   public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
-  public static final RobotHardware ROBOT_HARDWARE = RobotHardware.ALPHA;
+  public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
   public static enum ReefTarget {
     L1(ElevatorSubsystem.L1_EXTENSION_METERS, 12.0, WristSubsystem.WRIST_SCORE_L1_POS),
