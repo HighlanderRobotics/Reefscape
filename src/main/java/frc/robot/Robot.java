@@ -29,6 +29,7 @@ import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
@@ -41,7 +42,6 @@ import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperState;
-import frc.robot.subsystems.arm.*;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
@@ -52,14 +52,19 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.roller.RollerIOSim;
 import frc.robot.subsystems.servo.ServoIOReal;
+import frc.robot.subsystems.shoulder.ShoulderIOReal;
+import frc.robot.subsystems.shoulder.ShoulderIOSim;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.subsystems.vision.VisionIOReal;
 import frc.robot.subsystems.vision.VisionIOSim;
+import frc.robot.subsystems.wrist.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
+import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
-import frc.robot.utils.autoaim.AutoAimTargets;
+import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -266,9 +271,9 @@ public class Robot extends LoggedRobot {
   private final WristSubsystem wrist =
       new WristSubsystem(
           ROBOT_TYPE == RobotType.REAL
-              ? new ArmIOReal(
+              ? new WristIOReal(
                   12,
-                  ArmIOReal.getDefaultConfiguration()
+                  WristIOReal.getDefaultConfiguration()
                       .withSlot0(
                           new Slot0Configs()
                               .withGravityType(GravityTypeValue.Arm_Cosine)
@@ -292,7 +297,8 @@ public class Robot extends LoggedRobot {
                   new SimpleMotorFeedforward(0.0, 0.24),
                   new ProfiledPIDController(
                       1.0, 0.0, 0.0, new TrapezoidProfile.Constraints(20, 10))),
-          new ServoIOReal(0));
+          new ServoIOReal(0),
+          new ServoIOReal(1));
 
   private final ClimberSubsystem climber =
       new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
@@ -313,7 +319,7 @@ public class Robot extends LoggedRobot {
           driver
               .rightTrigger()
               .negate()
-              .or(() -> AutoAim.isInTolerance(swerve.getPose()))
+              .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
@@ -323,7 +329,8 @@ public class Robot extends LoggedRobot {
               .y()
               .debounce(0.5)
               .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
-          driver.a());
+          driver.a(),
+          driver.start());
 
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
@@ -432,9 +439,10 @@ public class Robot extends LoggedRobot {
 
     elevator.setDefaultCommand(
         Commands.sequence(
-            elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
-            elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
-            elevator.setVoltage(0.0)));
+                elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
+                elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
+                elevator.setVoltage(0.0))
+            .withName("Elevator Default Command"));
 
     manipulator.setDefaultCommand(manipulator.index());
 
@@ -457,26 +465,59 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(
-            () ->
-                superstructure.getState() == SuperState.READY_CORAL
-                    || superstructure.getState() == SuperState.PRE_L1
-                    || superstructure.getState() == SuperState.PRE_L2
-                    || superstructure.getState() == SuperState.PRE_L3
-                    || superstructure.getState() == SuperState.PRE_L4)
+        .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
                     swerve,
                     () ->
-                        AutoAimTargets.getHandedClosestTarget(
+                        CoralTargets.getHandedClosestTarget(
                             swerve.getPose(), driver.leftBumper().getAsBoolean())),
+                Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
+                    || superstructure.getState() == SuperState.INTAKE_ALGAE_LOW)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.READY_ALGAE
+                    || superstructure.getState() == SuperState.PRE_NET)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToXCoord(
+                    // TODO: PUT ACUAL NET POSE
+                    swerve,
+                    () ->
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? AutoAim.BLUE_NET_X
+                            : AutoAim.RED_NET_X,
+                    () ->
+                        modifyJoystick(driver.getLeftX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                    () ->
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? Rotation2d.fromDegrees(0)
+                            : Rotation2d.fromDegrees(180)),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(AutoAimTargets.getClosestTarget(swerve.getPose()));
+                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
                           return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
@@ -508,8 +549,7 @@ public class Robot extends LoggedRobot {
                   if (ROBOT_TYPE == RobotType.SIM) {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
-                }))
-        .onTrue(elevator.runCurrentZeroing());
+                }));
 
     operator
         .a()
@@ -543,6 +583,7 @@ public class Robot extends LoggedRobot {
                   currentTarget = ReefTarget.L4;
                   algaeIntakeTarget = AlgaeIntakeTarget.STACK;
                 }));
+
     operator.leftTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
 
     operator
@@ -551,9 +592,15 @@ public class Robot extends LoggedRobot {
 
     // Log locations of all autoaim targets
     Logger.recordOutput(
-        "AutoAim/Targets",
-        Stream.of(AutoAimTargets.values())
-            .map((target) -> AutoAimTargets.getRobotTargetLocation(target.location))
+        "AutoAim/Targets/Coral",
+        Stream.of(CoralTargets.values())
+            .map((target) -> CoralTargets.getRobotTargetLocation(target.location))
+            .toArray(Pose2d[]::new));
+    // Log locations of all autoaim targets
+    Logger.recordOutput(
+        "AutoAim/Targets/Algae",
+        Stream.of(AlgaeIntakeTargets.values())
+            .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
             .toArray(Pose2d[]::new));
   }
 
@@ -635,7 +682,33 @@ public class Robot extends LoggedRobot {
                       + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
               new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
         });
-    Logger.recordOutput("AutoAim/Target", AutoAimTargets.getClosestTarget(swerve.getPose()));
+    Logger.recordOutput(
+        "Mechanism Setpoints",
+        new Pose3d[] {
+          new Pose3d( // first stage
+              new Translation3d(0, 0, elevator.getSetpoint() / 2.0), new Rotation3d()),
+          // carriage
+          new Pose3d(new Translation3d(0, 0, elevator.getSetpoint()), new Rotation3d()),
+          new Pose3d( // arm
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS,
+                  0,
+                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getSetpoint()),
+              new Rotation3d(
+                  0, -Units.degreesToRadians(2.794042) - shoulder.getSetpoint().getRadians(), 0.0)),
+          new Pose3d( // Manipulator
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS
+                      + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                  0,
+                  elevator.getSetpoint()
+                      + ShoulderSubsystem.Z_OFFSET_METERS
+                      + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+              new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
+        });
+    Logger.recordOutput("AutoAim/CoralTarget", CoralTargets.getClosestTarget(swerve.getPose()));
+    Logger.recordOutput(
+        "AutoAim/AlgaeIntakeTarget", AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
 
     carriageLigament.setLength(elevator.getExtensionMeters());
     // Minus 90 to make it relative to horizontal

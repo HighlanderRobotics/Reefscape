@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.wrist;
 
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -12,22 +12,22 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-public class ShoulderIOSim implements ArmIO {
+public class WristIOSim implements WristIO {
   // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
-          ShoulderSubsystem.SHOULDER_GEAR_RATIO,
-          3.0,
-          Units.inchesToMeters(13.5),
-          ShoulderSubsystem.MIN_SHOULDER_ROTATION.getRadians(),
-          ShoulderSubsystem.MAX_SHOULDER_ROTATION.getRadians(),
+          WristSubsystem.WRIST_GEAR_RATIO,
+          0.04458286,
+          Units.inchesToMeters(14.9),
+          WristSubsystem.MIN_ARM_ROTATION.getRadians(),
+          WristSubsystem.MAX_ARM_ROTATION.getRadians(),
           true,
-          0.0);
+          WristSubsystem.WRIST_RETRACTED_POS.getRadians());
 
-  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0); // 1.31085, 0.278);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 1.0, 0.0);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(30.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(30.0, 0.0, 1.7, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   private double appliedVoltage = 0.0;
 
