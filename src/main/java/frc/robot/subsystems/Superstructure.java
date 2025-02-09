@@ -583,6 +583,11 @@ public class Superstructure {
         });
   }
 
+  @AutoLogOutput(key = "Superstructure/Check Collisions")
+  public boolean checkCollisions() {
+    return checkCollisions(elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
+  }
+
   public boolean checkCollisions(
       double elevatorExtension, Rotation2d shoulderAngle, Rotation2d wristAngle) {
     // Check if arm collides with hp, cross bar, bumper
