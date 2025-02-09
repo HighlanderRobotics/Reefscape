@@ -1,7 +1,6 @@
 package frc.robot.utils.autoaim;
 
 import choreo.util.ChoreoAllianceFlipUtil;
-import choreo.util.ChoreoAllianceFlipUtil;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
