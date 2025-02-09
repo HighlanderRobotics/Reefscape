@@ -10,6 +10,11 @@ These names should be used for naming auto paths and other tasks which require r
 Each scoring location on the reef should be identified by the letter shown in the diagram above.
 If there is ambiguity about what the letter refers to, it may be notated as ReefN where N is the letter for that location on the reef.
 
+## Algae Reef Locations
+![Map of the field with algae locations labeled](algaeLocations.PNG)
+
+Each algae removal site is identified by the letters of the two reef branches adjacent to it in alphabetical order.
+
 ## Coral Station Locations
 
 ![A map of the field with locations marked around the coral stations](coralStationLabels.png)
