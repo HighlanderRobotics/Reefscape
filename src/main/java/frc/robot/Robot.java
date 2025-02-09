@@ -321,7 +321,7 @@ public class Robot extends LoggedRobot {
               .negate()
               .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore),
-          driver.rightTrigger().or(() -> Autos.autoPreScore),
+          driver.rightTrigger().or(() -> Autos.autoCoralPreScore),
           driver.leftTrigger(),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),
           driver.rightTrigger(),
@@ -614,6 +614,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 L Inside", autos.LItoK());
     autoChooser.addOption("4.5 R Inside", autos.RItoD());
     autoChooser.addOption("Push Auto", autos.PMtoPL());
+    autoChooser.addOption("Algae Auto", autos.RStoGH());
   }
 
   /** Scales a joystick value for teleop driving */
@@ -716,7 +717,7 @@ public class Robot extends LoggedRobot {
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
-    Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
+    Logger.recordOutput("Autos/Pre Score", Autos.autoCoralPreScore);
     Logger.recordOutput("Autos/Score", Autos.autoScore);
   }
 

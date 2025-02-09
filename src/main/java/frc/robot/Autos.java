@@ -26,7 +26,7 @@ public class Autos {
   private final ManipulatorSubsystem manipulator;
   private final AutoFactory factory;
 
-  public static boolean autoPreScore = false;
+  public static boolean autoCoralPreScore = false;
   public static boolean autoScore = false; // TODO perhaps this should not be static
 
   public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
@@ -78,7 +78,7 @@ public class Autos {
     final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
     bindElevatorExtension(routine);
-    routine.observe(traj.done()).onTrue(scoreInAuto());
+    routine.observe(traj.done()).onTrue(scoreCoralInAuto());
     return routine.cmd();
   }
 
@@ -87,11 +87,11 @@ public class Autos {
     final var traj = routine.trajectory("RMtoG");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
     bindElevatorExtension(routine);
-    routine.observe(traj.done()).onTrue(scoreInAuto());
+    routine.observe(traj.done()).onTrue(scoreCoralInAuto());
     return routine.cmd();
   }
 
-  public void runPath(
+  public void runCoralPath(
       AutoRoutine routine,
       String startPos,
       String endPos,
@@ -102,9 +102,25 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
-                    ? intakeInAuto(steps.get(startPos + "to" + endPos).getFinalPose())
+                    ? intakeCoralInAuto(steps.get(startPos + "to" + endPos).getFinalPose())
                     : Commands.sequence(
-                        endPos.length() == 1 ? scoreInAuto() : Commands.print("pushed bot")),
+                        endPos.length() == 1 ? scoreCoralInAuto() : Commands.print("pushed bot")),
+                steps.get(endPos + "to" + nextPos).cmd()));
+  }
+
+  public void runAlgaePath(
+      AutoRoutine routine,
+      String startPos,
+      String endPos,
+      String nextPos,
+      HashMap<String, AutoTrajectory> steps) {
+    routine
+        .observe(steps.get(startPos + "to" + endPos).done())
+        .onTrue(
+            Commands.sequence(
+                endPos.startsWith("C")
+                    ? Commands.print("score algae") // score
+                    : Commands.print("intake algae"), // intake
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -130,10 +146,10 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PLOtoA").done()).onTrue(scoreCoralInAuto());
     return routine.cmd();
   }
 
@@ -160,10 +176,10 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PROtoB").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PROtoB").done()).onTrue(scoreCoralInAuto());
     return routine.cmd();
   }
 
@@ -190,10 +206,10 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLItoB").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PLItoB").done()).onTrue(scoreCoralInAuto());
     return routine.cmd();
   }
 
@@ -220,10 +236,10 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PRItoA").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PRItoA").done()).onTrue(scoreCoralInAuto());
     return routine.cmd();
   }
 
@@ -251,14 +267,45 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLOtoL").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PLOtoL").done()).onTrue(scoreCoralInAuto());
     return routine.cmd();
   }
 
-  public Command scoreInAuto() {
+  public Command RStoGH() {
+    final var routine = factory.newRoutine("RS to GH");
+    bindElevatorExtension(routine);
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "RS", "GH", "CM", "IJ", "CM", "EF", "CM" // each stop we are going to, in order
+    };
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(
+            Commands.sequence(steps.get("RStoGH").resetOdometry(), steps.get("RStoGH").cmd()));
+    // run middle paths
+    // and puts that name + corresponding traj to the map
+    for (int i = 0; i < stops.length - 2; i++) {
+      String startPos = stops[i];
+      String endPos = stops[i + 1];
+      String nextPos = stops[i + 2];
+      runAlgaePath(routine, startPos, endPos, nextPos, steps);
+    }
+    // final path
+    routine.observe(steps.get("EFtoCM").done()).onTrue(scoreCoralInAuto()); // TODO: score lage instead
+    return routine.cmd();
+  }
+
+  public Command scoreCoralInAuto() {
     return Commands.runOnce(
             () -> {
               autoScore = true;
@@ -274,12 +321,12 @@ public class Autos {
                     Commands.runOnce(
                         () -> {
                           autoScore = false;
-                          autoPreScore = false;
+                          autoCoralPreScore = false;
                         }),
                     swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
   }
 
-  public Command intakeInAuto(Optional<Pose2d> pose) {
+  public Command intakeCoralInAuto(Optional<Pose2d> pose) {
     if (!pose.isPresent()) {
       return Commands.none();
     } else {
@@ -291,6 +338,27 @@ public class Autos {
           AutoAim.translateToPose(swerve, () -> pose.get())
               .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
+  }
+
+  public Command scoreAlgaeInAuto() {
+    return Commands.runOnce(
+            () -> {
+              autoScore = true;
+              Robot.setCurrentTarget(ReefTarget.L4);
+            })
+        .andThen(
+            Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
+                .alongWith(
+                    Robot.isSimulation()
+                        ? Commands.runOnce(() -> manipulator.setSecondBeambreak(false))
+                        : Commands.none())
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          autoScore = false;
+                          autoCoralPreScore = false;
+                        }),
+                    swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
@@ -311,7 +379,7 @@ public class Autos {
                             .getNorm()
                         < toleranceMeters
                     && (manipulator.getSecondBeambreak()))
-        .onTrue(Commands.runOnce(() -> autoPreScore = true))
-        .onFalse(Commands.runOnce(() -> autoPreScore = false));
+        .onTrue(Commands.runOnce(() -> autoCoralPreScore = true))
+        .onFalse(Commands.runOnce(() -> autoCoralPreScore = false));
   }
 }
