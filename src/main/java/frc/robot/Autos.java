@@ -27,7 +27,10 @@ public class Autos {
   private final AutoFactory factory;
 
   public static boolean autoCoralPreScore = false;
-  public static boolean autoScore = false; // TODO perhaps this should not be static
+  public static boolean autoCoralScore = false; // TODO perhaps this should not be static
+  public static boolean autoAlgaeScore = false; 
+  public static boolean autoAlgaePreScore = false; 
+
 
   public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
     this.swerve = swerve;
@@ -308,7 +311,7 @@ public class Autos {
   public Command scoreCoralInAuto() {
     return Commands.runOnce(
             () -> {
-              autoScore = true;
+              autoCoralScore = true;
               Robot.setCurrentTarget(ReefTarget.L4);
             })
         .andThen(
@@ -320,7 +323,7 @@ public class Autos {
                 .andThen(
                     Commands.runOnce(
                         () -> {
-                          autoScore = false;
+                          autoCoralScore = false;
                           autoCoralPreScore = false;
                         }),
                     swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
@@ -343,7 +346,7 @@ public class Autos {
   public Command scoreAlgaeInAuto() {
     return Commands.runOnce(
             () -> {
-              autoScore = true;
+              autoAlgaeScore = true;
               Robot.setCurrentTarget(ReefTarget.L4);
             })
         .andThen(
@@ -355,10 +358,24 @@ public class Autos {
                 .andThen(
                     Commands.runOnce(
                         () -> {
-                          autoScore = false;
-                          autoCoralPreScore = false;
+                          autoAlgaeScore = false;
+                          autoAlgaePreScore = false;
                         }),
                     swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
+  }
+
+  public Command intakeALgaeInAuto(Optional<Pose2d> pose) {
+    if (!pose.isPresent()) {
+      return Commands.none();
+    } else {
+      return Commands.sequence(
+          Robot.isSimulation()
+              ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
+              : Commands.none(),
+          Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
+          AutoAim.translateToPose(swerve, () -> pose.get())
+              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
+    }
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {

@@ -320,7 +320,7 @@ public class Robot extends LoggedRobot {
               .rightTrigger()
               .negate()
               .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore),
+              .or(() -> Autos.autoCoralScore),
           driver.rightTrigger().or(() -> Autos.autoCoralPreScore),
           driver.leftTrigger(),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),
@@ -718,7 +718,7 @@ public class Robot extends LoggedRobot {
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
     Logger.recordOutput("Autos/Pre Score", Autos.autoCoralPreScore);
-    Logger.recordOutput("Autos/Score", Autos.autoScore);
+    Logger.recordOutput("Autos/Score", Autos.autoCoralScore);
   }
 
   public static void setCurrentTarget(ReefTarget target) {
