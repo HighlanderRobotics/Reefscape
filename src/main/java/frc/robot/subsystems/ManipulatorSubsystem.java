@@ -25,7 +25,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private boolean bb1 = false;
   private boolean bb2 = false;
   private boolean hasAlgae = false;
-  private boolean simAlgae = false;
 
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
@@ -95,10 +94,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public boolean hasAlgae() {
-    return hasAlgae || simAlgae;
-  }
-
-  public void setAlgae(boolean state) {
-    simAlgae = state;
+    return hasAlgae;
   }
 }

@@ -121,11 +121,14 @@ public class Autos {
         .observe(steps.get(startPos + "to" + endPos).done())
         .onTrue(
             Commands.sequence(
-                endPos.startsWith("C")
+                endPos.equals("CM") // TODO
                     ? scoreAlgaeInAuto()
                     : intakeAlgaeInAuto(
                         steps.get(startPos + "to" + endPos).getFinalPose(),
-                        endPos.equals("AB") || endPos.equals("EF") || endPos.equals("IJ") ? AlgaeIntakeTarget.HIGH : AlgaeIntakeTarget.LOW), // just don't worry about it i don't like it either
+                        endPos.equals("AB") || endPos.equals("EF") || endPos.equals("IJ")
+                            ? AlgaeIntakeTarget.HIGH
+                            : AlgaeIntakeTarget
+                                .LOW), // just don't worry about it i don't like it either
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -306,9 +309,7 @@ public class Autos {
       runAlgaePath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine
-        .observe(steps.get("EFtoCM").done())
-        .onTrue(scoreAlgaeInAuto());
+    routine.observe(steps.get("EFtoCM").done()).onTrue(scoreAlgaeInAuto());
     return routine.cmd();
   }
 
@@ -341,7 +342,6 @@ public class Autos {
           Robot.isSimulation()
               ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
               : Commands.none(),
-          Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
           AutoAim.translateToPose(swerve, () -> pose.get())
               .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
@@ -354,18 +354,18 @@ public class Autos {
               Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
             })
         .andThen(
-            Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
+            Commands.waitUntil(() -> !manipulator.hasAlgae())
                 .alongWith(
                     Robot.isSimulation()
-                        ? Commands.runOnce(() -> manipulator.setSecondBeambreak(false))
+                        ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
                         : Commands.none())
                 .andThen(
                     Commands.runOnce(
                         () -> {
                           autoScore = false;
                           autoPreScore = false;
-                        }),
-                    swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
+                        })
+                    ));
   }
 
   public Command intakeAlgaeInAuto(Optional<Pose2d> pose, AlgaeIntakeTarget target) {
@@ -373,13 +373,20 @@ public class Autos {
       return Commands.none();
     } else {
       return Commands.sequence(
-          Robot.isSimulation()
-              ? Commands.runOnce(() -> manipulator.setAlgae(true))
-              : Commands.none(),
-          AutoAim.translateToPose(swerve, () -> pose.get())
-          .alongWith(Commands.run(() -> Robot.setCurrentAlgaeIntakeTarget(target)))
-              .alongWith(manipulator.intakeAlgae())
-              .until(() -> manipulator.hasAlgae()));
+          Commands.runOnce(
+              () -> {
+                autoAlgaeIntake = true;
+                Robot.setCurrentAlgaeIntakeTarget(target);
+              }),
+          Commands.waitUntil(() -> manipulator.hasAlgae())
+              .alongWith(
+                  Robot.isSimulation()
+                      ? Commands.runOnce(() -> manipulator.setHasAlgae(true))
+                      : Commands.none()),
+          Commands.runOnce(
+              () -> {
+                autoAlgaeIntake = false;
+              }));
     }
   }
 
@@ -400,8 +407,15 @@ public class Autos {
                                     : AutoAim.RED_REEF_CENTER)
                             .getNorm()
                         < toleranceMeters
-                    && (coral ? manipulator.getSecondBeambreak() : manipulator.hasAlgae())) //TODO uhhhh
-                    .onTrue(Commands.runOnce(() -> autoPreScore = true))
-                    .onFalse(Commands.runOnce(() -> autoPreScore = false)); //TODO do we need to differentiate between autoprescore coral and autoprescore algae or am i overcooking
+                    && (coral
+                        ? manipulator.getSecondBeambreak()
+                        : manipulator.hasAlgae())) // TODO uhhhh
+        .onTrue(Commands.runOnce(() -> autoPreScore = true))
+        .onFalse(
+            Commands.runOnce(
+                () ->
+                    autoPreScore =
+                        false)); // TODO do we need to differentiate between autoprescore coral and
+    // autoprescore algae or am i overcooking
   }
 }

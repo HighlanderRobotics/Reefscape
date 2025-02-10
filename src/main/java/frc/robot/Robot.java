@@ -605,6 +605,8 @@ public class Robot extends LoggedRobot {
   }
 
   private void addAutos() {
+    // TODO autos don't show up on the chooser in sim sometimes, will need to test if this is an
+    // issue irl
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
     autoChooser.addOption("LM to H", autos.LMtoH());
@@ -614,7 +616,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 L Inside", autos.LItoK());
     autoChooser.addOption("4.5 R Inside", autos.RItoD());
     autoChooser.addOption("Push Auto", autos.PMtoPL());
-    autoChooser.addOption("Algae Auto", autos.RStoGH());
+    autoChooser.addOption("Algae RS to GH", autos.RStoGH());
   }
 
   /** Scales a joystick value for teleop driving */
