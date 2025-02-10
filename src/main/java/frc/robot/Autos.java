@@ -28,9 +28,8 @@ public class Autos {
 
   public static boolean autoCoralPreScore = false;
   public static boolean autoCoralScore = false; // TODO perhaps this should not be static
-  public static boolean autoAlgaeScore = false; 
-  public static boolean autoAlgaePreScore = false; 
-
+  public static boolean autoAlgaeScore = false;
+  public static boolean autoAlgaePreScore = false;
 
   public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
     this.swerve = swerve;
@@ -122,8 +121,9 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 endPos.startsWith("C")
-                    ? Commands.print("score algae") // score
-                    : Commands.print("intake algae"), // intake
+                    ? scoreAlgaeInAuto()
+                    : intakeAlgaeInAuto(
+                        steps.get(startPos + "to" + endPos).getFinalPose()), // intake
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -304,7 +304,9 @@ public class Autos {
       runAlgaePath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("EFtoCM").done()).onTrue(scoreCoralInAuto()); // TODO: score lage instead
+    routine
+        .observe(steps.get("EFtoCM").done())
+        .onTrue(scoreCoralInAuto()); // TODO: score lage instead
     return routine.cmd();
   }
 
@@ -347,7 +349,7 @@ public class Autos {
     return Commands.runOnce(
             () -> {
               autoAlgaeScore = true;
-              Robot.setCurrentTarget(ReefTarget.L4);
+              Robot.setCurrentTarget(ReefTarget.L4); // cant use reef targes its different
             })
         .andThen(
             Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
@@ -364,17 +366,17 @@ public class Autos {
                     swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
   }
 
-  public Command intakeALgaeInAuto(Optional<Pose2d> pose) {
+  public Command intakeAlgaeInAuto(Optional<Pose2d> pose) {
     if (!pose.isPresent()) {
       return Commands.none();
     } else {
       return Commands.sequence(
           Robot.isSimulation()
-              ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
+              ? Commands.runOnce(() -> manipulator.setAlgae(true))
               : Commands.none(),
-          Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
           AutoAim.translateToPose(swerve, () -> pose.get())
-              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
+              .alongWith(manipulator.intakeAlgae())
+              .until(() -> manipulator.hasAlgae()));
     }
   }
 
