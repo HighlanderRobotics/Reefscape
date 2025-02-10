@@ -145,8 +145,8 @@ public class Robot extends LoggedRobot {
   }
 
   private static ReefTarget currentTarget = ReefTarget.L4;
-  private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
-  private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
+  private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
   private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
@@ -320,9 +320,9 @@ public class Robot extends LoggedRobot {
               .rightTrigger()
               .negate()
               .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoCoralScore),
-          driver.rightTrigger().or(() -> Autos.autoCoralPreScore),
-          driver.leftTrigger(),
+              .or(() -> Autos.autoScore),
+          driver.rightTrigger().or(() -> Autos.autoPreScore),
+          driver.leftTrigger().or(() -> Autos.autoAlgaeIntake),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),
           driver.rightTrigger(),
           driver
@@ -717,16 +717,32 @@ public class Robot extends LoggedRobot {
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
-    Logger.recordOutput("Autos/Pre Score", Autos.autoCoralPreScore);
-    Logger.recordOutput("Autos/Score", Autos.autoCoralScore);
+    Logger.recordOutput("Autos/Coral Pre Score", Autos.autoPreScore);
+    Logger.recordOutput("Autos/Coral Score", Autos.autoScore);
   }
 
-  public static void setCurrentTarget(ReefTarget target) {
+  public static void setCurrentCoralTarget(ReefTarget target) {
     currentTarget = target;
   }
 
-  public ReefTarget getCurrentTarget() {
+  public ReefTarget getCurrentCoralTarget() {
     return currentTarget;
+  }
+
+  public static void setCurrentAlgaeIntakeTarget(AlgaeIntakeTarget target) {
+    algaeIntakeTarget = target;
+  }
+
+  public AlgaeIntakeTarget getCurrentAlgaeIntakeTarget() {
+    return algaeIntakeTarget;
+  }
+
+  public static void setCurrentAlgaeScoreTarget(AlgaeScoreTarget target) {
+    algaeScoreTarget = target;
+  }
+
+  public AlgaeScoreTarget getCurrentAlgaeScoreTarget() {
+    return algaeScoreTarget;
   }
 
   @Override
