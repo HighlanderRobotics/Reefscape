@@ -39,6 +39,9 @@ public class ClimberIOReal implements ClimberIO {
 
     config.Feedback.SensorToMechanismRatio = ClimberSubsystem.CLIMB_GEAR_RATIO;
 
+    config.CurrentLimits.StatorCurrentLimit = 10.0;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
