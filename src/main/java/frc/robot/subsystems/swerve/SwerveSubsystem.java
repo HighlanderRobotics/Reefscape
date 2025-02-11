@@ -87,6 +87,8 @@ public class SwerveSubsystem extends SubsystemBase {
   private Alert missingModuleData = new Alert("Missing Module Data", AlertType.kError);
   private Alert missingGyroData = new Alert("Missing Gyro Data", AlertType.kWarning);
 
+  private boolean useModuleForceFF = !Robot.isSimulation();
+
   public SwerveSubsystem(
       SwerveConstants constants,
       GyroIO gyroIO,
@@ -509,7 +511,11 @@ public class SwerveSubsystem extends SubsystemBase {
           ChassisSpeeds.fromFieldRelativeSpeeds(
               new ChassisSpeeds(sample.vx, sample.vy, sample.omega).plus(feedback), getRotation());
       Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
-      this.drive(speeds, false, sample.moduleForcesX(), sample.moduleForcesY());
+      this.drive(
+          speeds,
+          false,
+          useModuleForceFF ? sample.moduleForcesX() : new double[4],
+          useModuleForceFF ? sample.moduleForcesY() : new double[4]);
     };
   }
 

@@ -43,8 +43,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     Logger.processInputs(NAME + "/First Beambreak", firstBBInputs);
     Logger.processInputs(NAME + "/Second Beambreak", secondBBInputs);
     Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
-    Logger.recordOutput(NAME + "/First Beambreak Override", bb1);
-    Logger.recordOutput(NAME + "/Second Beambreak Override", bb2);
+    Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1);
+    Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2);
   }
 
   public Command index() {
@@ -54,7 +54,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         // TODO tune timeout
         setVelocity(1.0).withTimeout(0.5),
         setVelocity(0));
-  }
+  } // TODO check if anything got lost in merge?
 
   public Command backIndex() {
     return Commands.sequence(
@@ -64,7 +64,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
         .until(() -> inputs.statorCurrentAmps > 20.0)
-        .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
+        .andThen(
+            this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)),
+            Commands.runOnce(() -> hasAlgae = true));
   }
 
   public double getStatorCurrentAmps() {

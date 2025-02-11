@@ -585,10 +585,11 @@ public class Superstructure {
 
   private Command forceState(SuperState nextState) {
     return Commands.runOnce(
-        () -> {
-          stateTimer.reset();
-          this.prevState = this.state;
-          this.state = nextState;
-        });
+            () -> {
+              stateTimer.reset();
+              this.prevState = this.state;
+              this.state = nextState;
+            })
+        .ignoringDisable(true);
   }
 }
