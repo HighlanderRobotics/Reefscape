@@ -572,6 +572,17 @@ public class Superstructure {
         || this.state == SuperState.SCORE_CORAL;
   }
 
+  public boolean stateIsAlgaeAlike() {
+    return this.state == SuperState.READY_ALGAE
+        || this.state == SuperState.INTAKE_ALGAE_GROUND
+        || this.state == SuperState.INTAKE_ALGAE_LOW
+        || this.state == SuperState.INTAKE_ALGAE_HIGH
+        || this.state == SuperState.INTAKE_ALGAE_STACK
+        || this.state == SuperState.PRE_NET
+        || this.state == SuperState.PRE_PROCESSOR
+        || this.state == SuperState.SCORE_ALGAE;
+  }
+
   private Command forceState(SuperState nextState) {
     return Commands.runOnce(
             () -> {
