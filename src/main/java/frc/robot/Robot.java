@@ -452,14 +452,20 @@ public class Robot extends LoggedRobot {
     wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     leds.setDefaultCommand(
-        leds.setRunAlongCmd(
-                () ->
-                    DriverStation.getAlliance()
-                        .map((a) -> a == Alliance.Blue ? Color.kBlue : Color.kRed)
-                        .orElse(Color.kWhite),
-                () -> Color.kPurple,
-                4,
-                5.0)
+        Commands.either(
+                leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 5.0)
+                    .until(() -> !DriverStation.isEnabled()),
+                leds.setRunAlongCmd(
+                        () ->
+                            DriverStation.getAlliance()
+                                .map((a) -> a == Alliance.Blue ? Color.kBlue : Color.kRed)
+                                .orElse(Color.kWhite),
+                        () -> Color.kPurple,
+                        4,
+                        1.0)
+                    .until(() -> DriverStation.isEnabled()),
+                () -> DriverStation.isEnabled())
+            .repeatedly()
             .ignoringDisable(true));
 
     swerve.setDefaultCommand(
@@ -597,6 +603,44 @@ public class Robot extends LoggedRobot {
     operator
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
+
+    new Trigger(() -> superstructure.stateIsCoralAlike())
+        .whileTrue(
+            leds.setBlinkingCmd(
+                () -> {
+                  if (currentTarget == ReefTarget.L1) {
+                    return LEDSubsystem.L1;
+                  } else if (currentTarget == ReefTarget.L2) {
+                    return LEDSubsystem.L2;
+                  } else if (currentTarget == ReefTarget.L3) {
+                    return LEDSubsystem.L3;
+                  } else if (currentTarget == ReefTarget.L4) {
+                    return LEDSubsystem.L4;
+                  }
+                  // impossible
+                  return Color.kBlack;
+                },
+                () -> Color.kBlack,
+                5.0));
+
+    new Trigger(() -> superstructure.stateIsAlgaeAlike())
+        .whileTrue(
+            leds.setBlinkingCmd(
+                () -> {
+                  if (algaeIntakeTarget == AlgaeIntakeTarget.GROUND) {
+                    return LEDSubsystem.L1;
+                  } else if (algaeIntakeTarget == AlgaeIntakeTarget.LOW) {
+                    return LEDSubsystem.L2;
+                  } else if (algaeIntakeTarget == AlgaeIntakeTarget.HIGH) {
+                    return LEDSubsystem.L3;
+                  } else if (algaeIntakeTarget == AlgaeIntakeTarget.STACK) {
+                    return LEDSubsystem.L4;
+                  }
+                  // impossible
+                  return Color.kBlack;
+                },
+                () -> Color.kBlack,
+                5.0));
 
     // Log locations of all autoaim targets
     Logger.recordOutput(

@@ -15,6 +15,12 @@ import org.littletonrobotics.junction.Logger;
 public class LEDSubsystem extends SubsystemBase {
   public static final int LED_LENGTH = 16;
   public static final int LED_ID = 3;
+
+  public static final Color L1 = Color.kGreen;
+  public static final Color L2 = Color.kTeal;
+  public static final Color L3 = Color.kBlue;
+  public static final Color L4 = Color.kViolet;
+
   private final LEDIO io;
   private final LEDIOInputsAutoLogged inputs = new LEDIOInputsAutoLogged();
   private double rainbowStart = 0;
@@ -51,6 +57,15 @@ public class LEDSubsystem extends SubsystemBase {
 
   public Command setSolidCmd(Supplier<Color> color) {
     return this.run(() -> setSolid(color.get()));
+  }
+
+  public Command setSplitCmd(Supplier<Color> upper, Supplier<Color> lower) {
+    return this.run(
+        () -> {
+          for (int i = 0; i < LED_LENGTH; i++) {
+            io.set(i, i < LED_LENGTH / 2 ? lower.get() : upper.get());
+          }
+        });
   }
 
   public Command setBlinkingCmd(
