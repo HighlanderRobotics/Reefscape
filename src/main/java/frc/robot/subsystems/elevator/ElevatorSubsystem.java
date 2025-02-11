@@ -25,12 +25,21 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double DRUM_RADIUS_METERS = Units.inchesToMeters(1.751 / 2.0);
   public static final Rotation2d ELEVATOR_ANGLE = Rotation2d.fromDegrees(90.0);
 
-  public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(51.8);
+  public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
   public static final double L1_EXTENSION_METERS = Units.inchesToMeters(6.0);
-  public static final double L2_EXTENSION_METERS = Units.inchesToMeters(9.0);
-  public static final double L3_EXTENSION_METERS = Units.inchesToMeters(24.5);
-  public static final double L4_EXTENSION_METERS = Units.inchesToMeters(49.6);
+  public static final double L2_EXTENSION_METERS = Units.inchesToMeters(16.0);
+  public static final double L3_EXTENSION_METERS = Units.inchesToMeters(32.0);
+  public static final double L4_EXTENSION_METERS = Units.inchesToMeters(56.0);
+
+  public static final double INTAKE_ALGAE_STACK_EXTENSION = Units.inchesToMeters(12.0);
+  public static final double INTAKE_ALGAE_LOW_EXTENSION = Units.inchesToMeters(19.75);
+  public static final double INTAKE_ALGAE_HIGH_EXTENSION = Units.inchesToMeters(35.25);
+
+  public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(50.0);
+  public static final double ALGAE_PROCESSOR_EXTENSION = Units.inchesToMeters(10.0);
+
+  public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
@@ -39,6 +48,8 @@ public class ElevatorSubsystem extends SubsystemBase {
   public double currentFilterValue = 0.0;
 
   public boolean hasZeroed = false;
+
+  private double setpoint = 0.0;
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -70,7 +81,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     return this.run(
         () -> {
           io.setTarget(meters.getAsDouble());
-          Logger.recordOutput("Elevator/Setpoint", meters.getAsDouble());
+          setpoint = meters.getAsDouble();
+          Logger.recordOutput("Elevator/Setpoint", setpoint);
         });
   }
 
@@ -82,6 +94,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     return this.run(
             () -> {
               io.setVoltage(-0.5);
+              setpoint = 0.0;
               Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
         .until(() -> currentFilterValue > 20.0)
@@ -125,6 +138,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public double getExtensionMeters() {
     return inputs.positionMeters;
+  }
+
+  public double getSetpoint() {
+    return setpoint;
   }
 
   public boolean isNearExtension(double expected) {

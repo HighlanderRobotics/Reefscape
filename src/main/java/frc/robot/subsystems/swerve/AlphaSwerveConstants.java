@@ -26,8 +26,9 @@ import frc.robot.subsystems.vision.Vision.VisionConstants;
 public class AlphaSwerveConstants extends SwerveConstants {
   @Override
   public double getMaxLinearSpeed() {
-    // (Max speed of motor (5800 rpm) in rads/sec / gear ratio) * radius of wheel (according to
-    // Google AI
+    // motor speed (RPM) / gear ratio * pi * wheel diameter (inches) / 12 / 60
+    // https://www.chiefdelphi.com/t/how-to-calculate-the-max-free-speed-of-a-swerve/400741/3
+    // return 5800 / getDriveGearRatio() * Math.PI * getWheelRadiusMeters() * 2 / 12 / 60;
     return (Units.rotationsToRadians(5800.0 / 60) / getDriveGearRatio()) * getWheelRadiusMeters();
   }
 
