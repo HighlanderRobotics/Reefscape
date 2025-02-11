@@ -333,6 +333,7 @@ public class Robot extends LoggedRobot {
           driver.start());
 
   private final Autos autos;
+  private Optional<Alliance> lastAlliance = Optional.empty();
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
   // Main benefit to that is reducing startup time, which idt we care about too much
@@ -434,7 +435,12 @@ public class Robot extends LoggedRobot {
     new Trigger(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak())
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
-    new Trigger(() -> DriverStation.getAlliance().isPresent())
+    new Trigger(
+            () -> {
+              var allianceChange = !DriverStation.getAlliance().equals(lastAlliance);
+              lastAlliance = DriverStation.getAlliance();
+              return allianceChange && DriverStation.getAlliance().isPresent();
+            })
         .onTrue(Commands.runOnce(() -> addAutos()).ignoringDisable(true));
 
     elevator.setDefaultCommand(
@@ -605,6 +611,7 @@ public class Robot extends LoggedRobot {
   }
 
   private void addAutos() {
+    System.out.println("Regenerating Autos");
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
     autoChooser.addOption("LM to H", autos.LMtoH());
