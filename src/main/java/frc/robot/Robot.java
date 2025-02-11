@@ -26,9 +26,11 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -40,6 +42,8 @@ import frc.robot.subsystems.beambreak.BeambreakIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOReal;
 import frc.robot.subsystems.elevator.ElevatorIOSim;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.led.LEDIOReal;
+import frc.robot.subsystems.led.LEDSubsystem;
 import frc.robot.subsystems.roller.RollerIOReal;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.vision.VisionIO;
@@ -244,6 +248,8 @@ public class Robot extends LoggedRobot {
                               .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
               : new WristIOSim());
 
+  private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
+
   private final Autos autos;
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
@@ -360,6 +366,17 @@ public class Robot extends LoggedRobot {
     shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
 
     wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
+
+    leds.setDefaultCommand(
+        leds.setRunAlongCmd(
+                () ->
+                    DriverStation.getAlliance()
+                        .map((a) -> a == Alliance.Blue ? Color.kBlue : Color.kRed)
+                        .orElse(Color.kWhite),
+                () -> Color.kPurple,
+                4,
+                5.0)
+            .ignoringDisable(true));
 
     swerve.setDefaultCommand(
         swerve.driveTeleop(
