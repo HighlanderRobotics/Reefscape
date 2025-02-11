@@ -55,6 +55,12 @@ public class ShoulderIOReal implements ShoulderIO {
     config.Slot0.kP = 0.0;
     config.Slot0.kD = 0.0;
 
+    // TODO increase
+    config.CurrentLimits.StatorCurrentLimit = 10.0;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 20.0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+
     // guesses
     config.MotionMagic.MotionMagicCruiseVelocity = 2.0;
     config.MotionMagic.MotionMagicAcceleration = 10.0;

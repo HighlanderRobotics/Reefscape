@@ -11,6 +11,7 @@ import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
 import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -282,6 +283,11 @@ public class Robot extends LoggedRobot {
                               .withGravityType(GravityTypeValue.Arm_Cosine)
                               .withKG(0.0)
                               .withKP(0.0))
+                      .withCurrentLimits(new CurrentLimitsConfigs()
+                        .withStatorCurrentLimit(10.0)
+                        .withStatorCurrentLimitEnable(true)
+                        .withSupplyCurrentLimit(20.0)
+                        .withSupplyCurrentLimitEnable(true))
                       .withFeedback(
                           new FeedbackConfigs()
                               .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
