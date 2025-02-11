@@ -5,6 +5,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -21,6 +22,10 @@ public class AutoAim {
   static final double MAX_ANGULAR_ACCELERATION = 5.0;
   static final double MAX_AUTOAIM_SPEED = 3.0;
   static final double MAX_AUTOAIM_ACCELERATION = 2.0;
+
+  public static final Translation2d BLUE_REEF_CENTER =
+      new Translation2d(Units.inchesToMeters(176.746), Units.inchesToMeters(158.501));
+  public static final Translation2d RED_REEF_CENTER = ChoreoAllianceFlipUtil.flip(BLUE_REEF_CENTER);
 
   public static double BLUE_NET_X = 8.76 + Units.inchesToMeters(30.0);
   public static double RED_NET_X = ChoreoAllianceFlipUtil.flipX(BLUE_NET_X);
@@ -43,22 +48,35 @@ public class AutoAim {
     final ProfiledPIDController vxController =
         new ProfiledPIDController(
             6.0,
-            0.0,
+            0.01,
             0.0,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     final ProfiledPIDController vyController =
         new ProfiledPIDController(
             6.0,
-            0.0,
+            0.01,
             0.0,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.runOnce(
             () -> {
               cachedTarget[0] = target.get();
+              final var diff = swerve.getPose().minus(cachedTarget[0]);
               Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
-              headingController.reset(swerve.getPose().getRotation().getRadians(), 0.0);
-              vxController.reset(swerve.getPose().getX(), 0.0);
-              vyController.reset(swerve.getPose().getY(), 0.0);
+              headingController.reset(
+                  swerve.getPose().getRotation().getRadians(),
+                  swerve.getVelocityFieldRelative().omegaRadiansPerSecond);
+              vxController.reset(
+                  swerve.getPose().getX(),
+                  swerve.getVelocityFieldRelative().vxMetersPerSecond * Math.signum(diff.getX())
+                          < 0.0
+                      ? swerve.getVelocityFieldRelative().vxMetersPerSecond
+                      : 0.0);
+              vyController.reset(
+                  swerve.getPose().getY(),
+                  swerve.getVelocityFieldRelative().vyMetersPerSecond * Math.signum(diff.getY())
+                          < 0.0
+                      ? swerve.getVelocityFieldRelative().vyMetersPerSecond
+                      : 0.0);
             })
         .andThen(
             swerve.driveVelocityFieldRelative(

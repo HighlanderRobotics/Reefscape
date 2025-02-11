@@ -147,7 +147,7 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private ReefTarget currentTarget = ReefTarget.L4;
+  private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
@@ -319,8 +319,12 @@ public class Robot extends LoggedRobot {
           () -> currentTarget,
           () -> algaeIntakeTarget,
           () -> algaeScoreTarget,
-          driver.rightTrigger().negate().or(() -> AutoAim.isInToleranceCoral(swerve.getPose())),
-          driver.rightTrigger(),
+          driver
+              .rightTrigger()
+              .negate()
+              .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
+              .or(() -> Autos.autoScore),
+          driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver.x().and(driver.pov(-1).negate()).debounce(0.5),
           driver.rightTrigger(),
@@ -334,6 +338,7 @@ public class Robot extends LoggedRobot {
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
   private final Autos autos;
+  private Optional<Alliance> lastAlliance = Optional.empty();
   // Could make this cache like Choreo's AutoChooser, but thats more work and Choreo's default
   // option isn't akit friendly
   // Main benefit to that is reducing startup time, which idt we care about too much
@@ -420,11 +425,8 @@ public class Robot extends LoggedRobot {
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
 
-    autos = new Autos(swerve);
+    autos = new Autos(swerve, manipulator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
-    autoChooser.addOption("Triangle Test", autos.getTestTriangle());
-    autoChooser.addOption("Sprint Test", autos.getTestSprint());
-    autoChooser.addOption("Cycle Demo", autos.getDCycle());
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
@@ -437,6 +439,14 @@ public class Robot extends LoggedRobot {
 
     new Trigger(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak())
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
+
+    new Trigger(
+            () -> {
+              var allianceChange = !DriverStation.getAlliance().equals(lastAlliance);
+              lastAlliance = DriverStation.getAlliance();
+              return allianceChange && DriverStation.getAlliance().isPresent();
+            })
+        .onTrue(Commands.runOnce(() -> addAutos()).ignoringDisable(true));
 
     elevator.setDefaultCommand(
         Commands.sequence(
@@ -545,16 +555,20 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)));
+        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(false)));
+        .onTrue(
+            Commands.runOnce(() -> manipulator.setSecondBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
         .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(!manipulator.hasAlgae())));
 
+    RobotModeTriggers.autonomous()
+        .and(() -> ROBOT_TYPE == RobotType.SIM)
+        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
     driver
         .start()
         .onTrue(
@@ -654,6 +668,19 @@ public class Robot extends LoggedRobot {
         Stream.of(AlgaeIntakeTargets.values())
             .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
             .toArray(Pose2d[]::new));
+  }
+
+  private void addAutos() {
+    System.out.println("Regenerating Autos");
+    autoChooser.addOption("Triangle Test", autos.getTestTriangle());
+    autoChooser.addOption("Sprint Test", autos.getTestSprint());
+    autoChooser.addOption("LM to H", autos.LMtoH());
+    autoChooser.addOption("RM to G", autos.RMtoG());
+    autoChooser.addOption("4.5 L Outside", autos.LOtoJ());
+    autoChooser.addOption("4.5 R Outside", autos.ROtoE());
+    autoChooser.addOption("4.5 L Inside", autos.LItoK());
+    autoChooser.addOption("4.5 R Inside", autos.RItoD());
+    autoChooser.addOption("Push Auto", autos.PMtoPL());
   }
 
   /** Scales a joystick value for teleop driving */
@@ -756,6 +783,16 @@ public class Robot extends LoggedRobot {
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
     Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
+    Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
+    Logger.recordOutput("Autos/Score", Autos.autoScore);
+  }
+
+  public static void setCurrentTarget(ReefTarget target) {
+    currentTarget = target;
+  }
+
+  public ReefTarget getCurrentTarget() {
+    return currentTarget;
   }
 
   @Override

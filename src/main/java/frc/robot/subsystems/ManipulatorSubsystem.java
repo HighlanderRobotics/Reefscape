@@ -43,8 +43,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     Logger.processInputs(NAME + "/First Beambreak", firstBBInputs);
     Logger.processInputs(NAME + "/Second Beambreak", secondBBInputs);
     Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
-    Logger.recordOutput(NAME + "/First Beambreak Override", bb1);
-    Logger.recordOutput(NAME + "/Second Beambreak Override", bb2);
+    Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1);
+    Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2);
   }
 
   public Command index() {
@@ -54,7 +54,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         // TODO tune timeout
         setVelocity(1.0).withTimeout(0.5),
         setVelocity(0));
-  }
+  } // TODO check if anything got lost in merge?
 
   public Command backIndex() {
     return Commands.sequence(
