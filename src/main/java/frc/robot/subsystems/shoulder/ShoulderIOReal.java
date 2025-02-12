@@ -9,6 +9,8 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
@@ -65,17 +67,18 @@ public class ShoulderIOReal implements ShoulderIO {
     config.MotionMagic.MotionMagicCruiseVelocity = 2.0;
     config.MotionMagic.MotionMagicAcceleration = 10.0;
 
-    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_GEAR_RATIO;
 
     final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    cancoderConfig.MagnetSensor.MagnetOffset = 0.0;
-    cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0;
+    cancoderConfig.MagnetSensor.MagnetOffset = 0.882324;
+    cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.1;
 
     cancoder.getConfigurator().apply(cancoderConfig);
     motor.getConfigurator().apply(config);
-    motor.optimizeBusUtilization();
-    cancoder.optimizeBusUtilization();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
@@ -84,7 +87,11 @@ public class ShoulderIOReal implements ShoulderIO {
         appliedVoltage,
         supplyCurrentAmps,
         statorCurrentAmps,
+        cancoderPositionRotations,
         motorPositionRotations);
+
+    motor.optimizeBusUtilization();
+    cancoder.optimizeBusUtilization();
   }
 
   @Override

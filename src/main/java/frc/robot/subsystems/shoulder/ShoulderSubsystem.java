@@ -12,7 +12,8 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 public class ShoulderSubsystem extends SubsystemBase {
   // TODO: UPDATE WITH CAD
   public static final double SHOULDER_FINAL_STAGE_RATIO = 3.0;
-  public static final double SHOULDER_GEAR_RATIO = 9.0 * (34.0 / 28.0) * SHOULDER_FINAL_STAGE_RATIO;
+  public static final double SHOULDER_GEAR_RATIO =
+      25.0 * (34.0 / 28.0) * SHOULDER_FINAL_STAGE_RATIO;
   public static final int CANCODER_ID = 5;
   public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(120.0);
   public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
@@ -40,6 +41,7 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public ShoulderSubsystem(final ShoulderIO io) {
     this.io = io;
+    rezero();
   }
 
   @Override
@@ -54,7 +56,7 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public void rezero() {
     io.resetEncoder(
-        inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCW_90deg));
+        inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCCW_90deg));
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
