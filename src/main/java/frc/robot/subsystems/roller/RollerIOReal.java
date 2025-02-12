@@ -70,6 +70,7 @@ public class RollerIOReal implements RollerIO {
 
   @Override
   public void updateInputs(RollerIOInputsAutoLogged inputs) {
+    BaseStatusSignal.refreshAll(velocity, voltage, statorCurrent, supplyCurrent, temp);
     inputs.velocityRotationsPerSec = velocity.getValue().in(RotationsPerSecond);
     inputs.appliedVolts = voltage.getValue().in(Volts);
     inputs.statorCurrentAmps = statorCurrent.getValue().in(Amps);
