@@ -11,7 +11,7 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class WristSubsystem extends SubsystemBase {
-  public static final double WRIST_GEAR_RATIO = 1.0;
+  public static final double WRIST_GEAR_RATIO = 4.0 * 4.0 * (64.0 / 34.0);
   // TODO: UPDATE WHEN CAD IS FINISHED
   public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(180.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
