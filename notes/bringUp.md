@@ -11,8 +11,8 @@
 ## Mechanism Bring Up
 
 - [ ] Calibrate swerve offsets
-- [ ] Calibrate shoulder cancoder
-- [ ] Verify elevator, shoulder, wrist position sensing
+- [x] Calibrate shoulder cancoder
+- [x] Verify elevator, shoulder, wrist position sensing
 - [ ] Tune wrist PIDF
 - [ ] Tune shoulder PIDF
 - [ ] Tune elevator PIDF
