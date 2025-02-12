@@ -2,11 +2,11 @@
 
 ## Device Setup
 
-- [ ] Image RIO
-- [ ] Image OPis
-- [ ] Update Radio
-- [ ] Name/ID CAN Devices
-- [ ] License CAN Devices
+- [x] Image RIO
+- [x] Image OPis
+- [x] Update Radio
+- [x] Name/ID CAN Devices
+- [x] License CAN Devices
 
 ## Mechanism Bring Up
 

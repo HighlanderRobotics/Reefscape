@@ -283,11 +283,12 @@ public class Robot extends LoggedRobot {
                               .withGravityType(GravityTypeValue.Arm_Cosine)
                               .withKG(0.0)
                               .withKP(0.0))
-                      .withCurrentLimits(new CurrentLimitsConfigs()
-                        .withStatorCurrentLimit(10.0)
-                        .withStatorCurrentLimitEnable(true)
-                        .withSupplyCurrentLimit(20.0)
-                        .withSupplyCurrentLimitEnable(true))
+                      .withCurrentLimits(
+                          new CurrentLimitsConfigs()
+                              .withStatorCurrentLimit(10.0)
+                              .withStatorCurrentLimitEnable(true)
+                              .withSupplyCurrentLimit(20.0)
+                              .withSupplyCurrentLimitEnable(true))
                       .withFeedback(
                           new FeedbackConfigs()
                               .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
