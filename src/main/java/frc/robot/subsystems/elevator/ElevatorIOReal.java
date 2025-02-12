@@ -47,8 +47,8 @@ public class ElevatorIOReal implements ElevatorIO {
 
     config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
     config.Slot0.kG = 0.3;
-    config.Slot0.kS = 0.0; // 0.15;
-    config.Slot0.kV = /* 3.86476 */ 4.25;
+    config.Slot0.kS = 0.0;
+    config.Slot0.kV = 4.25;
     config.Slot0.kA = 0.0;
     config.Slot0.kP = 64.0;
     config.Slot0.kD = 1.0;
@@ -59,10 +59,9 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.SupplyCurrentLimit = 20.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
-    config.MotionMagic.MotionMagicAcceleration = 64.0;
+    config.MotionMagic.MotionMagicAcceleration = 2.0;
     // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity = 32.0;
-    // 50.0 / (ElevatorSubsystem.GEAR_RATIO * 2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
+    config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
 
     // Carriage position meters in direction of elevator
     config.Feedback.SensorToMechanismRatio =
