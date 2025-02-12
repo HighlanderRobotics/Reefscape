@@ -29,6 +29,7 @@ public class LEDSubsystem extends SubsystemBase {
   /** Creates a new LEDSubsystem. */
   public LEDSubsystem(LEDIO io) {
     this.io = io;
+    io.solid(Color.kPurple);
   }
 
   @Override
