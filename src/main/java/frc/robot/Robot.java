@@ -13,9 +13,9 @@ import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
-import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -279,10 +279,11 @@ public class Robot extends LoggedRobot {
                   12,
                   WristIOReal.getDefaultConfiguration()
                       .withSlot0(
-                          new Slot0Configs()
-                              .withGravityType(GravityTypeValue.Arm_Cosine)
-                              .withKG(0.0)
-                              .withKP(0.0))
+                          new Slot0Configs().withKP(1000.0).withKD(5.0).withKS(0.3).withKV(3.6))
+                      .withMotionMagic(
+                          new MotionMagicConfigs()
+                              .withMotionMagicCruiseVelocity(4)
+                              .withMotionMagicAcceleration(6))
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimit(30.0)
