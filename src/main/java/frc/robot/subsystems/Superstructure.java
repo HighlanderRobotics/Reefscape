@@ -40,6 +40,7 @@ public class Superstructure {
     INTAKE_ALGAE_HIGH,
     INTAKE_ALGAE_LOW,
     INTAKE_ALGAE_STACK,
+    CHECK_ALGAE,
     READY_ALGAE,
     SPIT_ALGAE,
     PRE_PROCESSOR,
@@ -385,8 +386,7 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
-        .and(intakeAlgaeReq.negate())
-        .onTrue(this.forceState(SuperState.READY_ALGAE));
+        .onTrue(this.forceState(SuperState.CHECK_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
@@ -406,8 +406,7 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
-        .and(intakeAlgaeReq.negate())
-        .onTrue(this.forceState(SuperState.READY_ALGAE));
+        .onTrue(this.forceState(SuperState.CHECK_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
@@ -427,8 +426,7 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
-        .and(intakeAlgaeReq.negate())
-        .onTrue(forceState(SuperState.READY_ALGAE));
+        .onTrue(forceState(SuperState.CHECK_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_STACK)
@@ -448,8 +446,7 @@ public class Superstructure {
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
-        .and(intakeAlgaeReq.negate())
-        .onTrue(forceState(SuperState.READY_ALGAE));
+        .onTrue(forceState(SuperState.CHECK_ALGAE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
@@ -457,7 +454,22 @@ public class Superstructure {
         .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
         .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
         .and(intakeAlgaeReq.negate())
-        .debounce(0.1)
+        .onTrue(this.forceState(SuperState.CHECK_ALGAE));
+
+    stateTriggers
+        .get(SuperState.CHECK_ALGAE)
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.intakeAlgae())
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .and(() -> stateTimer.hasElapsed(0.5))
+        .and(() -> manipulator.getStatorCurrentAmps() > 10.0)
+        .onTrue(this.forceState(SuperState.READY_ALGAE));
+
+    stateTriggers
+        .get(SuperState.CHECK_ALGAE)
+        .and(() -> stateTimer.hasElapsed(0.5))
+        .and(() -> manipulator.getStatorCurrentAmps() <= 10.0)
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
@@ -607,6 +619,7 @@ public class Superstructure {
         || this.state == SuperState.INTAKE_ALGAE_LOW
         || this.state == SuperState.INTAKE_ALGAE_HIGH
         || this.state == SuperState.INTAKE_ALGAE_STACK
+        || this.state == SuperState.CHECK_ALGAE
         || this.state == SuperState.PRE_NET
         || this.state == SuperState.PRE_PROCESSOR
         || this.state == SuperState.SCORE_ALGAE_NET
