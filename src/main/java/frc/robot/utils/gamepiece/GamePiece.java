@@ -63,7 +63,4 @@ public class GamePiece implements StructSerializable, ProtobufSerializable {
     return "GamePiece {" + "pose =" + pose + ", typ e=" + type + '}';
   }
 
-  public static GamePieceProto proto = new GamePieceProto();
-
-  // public static GamePieceStruct struct = new GamePieceStruct();
 }
