@@ -257,7 +257,8 @@ public class Robot extends LoggedRobot {
                   10,
                   RollerIOReal.getDefaultConfig()
                       .withMotorOutput(
-                          new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
+                          new MotorOutputConfigs()
+                              .withInverted(InvertedValue.CounterClockwise_Positive))
                       .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
                       .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5)))
               : new RollerIOSim(

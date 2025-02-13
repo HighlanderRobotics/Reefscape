@@ -368,7 +368,7 @@ public class Superstructure {
     // INTAKE_ALGAE_{location} -> READY_ALGAE
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
-        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(manipulator.intakeAlgae())

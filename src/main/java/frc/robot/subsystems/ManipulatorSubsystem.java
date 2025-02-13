@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.beambreak.BeambreakIO;
@@ -26,6 +27,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private boolean bb2 = false;
   private boolean hasAlgae = false;
 
+  private LinearFilter currentFilter = LinearFilter.movingAverage(5);
+  private double currentFilterValue = 0.0;
+
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
     super(rollerIO, NAME);
@@ -45,6 +49,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
     Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1);
     Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2);
+
+    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
   }
 
   public Command index() {
@@ -63,12 +69,12 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
-        .until(() -> inputs.statorCurrentAmps > 20.0)
+        .until(() -> currentFilterValue > 20.0)
         .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
   public double getStatorCurrentAmps() {
-    return inputs.statorCurrentAmps;
+    return currentFilterValue;
   }
 
   public boolean getFirstBeambreak() {
