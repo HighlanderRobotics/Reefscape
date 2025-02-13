@@ -531,11 +531,11 @@ public class Superstructure {
                     .until(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION)),
                 Commands.parallel(
                         shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                        wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
+                        wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
                     .until(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS)),
                 Commands.parallel(
                     shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS),
-                    wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))))
+                    wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))

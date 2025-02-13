@@ -286,9 +286,8 @@ public class Robot extends LoggedRobot {
                       .withSlot0(
                           new Slot0Configs().withKP(1000.0).withKD(5.0).withKS(0.3).withKV(3.6))
                       .withMotionMagic(
-                          new MotionMagicConfigs()
-                              .withMotionMagicCruiseVelocity(4)
-                              .withMotionMagicAcceleration(6))
+                        WristSubsystem.DEFAULT_MOTION_MAGIC
+                          )
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimit(30.0)

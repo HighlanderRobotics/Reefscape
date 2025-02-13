@@ -3,6 +3,8 @@ package frc.robot.subsystems.wrist;
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
+
 public interface WristIO {
   @AutoLog
   class ArmIOInputs {
@@ -25,4 +27,6 @@ public interface WristIO {
   public default void resetEncoder() {
     resetEncoder(Rotation2d.kZero);
   }
+
+  public default void setMotionMagicConfigs(final MotionMagicConfigs configs) {}
 }
