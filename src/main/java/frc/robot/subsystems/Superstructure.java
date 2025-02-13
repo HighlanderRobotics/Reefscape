@@ -217,8 +217,10 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.HOME)
-        .whileTrue(elevator.runCurrentZeroing())
-        .whileTrue(wrist.currentZero(() -> shoulder.getInputs()))
+        .whileTrue(
+            Commands.parallel(
+                    elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs()))
+                .andThen(this.forceState(SuperState.IDLE)))
         .and(() -> (elevator.hasZeroed && wrist.hasZeroed))
         .onTrue(this.forceState(SuperState.IDLE));
 

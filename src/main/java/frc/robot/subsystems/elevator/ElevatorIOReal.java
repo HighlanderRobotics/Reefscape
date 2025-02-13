@@ -46,22 +46,24 @@ public class ElevatorIOReal implements ElevatorIO {
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-    config.Slot0.kG = 0.3;
-    config.Slot0.kS = 0.0;
-    config.Slot0.kV = 4.25;
+    config.Slot0.kG = 0.4;
+    config.Slot0.kS = 0.15;
+    config.Slot0.kV = 4.5;
     config.Slot0.kA = 0.0;
-    config.Slot0.kP = 64.0;
-    config.Slot0.kD = 1.0;
+    config.Slot0.kP = 400.0;
+    config.Slot0.kD = 10.0;
+
+    config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.1;
 
     // TODO increase once validated
-    config.CurrentLimits.StatorCurrentLimit = 20.0;
+    config.CurrentLimits.StatorCurrentLimit = 80.0;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 20.0;
+    config.CurrentLimits.SupplyCurrentLimit = 40.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
-    config.MotionMagic.MotionMagicAcceleration = 2.0;
+    config.MotionMagic.MotionMagicAcceleration = 8.0;
     // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
+    config.MotionMagic.MotionMagicCruiseVelocity = 4.0;
 
     // Carriage position meters in direction of elevator
     config.Feedback.SensorToMechanismRatio =
@@ -91,7 +93,7 @@ public class ElevatorIOReal implements ElevatorIO {
 
   @Override
   public void setTarget(final double meters) {
-    // motor.setControl(positionVoltage.withPosition(meters));
+    motor.setControl(positionVoltage.withPosition(meters));
   }
 
   @Override

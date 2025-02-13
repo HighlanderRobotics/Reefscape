@@ -77,6 +77,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
 
     Logger.recordOutput("Elevator/Has Zeroed", hasZeroed);
+    Logger.recordOutput("Elevator/Filtered Current", currentFilterValue);
   }
 
   public Command setExtension(DoubleSupplier meters) {
