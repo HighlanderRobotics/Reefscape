@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -198,6 +199,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.IDLE)
         .and(() -> !elevator.hasZeroed || !wrist.hasZeroed)
+        .and(() -> DriverStation.isEnabled())
         .and(() -> Robot.ROBOT_TYPE != RobotType.SIM)
         .onTrue(this.forceState(SuperState.HOME));
 
@@ -208,7 +210,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(elevator.runCurrentZeroing())
         .whileTrue(wrist.currentZero(() -> shoulder.getInputs()))
-        .and(() -> (elevator.hasZeroed && wrist.hasZeroed) || Robot.ROBOT_TYPE == RobotType.SIM)
+        .and(() -> (elevator.hasZeroed && wrist.hasZeroed))
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
@@ -586,6 +588,7 @@ public class Superstructure {
   private Command forceState(SuperState nextState) {
     return Commands.runOnce(
             () -> {
+              System.out.println("Changing state to " + nextState);
               stateTimer.reset();
               this.prevState = this.state;
               this.state = nextState;

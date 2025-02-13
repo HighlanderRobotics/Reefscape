@@ -91,7 +91,7 @@ public class ElevatorIOReal implements ElevatorIO {
 
   @Override
   public void setTarget(final double meters) {
-    motor.setControl(positionVoltage.withPosition(meters));
+    // motor.setControl(positionVoltage.withPosition(meters));
   }
 
   @Override

@@ -82,12 +82,12 @@ public class RollerIOReal implements RollerIO {
 
   @Override
   public void setVoltage(double voltage) {
-    motor.setControl(voltageOut.withOutput(voltage));
+    // motor.setControl(voltageOut.withOutput(voltage));
   }
 
   @Override
   public void setVelocity(double velocityRPS) {
-    motor.setControl(velocityVoltage.withVelocity(velocityRPS));
+    // motor.setControl(velocityVoltage.withVelocity(velocityRPS));
   }
 
   @Override

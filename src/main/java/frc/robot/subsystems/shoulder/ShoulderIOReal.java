@@ -117,12 +117,12 @@ public class ShoulderIOReal implements ShoulderIO {
 
   @Override
   public void setMotorVoltage(final double voltage) {
-    motor.setControl(voltageOut.withOutput(voltage));
+    // motor.setControl(voltageOut.withOutput(voltage));
   }
 
   @Override
   public void setMotorPosition(final Rotation2d targetPosition) {
-    motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
+    // motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 
   @Override

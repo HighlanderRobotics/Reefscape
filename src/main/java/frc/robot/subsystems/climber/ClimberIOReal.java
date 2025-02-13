@@ -72,11 +72,11 @@ public class ClimberIOReal implements ClimberIO {
 
   @Override
   public void setVoltage(double volts) {
-    motor.setControl(voltageOut.withOutput(volts));
+    // motor.setControl(voltageOut.withOutput(volts));
   }
 
   @Override
   public void setPosition(final double position) {
-    motor.setControl(motionMagic.withPosition(position));
+    // motor.setControl(motionMagic.withPosition(position));
   }
 }

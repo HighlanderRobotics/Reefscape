@@ -10,7 +10,7 @@
 
 ## Mechanism Bring Up
 
-- [ ] Calibrate swerve offsets
+- [x] Calibrate swerve offsets
 - [x] Calibrate shoulder cancoder
 - [x] Verify elevator, shoulder, wrist position sensing
 - [ ] Tune wrist PIDF
@@ -26,8 +26,10 @@
 
 ## Vision
 
-- [ ] Name cameras
-- [ ] Calibrate cameras
+partial - only `Front_Left` is on the robot for initial bring up
+
+- [x] Name cameras
+- [x] Calibrate cameras
 - [ ] Validate camera transforms
 - [ ] Validate pose estimates
 

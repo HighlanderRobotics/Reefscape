@@ -46,6 +46,7 @@ public class WristSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Carriage/Wrist", inputs);
+    Logger.recordOutput("Wrist/Has Zeroed", hasZeroed);
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
@@ -75,9 +76,17 @@ public class WristSubsystem extends SubsystemBase {
 
   public Command currentZero(Supplier<ShoulderIOInputsAutoLogged> shoulderInputs) {
     return Commands.sequence(
-        this.runOnce(() -> currentFilter.reset()),
+        this.runOnce(
+            () -> {
+              currentFilter.reset();
+              System.out.println("Wrist Zeroing");
+            }),
         this.run(() -> io.setMotorVoltage(-1.0))
             .until(() -> currentFilter.calculate(inputs.statorCurrentAmps) > 20.0),
-        this.runOnce(() -> io.resetEncoder(inputs.position.minus(ZEROING_OFFSET))));
+        this.runOnce(
+            () -> {
+              hasZeroed = true;
+              io.resetEncoder(inputs.position.minus(ZEROING_OFFSET));
+            }));
   }
 }
