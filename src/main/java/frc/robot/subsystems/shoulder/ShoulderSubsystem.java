@@ -3,7 +3,9 @@ package frc.robot.subsystems.shoulder;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -42,6 +44,8 @@ public class ShoulderSubsystem extends SubsystemBase {
   public ShoulderSubsystem(final ShoulderIO io) {
     this.io = io;
     rezero();
+    SmartDashboard.putData(
+        "Shoulder Zero", Commands.runOnce(() -> this.rezero()).ignoringDisable(true));
   }
 
   @Override

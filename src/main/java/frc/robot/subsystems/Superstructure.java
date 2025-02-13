@@ -375,9 +375,10 @@ public class Superstructure {
         .and(
             () ->
                 Robot.ROBOT_TYPE == RobotType.REAL
-                    ? manipulator.getStatorCurrentAmps() > 20
+                    ? manipulator.getStatorCurrentAmps()
+                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
                     : manipulator.hasAlgae())
-        .and(() -> elevator.isNearExtension(0.0))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
         .onTrue(this.forceState(SuperState.READY_ALGAE));
@@ -391,7 +392,8 @@ public class Superstructure {
         .and(
             () ->
                 Robot.ROBOT_TYPE == RobotType.REAL
-                    ? manipulator.getStatorCurrentAmps() > 20
+                    ? manipulator.getStatorCurrentAmps()
+                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
                     : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
@@ -407,7 +409,8 @@ public class Superstructure {
         .and(
             () ->
                 Robot.ROBOT_TYPE == RobotType.REAL
-                    ? manipulator.getStatorCurrentAmps() > 20
+                    ? manipulator.getStatorCurrentAmps()
+                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
                     : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
@@ -423,7 +426,8 @@ public class Superstructure {
         .and(
             () ->
                 Robot.ROBOT_TYPE == RobotType.REAL
-                    ? manipulator.getStatorCurrentAmps() > 20
+                    ? manipulator.getStatorCurrentAmps()
+                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
                     : manipulator.hasAlgae())
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
