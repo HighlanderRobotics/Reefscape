@@ -19,7 +19,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final int CANCODER_ID = 5;
   public static final Rotation2d MAX_SHOULDER_ROTATION = Rotation2d.fromDegrees(120.0);
   public static final Rotation2d MIN_SHOULDER_ROTATION = Rotation2d.fromDegrees(-5.0);
-  public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(80.0);
+  public static final Rotation2d SHOULDER_RETRACTED_POS = Rotation2d.fromDegrees(90.0);
 
   public static final double X_OFFSET_METERS = 0.1016254;
   public static final double Z_OFFSET_METERS = 0.207645;
@@ -32,6 +32,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(75);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = SHOULDER_RETRACTED_POS;
+  public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(75.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();

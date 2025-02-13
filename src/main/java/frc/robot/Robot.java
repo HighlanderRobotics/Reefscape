@@ -256,6 +256,10 @@ public class Robot extends LoggedRobot {
               ? new RollerIOReal(
                   10,
                   RollerIOReal.getDefaultConfig()
+                      .withCurrentLimits(
+                          new CurrentLimitsConfigs()
+                              .withSupplyCurrentLimit(30.0)
+                              .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
                           new MotorOutputConfigs()
                               .withInverted(InvertedValue.CounterClockwise_Positive))

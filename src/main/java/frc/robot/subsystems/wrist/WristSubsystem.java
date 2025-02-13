@@ -18,7 +18,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(180 - 49.519570 + 5);
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(-30.0);
-  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(0.0);
+  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(-33.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_SCORE_L1_POS = Rotation2d.fromDegrees(-40);
@@ -26,7 +26,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_L3_POS = Rotation2d.fromDegrees(-35);
   public static final Rotation2d WRIST_SCORE_L4_POS = Rotation2d.fromDegrees(-40);
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(-33.5);
-  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(75);
+  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(85);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = WRIST_RETRACTED_POS;
 
   private final WristIO io;
