@@ -497,6 +497,7 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_PROCESSOR_POS))
+        .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE));
