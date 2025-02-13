@@ -13,16 +13,16 @@
 - [x] Calibrate swerve offsets
 - [x] Calibrate shoulder cancoder
 - [x] Verify elevator, shoulder, wrist position sensing
-- [ ] Tune wrist PIDF
-- [ ] Tune shoulder PIDF
-- [ ] Tune elevator PIDF
-- [ ] Verify elevator zeroing
-- [ ] Verify wrist zeroing
+- [x] Tune wrist PIDF
+- [x] Tune shoulder PIDF
+- [x] Tune elevator PIDF *needs checking*
+- [x] Verify elevator zeroing
+- [x] Verify wrist zeroing
 - [ ] Verify climber zeroing
 - [ ] Tune climber PIDF
 - [ ] Tune climber setpoints
-- [ ] Tune coral HP handoff
-- [ ] Tune algae ground pickup
+- [x] Tune coral HP handoff
+- [x] Tune algae ground pickup *issues with dropping and current sensing*
 
 ## Vision
 
@@ -30,8 +30,8 @@ partial - only `Front_Left` is on the robot for initial bring up
 
 - [x] Name cameras
 - [x] Calibrate cameras
-- [ ] Validate camera transforms
-- [ ] Validate pose estimates
+- [x] Validate camera transforms
+- [x] Validate pose estimates *appears fine by cursory inspection*
 
 ## Loom Testing
 
@@ -39,7 +39,7 @@ partial - only `Front_Left` is on the robot for initial bring up
 - [ ] Validate reef scoring
 - [ ] Tune algae removal extensions
 - [ ] Tune algae stack intake
-- [ ] Tune algae net extension
+- [x] Tune algae net extension
 - [ ] Finely tune swerve
 - [ ] Tune auto align controllers
 - [ ] Validate auto align positions
