@@ -66,22 +66,24 @@ public class KelpieSwerveConstants extends SwerveConstants {
 
   @Override
   public Module.ModuleConstants getFrontLeftModule() {
-    return new Module.ModuleConstants(0, "Front Left", 0, 1, 0, Rotation2d.kZero);
+    return new Module.ModuleConstants(0, "Front Left", 0, 1, 0, Rotation2d.fromRotations(0.215576));
   }
 
   @Override
   public Module.ModuleConstants getFrontRightModule() {
-    return new Module.ModuleConstants(1, "Front Right", 2, 3, 1, Rotation2d.kZero);
+    return new Module.ModuleConstants(
+        1, "Front Right", 2, 3, 1, Rotation2d.fromRotations(0.011719));
   }
 
   @Override
   public Module.ModuleConstants getBackLeftModule() {
-    return new Module.ModuleConstants(2, "Back Left", 4, 5, 2, Rotation2d.kZero);
+    return new Module.ModuleConstants(2, "Back Left", 4, 5, 2, Rotation2d.fromRotations(-0.276855));
   }
 
   @Override
   public Module.ModuleConstants getBackRightModule() {
-    return new Module.ModuleConstants(3, "Back Right", 6, 7, 3, Rotation2d.kZero);
+    return new Module.ModuleConstants(
+        3, "Back Right", 6, 7, 3, Rotation2d.fromRotations(-0.211426));
   }
 
   @Override
@@ -278,7 +280,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(30))),
             FRONT_CAMERA_MATRIX,
             FRONT_DIST_COEFFS);
-    return new VisionConstants[] {backLeftCamConstants, backRightCamConstants, frontCamConstants};
+    return new VisionConstants[] {frontCamConstants};
   }
 
   @Override
