@@ -1,5 +1,6 @@
 package frc.robot.subsystems.wrist;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -9,8 +10,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.subsystems.shoulder.ShoulderIOInputsAutoLogged;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
-
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 
 public class WristSubsystem extends SubsystemBase {
   public static final double WRIST_GEAR_RATIO = 4.0 * 4.0 * (64.0 / 34.0);
@@ -31,13 +30,11 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(85);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = WRIST_RETRACTED_POS;
 
-  public static MotionMagicConfigs DEFAULT_MOTION_MAGIC = new MotionMagicConfigs()
-                              .withMotionMagicCruiseVelocity(4)
-                              .withMotionMagicAcceleration(6);
+  public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(6);
 
-  public static MotionMagicConfigs SLOW_MOTION_MAGIC = new MotionMagicConfigs()
-                              .withMotionMagicCruiseVelocity(2)
-                              .withMotionMagicAcceleration(2);
+  public static MotionMagicConfigs SLOW_MOTION_MAGIC =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
 
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
@@ -74,7 +71,8 @@ public class WristSubsystem extends SubsystemBase {
 
   public Command setSlowTargetAngle(final Supplier<Rotation2d> target) {
     return this.runOnce(() -> io.setMotionMagicConfigs(SLOW_MOTION_MAGIC))
-      .andThen(this.setTargetAngle(target)).finallyDo((interrupted) -> io.setMotionMagicConfigs(DEFAULT_MOTION_MAGIC));
+        .andThen(this.setTargetAngle(target))
+        .finallyDo((interrupted) -> io.setMotionMagicConfigs(DEFAULT_MOTION_MAGIC));
   }
 
   public Command setSlowTargetAngle(final Rotation2d target) {

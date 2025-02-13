@@ -13,7 +13,6 @@ import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -285,9 +284,7 @@ public class Robot extends LoggedRobot {
                   WristIOReal.getDefaultConfiguration()
                       .withSlot0(
                           new Slot0Configs().withKP(1000.0).withKD(5.0).withKS(0.3).withKV(3.6))
-                      .withMotionMagic(
-                        WristSubsystem.DEFAULT_MOTION_MAGIC
-                          )
+                      .withMotionMagic(WristSubsystem.DEFAULT_MOTION_MAGIC)
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimit(30.0)
@@ -477,7 +474,13 @@ public class Robot extends LoggedRobot {
 
     leds.setDefaultCommand(
         Commands.either(
-                leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 5.0)
+                leds.setBlinkingCmd(
+                        () -> LEDSubsystem.getReefTargetColor(currentTarget),
+                        () ->
+                            superstructure.getState() == SuperState.IDLE
+                                ? Color.kBlack
+                                : Color.kWhite,
+                        5.0)
                     .until(() -> !DriverStation.isEnabled()),
                 leds.setRunAlongCmd(
                         () ->
@@ -632,41 +635,11 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
-    new Trigger(() -> superstructure.stateIsCoralAlike())
-        .whileTrue(
-            leds.setBlinkingCmd(
-                () -> {
-                  if (currentTarget == ReefTarget.L1) {
-                    return LEDSubsystem.L1;
-                  } else if (currentTarget == ReefTarget.L2) {
-                    return LEDSubsystem.L2;
-                  } else if (currentTarget == ReefTarget.L3) {
-                    return LEDSubsystem.L3;
-                  } else if (currentTarget == ReefTarget.L4) {
-                    return LEDSubsystem.L4;
-                  }
-                  // impossible
-                  return Color.kBlack;
-                },
-                () -> Color.kBlack,
-                5.0));
-
     new Trigger(() -> superstructure.stateIsAlgaeAlike())
         .whileTrue(
-            leds.setBlinkingCmd(
-                () -> {
-                  if (algaeIntakeTarget == AlgaeIntakeTarget.GROUND) {
-                    return LEDSubsystem.L1;
-                  } else if (algaeIntakeTarget == AlgaeIntakeTarget.LOW) {
-                    return LEDSubsystem.L2;
-                  } else if (algaeIntakeTarget == AlgaeIntakeTarget.HIGH) {
-                    return LEDSubsystem.L3;
-                  } else if (algaeIntakeTarget == AlgaeIntakeTarget.STACK) {
-                    return LEDSubsystem.L4;
-                  }
-                  // impossible
-                  return Color.kBlack;
-                },
+            leds.setBlinkingSplitCmd(
+                () -> LEDSubsystem.getAlgaeIntakeTargetColor(algaeIntakeTarget),
+                () -> LEDSubsystem.getAlgaeScoringTargetColor(true),
                 () -> Color.kBlack,
                 5.0));
 

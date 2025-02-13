@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot.AlgaeIntakeTarget;
+import frc.robot.Robot.ReefTarget;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -76,6 +78,16 @@ public class LEDSubsystem extends SubsystemBase {
         setSolidCmd(offColor).withTimeout(1.0 / frequency));
   }
 
+  public Command setBlinkingSplitCmd(
+      Supplier<Color> upOnColor,
+      Supplier<Color> downOnColor,
+      Supplier<Color> offColor,
+      double frequency) {
+    return Commands.repeatingSequence(
+        setSplitCmd(upOnColor, downOnColor).withTimeout(1.0 / frequency),
+        setSolidCmd(offColor).withTimeout(1.0 / frequency));
+  }
+
   /** Sets the first portion of the leds to a color, and the rest off */
   public Command setProgressCmd(Color color, DoubleSupplier progress) {
     return this.run(
@@ -108,5 +120,42 @@ public class LEDSubsystem extends SubsystemBase {
           dashStart += LED_LENGTH * frequency * 0.020;
           dashStart %= LED_LENGTH;
         });
+  }
+
+  public static Color getReefTargetColor(ReefTarget currentTarget) {
+    if (currentTarget == ReefTarget.L1) {
+      return LEDSubsystem.L1;
+    } else if (currentTarget == ReefTarget.L2) {
+      return LEDSubsystem.L2;
+    } else if (currentTarget == ReefTarget.L3) {
+      return LEDSubsystem.L3;
+    } else if (currentTarget == ReefTarget.L4) {
+      return LEDSubsystem.L4;
+    }
+    // impossible
+    return Color.kBlack;
+  }
+
+  public static Color getAlgaeIntakeTargetColor(AlgaeIntakeTarget algaeIntakeTarget) {
+
+    if (algaeIntakeTarget == AlgaeIntakeTarget.GROUND) {
+      return LEDSubsystem.L1;
+    } else if (algaeIntakeTarget == AlgaeIntakeTarget.LOW) {
+      return LEDSubsystem.L2;
+    } else if (algaeIntakeTarget == AlgaeIntakeTarget.HIGH) {
+      return LEDSubsystem.L3;
+    } else if (algaeIntakeTarget == AlgaeIntakeTarget.STACK) {
+      return LEDSubsystem.L4;
+    }
+    // impossible
+    return Color.kBlack;
+  }
+
+  public static Color getAlgaeScoringTargetColor(boolean isNet) {
+    if (isNet) {
+      return Color.kRed;
+    } else {
+      return Color.kYellow;
+    }
   }
 }

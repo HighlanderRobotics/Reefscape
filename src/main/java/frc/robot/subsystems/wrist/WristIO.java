@@ -1,9 +1,8 @@
 package frc.robot.subsystems.wrist;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
-
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 
 public interface WristIO {
   @AutoLog

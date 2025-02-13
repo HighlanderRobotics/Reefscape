@@ -547,19 +547,9 @@ public class Superstructure {
         .get(SuperState.SCORE_ALGAE_NET)
         .onTrue(Commands.runOnce(() -> stateTimer.reset()))
         .whileTrue(manipulator.setVoltage(-ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE))
-        .whileTrue(
-            elevator.setExtension(
-                
-                    ElevatorSubsystem.ALGAE_NET_EXTENSION
-                  
-                ))
-        .whileTrue(
-            shoulder.setTargetAngle(
-                
-                    ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
-        .whileTrue(
-            wrist.setTargetAngle(
-                WristSubsystem.WRIST_SHOOT_NET_POS))
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> stateTimer.hasElapsed(1))
         .whileTrue(
             Commands.parallel(
@@ -569,14 +559,15 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(0))
         .and(() -> elevator.isNearExtension(0))
         .onTrue(forceState(SuperState.IDLE));
-    
-    stateTriggers.get(SuperState.SCORE_ALGAE_PROCESSOR)
-            .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
-            .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-            .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
-            .whileTrue(manipulator.setVoltage(-ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE))
-            .and(() -> stateTimer.hasElapsed(1.0))
-            .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.SCORE_ALGAE_PROCESSOR)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(manipulator.setVoltage(-ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE))
+        .and(() -> stateTimer.hasElapsed(1.0))
+        .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.PRE_CLIMB)
