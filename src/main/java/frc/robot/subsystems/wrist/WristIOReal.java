@@ -84,6 +84,7 @@ public class WristIOReal implements WristIO {
 
   @Override
   public void setMotorPosition(final Rotation2d targetPosition) {
+    motor.setControl(voltageOut.withOutput(0));
     // motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 

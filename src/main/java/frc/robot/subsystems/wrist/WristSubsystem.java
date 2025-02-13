@@ -15,7 +15,7 @@ public class WristSubsystem extends SubsystemBase {
   // TODO: UPDATE WHEN CAD IS FINISHED
   public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(180.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
-  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(90.0 - 49.519570);
+  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(180 - 49.519570 + 5);
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(-30.0);
   public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(0.0);
@@ -82,11 +82,11 @@ public class WristSubsystem extends SubsystemBase {
               System.out.println("Wrist Zeroing");
             }),
         this.run(() -> io.setMotorVoltage(-1.0))
-            .until(() -> currentFilter.calculate(inputs.statorCurrentAmps) > 20.0),
+            .until(() -> Math.abs(currentFilter.calculate(inputs.statorCurrentAmps)) > 20.0),
         this.runOnce(
             () -> {
               hasZeroed = true;
-              io.resetEncoder(inputs.position.minus(ZEROING_OFFSET));
+              io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
             }));
   }
 }
