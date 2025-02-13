@@ -29,6 +29,8 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(85);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = WRIST_RETRACTED_POS;
 
+  // private static MotionMagicConfigs DEFAULT_MOTION_MAGIC = ;
+
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 

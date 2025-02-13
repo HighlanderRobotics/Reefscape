@@ -474,6 +474,8 @@ public class Robot extends LoggedRobot {
 
     wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
+    funnel.setDefaultCommand(funnel.setVoltage(0.0));
+
     leds.setDefaultCommand(
         Commands.either(
                 leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 5.0)
