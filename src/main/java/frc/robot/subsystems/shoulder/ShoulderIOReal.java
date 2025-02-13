@@ -4,7 +4,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -33,7 +33,7 @@ public class ShoulderIOReal implements ShoulderIO {
   private final StatusSignal<Angle> cancoderPositionRotations;
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
-  private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
+  private final MotionMagicTorqueCurrentFOC motionMagic = new MotionMagicTorqueCurrentFOC(0.0);
 
   public ShoulderIOReal() {
     motor = new TalonFX(11, "*");
@@ -50,22 +50,21 @@ public class ShoulderIOReal implements ShoulderIO {
     final TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-    config.Slot0.kG = 0.0;
-    config.Slot0.kS = 0.0;
+    config.Slot0.kG = 8.6;
+    config.Slot0.kS = 2.5;
     config.Slot0.kV = 0.0;
     config.Slot0.kA = 0.0;
-    config.Slot0.kP = 0.0;
-    config.Slot0.kD = 0.0;
+    config.Slot0.kP = 8000.0;
+    config.Slot0.kD = 160.0;
 
-    // TODO increase
-    config.CurrentLimits.StatorCurrentLimit = 10.0;
+    config.CurrentLimits.StatorCurrentLimit = 40.0;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
     config.CurrentLimits.SupplyCurrentLimit = 20.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     // guesses
-    config.MotionMagic.MotionMagicCruiseVelocity = 2.0;
-    config.MotionMagic.MotionMagicAcceleration = 10.0;
+    config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
+    config.MotionMagic.MotionMagicAcceleration = 4.0;
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -117,12 +116,12 @@ public class ShoulderIOReal implements ShoulderIO {
 
   @Override
   public void setMotorVoltage(final double voltage) {
-    // motor.setControl(voltageOut.withOutput(voltage));
+    motor.setControl(voltageOut.withOutput(voltage));
   }
 
   @Override
   public void setMotorPosition(final Rotation2d targetPosition) {
-    // motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
+    motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 
   @Override

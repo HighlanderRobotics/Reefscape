@@ -99,7 +99,7 @@ public class ElevatorSubsystem extends SubsystemBase {
               setpoint = 0.0;
               Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> currentFilterValue > 20.0)
+        .until(() -> Math.abs(currentFilterValue) > 19.0)
         .finallyDo(
             (interrupted) -> {
               if (!interrupted) {
