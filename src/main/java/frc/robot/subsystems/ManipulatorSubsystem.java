@@ -18,7 +18,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public static final double ALGAE_INTAKE_VOLTAGE = -10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = -3.0;
-  public static final double ALGAE_CURRENT_THRESHOLD = 20.0;
+  public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
 
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
@@ -70,7 +70,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
-        .until(() -> Math.abs(currentFilterValue) > 20.0)
+        .until(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
         .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
