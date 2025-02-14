@@ -374,7 +374,8 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.ANTI_JAM)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
-        .whileTrue(manipulator.setVelocity(10));
+        .whileTrue(manipulator.setVelocity(10))
+        .whileTrue(funnel.setVoltage(-10.0));
 
     stateTriggers
         .get(SuperState.CHECK_ALGAE)
