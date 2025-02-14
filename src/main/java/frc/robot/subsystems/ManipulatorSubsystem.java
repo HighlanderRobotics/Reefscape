@@ -57,8 +57,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command index() {
     return Commands.sequence(
-        setVelocity(6.0).until(() -> firstBBInputs.get),
-        setVelocity(3.0).until(() -> secondBBInputs.get),
+        setVelocity(6.0).until(() -> firstBBInputs.get).unless(() -> firstBBInputs.get),
+        setVelocity(3.0).until(() -> secondBBInputs.get).unless(() -> secondBBInputs.get),
         // TODO tune timeout
         Commands.runOnce(() -> io.resetEncoder(0.0)),
         Commands.run(() -> io.setPosition(Rotation2d.fromRotations(0.8))),

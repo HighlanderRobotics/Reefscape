@@ -166,7 +166,7 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
         .whileTrue(funnel.setVoltage(5.0))
-        .and(manipulator::getSecondBeambreak)
+        .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
     // IDLE -> INTAKE_ALGAE_{location}
@@ -360,7 +360,9 @@ public class Superstructure {
         .get(SuperState.SCORE_CORAL)
         .and(() -> (!manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak()))
         .debounce(0.25)
-        .whileTrue(this.extendWithClearance(0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
+        .whileTrue(
+            this.extendWithClearance(
+                0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
         .and(() -> elevator.isNearExtension(0))
         .onTrue(this.forceState(SuperState.IDLE));
 
