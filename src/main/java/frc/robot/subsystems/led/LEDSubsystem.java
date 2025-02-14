@@ -21,7 +21,7 @@ public class LEDSubsystem extends SubsystemBase {
   public static final Color L1 = Color.kGreen;
   public static final Color L2 = Color.kTeal;
   public static final Color L3 = Color.kBlue;
-  public static final Color L4 = Color.kViolet;
+  public static final Color L4 = Color.kMagenta;
 
   private final LEDIO io;
   private final LEDIOInputsAutoLogged inputs = new LEDIOInputsAutoLogged();
@@ -133,7 +133,7 @@ public class LEDSubsystem extends SubsystemBase {
       return LEDSubsystem.L4;
     }
     // impossible
-    return Color.kBlack;
+    return Color.kYellow;
   }
 
   public static Color getAlgaeIntakeTargetColor(AlgaeIntakeTarget algaeIntakeTarget) {
@@ -148,7 +148,7 @@ public class LEDSubsystem extends SubsystemBase {
       return LEDSubsystem.L4;
     }
     // impossible
-    return Color.kBlack;
+    return Color.kYellow;
   }
 
   public static Color getAlgaeScoringTargetColor(boolean isNet) {
