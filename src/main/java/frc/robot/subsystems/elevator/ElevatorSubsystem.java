@@ -40,7 +40,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(61.0);
   public static final double ALGAE_PROCESSOR_EXTENSION = 0.0;
 
-  public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
+  public static final double HP_EXTENSION_METERS = Units.inchesToMeters(1.0);
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;

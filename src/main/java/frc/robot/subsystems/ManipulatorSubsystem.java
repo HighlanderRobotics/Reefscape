@@ -59,7 +59,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         setVelocity(10.0).until(() -> firstBBInputs.get),
         setVelocity(3.0).until(() -> secondBBInputs.get),
         // TODO tune timeout
-        setVelocity(1.0).withTimeout(0.5),
+        setVelocity(2.0).withTimeout(0.25),
         setVelocity(0));
   } // TODO check if anything got lost in merge?
 
