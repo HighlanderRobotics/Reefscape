@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.beambreak.BeambreakIO;
@@ -59,7 +60,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         setVelocity(10.0).until(() -> firstBBInputs.get),
         setVelocity(3.0).until(() -> secondBBInputs.get),
         // TODO tune timeout
-        setVelocity(2.0).withTimeout(0.25),
+        Commands.runOnce(() -> io.resetEncoder(0.0)),
+        Commands.run(() -> io.setPosition(Rotation2d.fromRotations(0.8))),
+        // setVelocity(2.0).withTimeout(0.25),
         setVelocity(0));
   } // TODO check if anything got lost in merge?
 

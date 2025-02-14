@@ -14,12 +14,16 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
@@ -33,12 +37,15 @@ public class RollerIOReal implements RollerIO {
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
   private final VelocityVoltage velocityVoltage =
       new VelocityVoltage(0.0).withEnableFOC(true).withSlot(0);
+  private final PositionVoltage positionVoltage =
+      new PositionVoltage(0.0).withEnableFOC(true).withSlot(1);
 
   private final StatusSignal<AngularVelocity> velocity;
   private final StatusSignal<Voltage> voltage;
   private final StatusSignal<Current> statorCurrent;
   private final StatusSignal<Current> supplyCurrent;
   private final StatusSignal<Temperature> temp;
+  private final StatusSignal<Angle> position;
 
   private Optional<Consumer<RollerIOInputsAutoLogged>> callback = Optional.empty();
 
@@ -52,9 +59,10 @@ public class RollerIOReal implements RollerIO {
     statorCurrent = motor.getStatorCurrent();
     supplyCurrent = motor.getSupplyCurrent();
     temp = motor.getDeviceTemp();
+    position = motor.getPosition();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
-        50.0, velocity, voltage, statorCurrent, supplyCurrent, temp);
+        50.0, velocity, voltage, statorCurrent, supplyCurrent, temp, position);
 
     motor.optimizeBusUtilization();
   }
@@ -66,6 +74,7 @@ public class RollerIOReal implements RollerIO {
                 .withSupplyCurrentLimit(15.0)
                 .withSupplyCurrentLimitEnable(true))
         .withSlot0(new Slot0Configs().withKV(0.12).withKP(0.01))
+        .withSlot1(new Slot1Configs().withKP(20))
         .withMotorOutput(
             new MotorOutputConfigs()
                 .withInverted(InvertedValue.Clockwise_Positive)
@@ -74,12 +83,13 @@ public class RollerIOReal implements RollerIO {
 
   @Override
   public void updateInputs(RollerIOInputsAutoLogged inputs) {
-    BaseStatusSignal.refreshAll(velocity, voltage, statorCurrent, supplyCurrent, temp);
+    BaseStatusSignal.refreshAll(velocity, voltage, statorCurrent, supplyCurrent, temp, position);
     inputs.velocityRotationsPerSec = velocity.getValue().in(RotationsPerSecond);
     inputs.appliedVolts = voltage.getValue().in(Volts);
     inputs.statorCurrentAmps = statorCurrent.getValue().in(Amps);
     inputs.supplyCurrentAmps = supplyCurrent.getValue().in(Amps);
     inputs.tempCelsius = temp.getValue().in(Celsius);
+    inputs.positionRotations = position.getValueAsDouble();
 
     callback.ifPresent((cb) -> cb.accept(inputs));
   }
@@ -97,5 +107,15 @@ public class RollerIOReal implements RollerIO {
   @Override
   public void registerSimulationCallback(Consumer<RollerIOInputsAutoLogged> callback) {
     this.callback = Optional.of(callback);
+  }
+
+  @Override
+  public void setPosition(Rotation2d rot) {
+    motor.setControl(positionVoltage.withPosition(rot.getRotations()));
+  }
+
+  @Override
+  public void resetEncoder(final double position) {
+    motor.setPosition(position);
   }
 }

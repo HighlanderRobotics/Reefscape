@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.roller;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import java.util.function.Consumer;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -15,6 +16,7 @@ public interface RollerIO {
     public double statorCurrentAmps = 0.0;
     public double supplyCurrentAmps = 0.0;
     public double tempCelsius = 0.0;
+    public double positionRotations = 0.0;
   }
 
   public void updateInputs(RollerIOInputsAutoLogged inputs);
@@ -32,4 +34,8 @@ public interface RollerIO {
    * simulation, such as for routing simulation
    */
   public void registerSimulationCallback(Consumer<RollerIOInputsAutoLogged> callback);
+
+  public void setPosition(Rotation2d rot);
+
+  public void resetEncoder(double position);
 }
