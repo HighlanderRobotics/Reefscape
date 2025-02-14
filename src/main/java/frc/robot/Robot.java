@@ -113,25 +113,46 @@ public class Robot extends LoggedRobot {
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
   public static enum ReefTarget {
-    L1(ElevatorSubsystem.L1_EXTENSION_METERS, 12.0, WristSubsystem.WRIST_SCORE_L1_POS),
-    L2(ElevatorSubsystem.L2_EXTENSION_METERS, WristSubsystem.WRIST_SCORE_L2_POS),
-    L3(ElevatorSubsystem.L3_EXTENSION_METERS, WristSubsystem.WRIST_SCORE_L3_POS),
-    L4(ElevatorSubsystem.L4_EXTENSION_METERS, 20.0, WristSubsystem.WRIST_SCORE_L4_POS);
+    L1(
+        ElevatorSubsystem.L1_EXTENSION_METERS,
+        12.0,
+        WristSubsystem.WRIST_SCORE_L1_POS,
+        ShoulderSubsystem.SHOULDER_SCORE_POS),
+    L2(
+        ElevatorSubsystem.L2_EXTENSION_METERS,
+        WristSubsystem.WRIST_SCORE_L2_POS,
+        ShoulderSubsystem.SHOULDER_SCORE_POS),
+    L3(
+        ElevatorSubsystem.L3_EXTENSION_METERS,
+        WristSubsystem.WRIST_SCORE_L3_POS,
+        ShoulderSubsystem.SHOULDER_SCORE_POS),
+    L4(
+        ElevatorSubsystem.L4_EXTENSION_METERS,
+        20.0,
+        WristSubsystem.WRIST_SCORE_L4_POS,
+        ShoulderSubsystem.SHOULDER_SCORE_L4_POS);
 
     public final double elevatorHeight;
     public final double outtakeSpeed;
     public final Rotation2d wristAngle;
+    public final Rotation2d shoulderAngle;
 
-    private ReefTarget(double elevatorHeight, double outtakeSpeed, Rotation2d wristAngle) {
+    private ReefTarget(
+        double elevatorHeight,
+        double outtakeSpeed,
+        Rotation2d wristAngle,
+        Rotation2d shoulderAngle) {
       this.elevatorHeight = elevatorHeight;
       this.outtakeSpeed = outtakeSpeed;
       this.wristAngle = wristAngle;
+      this.shoulderAngle = shoulderAngle;
     }
 
-    private ReefTarget(double elevatorHeight, Rotation2d wristAngle) {
+    private ReefTarget(double elevatorHeight, Rotation2d wristAngle, Rotation2d shoulderAngle) {
       this.elevatorHeight = elevatorHeight;
       this.outtakeSpeed = 100.0;
       this.wristAngle = wristAngle;
+      this.shoulderAngle = shoulderAngle;
     }
   }
 
