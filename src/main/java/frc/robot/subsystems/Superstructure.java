@@ -360,9 +360,16 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .whileTrue(elevator.setExtension(() -> reefTarget.get().elevatorHeight))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .whileTrue(wrist.setTargetAngle(() -> reefTarget.get().wristAngle))
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
+        .whileTrue(
+            Commands.parallel(
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                wrist.setTargetAngle(reefTarget.get().wristAngle)))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS))
+        .debounce(0.25)
+        .whileTrue(elevator.setExtension(0))
+        .and(() -> elevator.isNearExtension(0))
         .and(() -> !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
     // READY_ALGAE logic

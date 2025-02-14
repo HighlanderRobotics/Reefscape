@@ -50,7 +50,7 @@ public class ElevatorIOReal implements ElevatorIO {
     config.Slot0.kS = 0.15;
     config.Slot0.kV = 4.2;
     config.Slot0.kA = 0.0;
-    config.Slot0.kP = 400.0;
+    config.Slot0.kP = 100.0;
     config.Slot0.kD = 10.0;
 
     config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.1;

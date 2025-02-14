@@ -331,7 +331,7 @@ public class Robot extends LoggedRobot {
           driver
               .rightTrigger()
               .negate()
-              .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
+              //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
