@@ -33,7 +33,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_SCORE_L4_POS = Rotation2d.fromDegrees(45);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = SHOULDER_RETRACTED_POS;
-  public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(60.0);
+  public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();

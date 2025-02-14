@@ -20,6 +20,7 @@ import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -291,9 +292,11 @@ public class Superstructure {
     // PRE_L{1-4} logic + -> SCORE_CORAL
     stateTriggers
         .get(SuperState.PRE_L1)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.L1_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_SCORE_POS,
+                WristSubsystem.WRIST_SCORE_L1_POS))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
@@ -303,9 +306,11 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_L2)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L2_POS))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.L2_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_SCORE_POS,
+                WristSubsystem.WRIST_SCORE_L2_POS))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
@@ -315,26 +320,29 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.PRE_L3)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L3_POS))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.L4_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_SCORE_POS,
+                WristSubsystem.WRIST_SCORE_L4_POS))
         .whileTrue(manipulator.setVelocity(0.0))
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L3_POS))
-        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
     stateTriggers
         .get(SuperState.PRE_L4)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L4_POS))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.L4_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_SCORE_L4_POS,
+                WristSubsystem.WRIST_SCORE_L4_POS))
         .whileTrue(manipulator.setVelocity(0.0))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -346,17 +354,13 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(() -> reefTarget.get().shoulderAngle))
         .whileTrue(manipulator.setVelocity(0.0))
         .and(() -> shoulder.isNearAngle(reefTarget.get().shoulderAngle))
-        .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
-        .and(() -> !manipulator.getSecondBeambreak())
-        .debounce(0.25)
-        .whileTrue(elevator.setExtension(0))
-        .whileTrue(
-            Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                wrist.setTargetAngle(reefTarget.get().wristAngle)));
+        .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed));
+
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .and(() -> (!manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak()))
+        .debounce(0.25)
+        .whileTrue(this.extendWithClearance(0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
         .and(() -> elevator.isNearExtension(0))
         .onTrue(this.forceState(SuperState.IDLE));
 
@@ -595,6 +599,38 @@ public class Superstructure {
         .get(SuperState.CLIMB)
         .and(climbCancelReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
+  }
+
+  private Command extendWithClearance(
+      double elevatorExtension, Rotation2d shoulderAngle, Rotation2d wristAngle) {
+    return extendWithClearance(() -> elevatorExtension, () -> shoulderAngle, () -> wristAngle);
+  }
+
+  private Command extendWithClearance(
+      DoubleSupplier elevatorExtension,
+      Supplier<Rotation2d> shoulderAngle,
+      Supplier<Rotation2d> wristAngle) {
+    return Commands.sequence(
+        // Retract shoulder + wrist
+        Commands.parallel(
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                elevator.setExtension(() -> elevator.getExtensionMeters()))
+            .until(
+                () ->
+                    shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
+                        && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)),
+        // extend elevator
+        Commands.parallel(
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                elevator.setExtension(elevatorExtension))
+            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble())),
+        // re-extend joints
+        Commands.parallel(
+            shoulder.setTargetAngle(shoulderAngle),
+            wrist.setTargetAngle(wristAngle),
+            elevator.setExtension(elevatorExtension)));
   }
 
   public SuperState getState() {
