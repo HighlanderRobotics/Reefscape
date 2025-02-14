@@ -147,7 +147,7 @@ public class Superstructure {
     stateTimer.start();
 
     for (var state : SuperState.values()) {
-      stateTriggers.put(state, new Trigger(() -> this.state == state));
+      stateTriggers.put(state, new Trigger(() -> this.state == state && DriverStation.isEnabled()));
     }
 
     configureStateTransitionCommands();
