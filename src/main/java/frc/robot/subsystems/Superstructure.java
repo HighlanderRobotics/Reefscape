@@ -232,7 +232,15 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(manipulator.index()) // keep indexing to make sure its chilling
+        .whileTrue(manipulator.index());
+    // keep indexing to make sure its chilling
+
+    stateTriggers
+        .get(SuperState.READY_CORAL)
+        .or(stateTriggers.get(SuperState.PRE_L1))
+        .or(stateTriggers.get(SuperState.PRE_L2))
+        .or(stateTriggers.get(SuperState.PRE_L3))
+        .or(stateTriggers.get(SuperState.PRE_L4))
         .and(() -> (!manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak()))
         .onTrue(this.forceState(SuperState.IDLE));
 
