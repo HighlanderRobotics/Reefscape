@@ -328,12 +328,13 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.PRE_L4)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L4_POS))
         .whileTrue(manipulator.setVelocity(0.0))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
