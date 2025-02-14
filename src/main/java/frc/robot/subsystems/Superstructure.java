@@ -338,25 +338,6 @@ public class Superstructure {
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
-    stateTriggers
-        .get(SuperState.CHECK_ALGAE)
-        .and(() -> stateTimer.hasElapsed(1.0))
-        .and(() -> manipulator.getStatorCurrentAmps() <= 20.0)
-        .onTrue(this.forceState(SuperState.IDLE));
-
-    stateTriggers
-        .get(SuperState.INTAKE_ALGAE_GROUND)
-        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
-        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
-        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
-        .and(
-            () -> {
-              var diff = prevAlgaeIntakeTarget != algaeIntakeTarget.get();
-              // This is ugly but we need to enforce update order
-              prevAlgaeIntakeTarget = algaeIntakeTarget.get();
-              return diff;
-            })
-        .onTrue(this.forceState(SuperState.IDLE));
     // SCORE_CORAL -> IDLE
     stateTriggers
         .get(SuperState.SCORE_CORAL)
@@ -378,6 +359,130 @@ public class Superstructure {
         .and(() -> (!manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak()))
         .and(() -> elevator.isNearExtension(0))
         .onTrue(this.forceState(SuperState.IDLE));
+
+    antiJamReq
+        .and(stateTriggers.get(SuperState.CLIMB).negate())
+        .and(stateTriggers.get(SuperState.PRE_CLIMB).negate())
+        .onTrue(forceState(SuperState.ANTI_JAM))
+        .onFalse(forceState(SuperState.IDLE));
+
+    // ANTI_JAM logic
+    stateTriggers
+        .get(SuperState.ANTI_JAM)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
+        .whileTrue(manipulator.setVelocity(10));
+
+    stateTriggers
+        .get(SuperState.CHECK_ALGAE)
+        .and(() -> stateTimer.hasElapsed(1.0))
+        .and(() -> manipulator.getStatorCurrentAmps() <= 20.0)
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    // change intake target
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
+        .and(
+            () -> {
+              var diff = prevAlgaeIntakeTarget != algaeIntakeTarget.get();
+              // This is ugly but we need to enforce update order
+              prevAlgaeIntakeTarget = algaeIntakeTarget.get();
+              return diff;
+            })
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    // INTAKE_ALGAE_{location} -> READY_ALGAE
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
+        .whileTrue(
+            Commands.waitUntil(
+                    () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
+                .andThen(manipulator.intakeAlgae()))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_LOW)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+        .whileTrue(
+            Commands.waitUntil(
+                    () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
+                .andThen(manipulator.intakeAlgae()))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
+        .and(
+            () ->
+                Robot.ROBOT_TYPE == RobotType.REAL
+                    ? manipulator.getStatorCurrentAmps()
+                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
+                    : manipulator.hasAlgae())
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
+        .onTrue(this.forceState(SuperState.CHECK_ALGAE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_HIGH)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+        .whileTrue(
+            Commands.waitUntil(
+                    () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
+                .andThen(manipulator.intakeAlgae()))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
+        .and(
+            () ->
+                Robot.ROBOT_TYPE == RobotType.REAL
+                    ? manipulator.getStatorCurrentAmps()
+                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
+                    : manipulator.hasAlgae())
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS))
+        .onTrue(forceState(SuperState.CHECK_ALGAE));
+
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_STACK)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
+        .whileTrue(
+            Commands.waitUntil(
+                    () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
+                .andThen(manipulator.intakeAlgae()))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
+        .and(
+            () ->
+                Robot.ROBOT_TYPE == RobotType.REAL
+                    ? manipulator.getStatorCurrentAmps()
+                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
+                    : manipulator.hasAlgae())
+        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
+        .onTrue(forceState(SuperState.CHECK_ALGAE));
+
+    // leave intake
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_GROUND)
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
+        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
+        .and(intakeAlgaeReq.negate())
+        .onTrue(this.forceState(SuperState.CHECK_ALGAE));
+
+    stateTriggers
+        .get(SuperState.CHECK_ALGAE)
+        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(manipulator.intakeAlgae())
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .and(() -> stateTimer.hasElapsed(1.0))
+        .and(() -> manipulator.getStatorCurrentAmps() > 20.0)
+        .onTrue(this.forceState(SuperState.READY_ALGAE));
+
     // READY_ALGAE logic
     stateTriggers
         .get(SuperState.READY_ALGAE)
