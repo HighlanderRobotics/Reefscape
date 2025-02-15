@@ -58,13 +58,17 @@ public class ShoulderSubsystem extends SubsystemBase {
       dashboardZero.set(false);
     }
     Logger.recordOutput(
-        "Carriage/Shoulder/Cancoder Pos",
-        inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCCW_90deg));
+        "Carriage/Shoulder/Cancoder Pos",getZeroingAngle()
+        );
+  }
+
+  public Rotation2d getZeroingAngle() {
+    return inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCCW_90deg);
   }
 
   public void rezero() {
     io.resetEncoder(
-        inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCCW_90deg));
+        getZeroingAngle());
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
