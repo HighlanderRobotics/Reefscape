@@ -223,12 +223,12 @@ public class KelpieSwerveConstants extends SwerveConstants {
         MatBuilder.fill(
             Nat.N3(),
             Nat.N3(),
-            901.8012064300815,
+            911.67,
             0.0,
-            830.4004635040717,
+            663.03,
             0.0,
-            903.1944838156696,
-            704.0648345598304,
+            909.82,
+            408.72,
             0.0,
             0.0,
             1.0);
@@ -236,14 +236,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
         MatBuilder.fill(
             Nat.N8(),
             Nat.N1(),
-            0.05096564042945532,
-            -0.08005742255822096,
-            9.362839975047e-5,
-            -2.1069595324007255e-5,
-            0.03230467950441941,
-            -0.0037459354189258794,
-            0.012202835675939619,
-            0.0034143496721838872);
+            0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
     final VisionConstants backLeftCamConstants =
         new VisionConstants(
             "Back_Left_Camera", // TODO adjust names in pv dashboard
