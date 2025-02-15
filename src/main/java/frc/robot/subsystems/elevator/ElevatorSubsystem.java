@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
@@ -92,6 +93,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command setExtension(double meters) {
     return this.setExtension(() -> meters);
+  }
+
+  public Command hold() {
+    return Commands.sequence(
+        setExtension(() -> inputs.positionMeters).until(() -> true), this.run(() -> {}));
   }
 
   public Command runCurrentZeroing() {
