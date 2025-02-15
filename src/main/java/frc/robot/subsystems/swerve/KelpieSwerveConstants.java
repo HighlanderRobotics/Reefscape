@@ -221,22 +221,10 @@ public class KelpieSwerveConstants extends SwerveConstants {
             0.0034143496721838872);
     final Matrix<N3, N3> FRONT_CAMERA_MATRIX =
         MatBuilder.fill(
-            Nat.N3(),
-            Nat.N3(),
-            911.67,
-            0.0,
-            663.03,
-            0.0,
-            909.82,
-            408.72,
-            0.0,
-            0.0,
-            1.0);
+            Nat.N3(), Nat.N3(), 911.67, 0.0, 663.03, 0.0, 909.82, 408.72, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> FRONT_DIST_COEFFS =
         MatBuilder.fill(
-            Nat.N8(),
-            Nat.N1(),
-            0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
+            Nat.N8(), Nat.N1(), 0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
     final VisionConstants backLeftCamConstants =
         new VisionConstants(
             "Back_Left_Camera", // TODO adjust names in pv dashboard
