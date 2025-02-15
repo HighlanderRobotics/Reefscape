@@ -66,15 +66,21 @@ public class ShoulderIOReal implements ShoulderIO {
     config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
     config.MotionMagic.MotionMagicAcceleration = 4.0;
 
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_GEAR_RATIO;
 
+    // config.Feedback.RotorToSensorRatio =
+    //     ShoulderSubsystem.SHOULDER_GEAR_RATIO / ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+    // config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+    // config.Feedback.FeedbackRemoteSensorID = cancoder.getDeviceID();
+    // config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+
     final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    cancoderConfig.MagnetSensor.MagnetOffset = 0.882324;
-    cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.1;
+    cancoderConfig.MagnetSensor.MagnetOffset = 0.6323;
+    cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.9;
 
     cancoder.getConfigurator().apply(cancoderConfig);
     motor.getConfigurator().apply(config);
@@ -105,8 +111,7 @@ public class ShoulderIOReal implements ShoulderIO {
         appliedVoltage);
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
-    inputs.cancoderPosition =
-        Rotation2d.fromRotations(cancoderPositionRotations.getValueAsDouble());
+    inputs.cancoderPosition = cancoderPositionRotations.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();

@@ -44,6 +44,7 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public ShoulderSubsystem(final ShoulderIO io) {
     this.io = io;
+    io.updateInputs(inputs);
     rezero();
     SmartDashboard.putData(
         "Shoulder Zero", Commands.runOnce(() -> this.rezero()).ignoringDisable(true));
@@ -57,18 +58,15 @@ public class ShoulderSubsystem extends SubsystemBase {
       rezero();
       dashboardZero.set(false);
     }
-    Logger.recordOutput(
-        "Carriage/Shoulder/Cancoder Pos",getZeroingAngle()
-        );
+    Logger.recordOutput("Carriage/Shoulder/Cancoder Pos", getZeroingAngle());
   }
 
   public Rotation2d getZeroingAngle() {
-    return inputs.cancoderPosition.div(SHOULDER_FINAL_STAGE_RATIO).plus(Rotation2d.kCCW_90deg);
+    return Rotation2d.fromRotations(inputs.cancoderPosition).div(SHOULDER_FINAL_STAGE_RATIO);
   }
 
   public void rezero() {
-    io.resetEncoder(
-        getZeroingAngle());
+    io.resetEncoder(getZeroingAngle());
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {

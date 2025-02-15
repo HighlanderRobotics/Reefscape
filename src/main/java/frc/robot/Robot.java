@@ -804,7 +804,9 @@ public class Robot extends LoggedRobot {
                   0,
                   ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
               new Rotation3d(
-                  0, -Units.degreesToRadians(2.794042) - shoulder.getZeroingAngle().getRadians(), 0.0)),
+                  0,
+                  -Units.degreesToRadians(2.794042) - shoulder.getZeroingAngle().getRadians(),
+                  0.0)),
           new Pose3d( // Manipulator
               new Translation3d(
                   ShoulderSubsystem.X_OFFSET_METERS

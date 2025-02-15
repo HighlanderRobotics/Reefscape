@@ -8,7 +8,7 @@ public interface ShoulderIO {
   class ShoulderIOInputs {
     public double angularVelocityRPS = 0.0;
     public Rotation2d position = new Rotation2d();
-    public Rotation2d cancoderPosition = new Rotation2d();
+    public double cancoderPosition = 0.0;
     public double appliedVoltage = 0.0;
     public double tempDegreesC = 0.0;
     public double supplyCurrentAmps = 0.0;
