@@ -56,7 +56,6 @@ public class Superstructure {
   private final Supplier<ChassisSpeeds> chassisVel;
   private final Supplier<ReefTarget> reefTarget;
   private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
-  private AlgaeIntakeTarget prevAlgaeIntakeTarget;
   private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
   @AutoLogOutput(key = "Superstructure/Pre Score Request")
@@ -128,7 +127,6 @@ public class Superstructure {
     this.chassisVel = chassisVel;
     this.reefTarget = reefTarget;
     this.algaeIntakeTarget = algaeIntakeTarget;
-    prevAlgaeIntakeTarget = algaeIntakeTarget.get();
     this.algaeScoreTarget = algaeScoreTarget;
 
     this.preScoreReq = preScoreReq;
@@ -388,17 +386,19 @@ public class Superstructure {
     // change intake target
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
-        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_LOW))
-        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
-        .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
-        .whileFalse(Commands.run(() -> prevAlgaeIntakeTarget = algaeIntakeTarget.get()))
-        .and(
-            () -> {
-              var diff = prevAlgaeIntakeTarget != algaeIntakeTarget.get();
-              // This is ugly but we need to enforce update order
-              prevAlgaeIntakeTarget = algaeIntakeTarget.get();
-              return diff;
-            })
+        .and(() -> algaeIntakeTarget.get() != AlgaeIntakeTarget.GROUND)
+        .onTrue(this.forceState(SuperState.IDLE));
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_LOW)
+        .and(() -> algaeIntakeTarget.get() != AlgaeIntakeTarget.LOW)
+        .onTrue(this.forceState(SuperState.IDLE));
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_HIGH)
+        .and(() -> algaeIntakeTarget.get() != AlgaeIntakeTarget.HIGH)
+        .onTrue(this.forceState(SuperState.IDLE));
+    stateTriggers
+        .get(SuperState.INTAKE_ALGAE_STACK)
+        .and(() -> algaeIntakeTarget.get() != AlgaeIntakeTarget.STACK)
         .onTrue(this.forceState(SuperState.IDLE));
 
     // INTAKE_ALGAE_{location} -> READY_ALGAE
