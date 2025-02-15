@@ -65,8 +65,10 @@ public class AutoAim {
               headingController.reset(
                   swerve.getPose().getRotation().getRadians(),
                   swerve.getVelocityFieldRelative().omegaRadiansPerSecond);
-              vxController.reset(swerve.getVelocityFieldRelative().vxMetersPerSecond);
-              vyController.reset(swerve.getVelocitycsaFieldRelative().vyMetersPerSecond);
+              vxController.reset(
+                  swerve.getPose().getX(), swerve.getVelocityFieldRelative().vxMetersPerSecond);
+              vyController.reset(
+                  swerve.getPose().getY(), swerve.getVelocityFieldRelative().vyMetersPerSecond);
             })
         .andThen(
             swerve.driveVelocityFieldRelative(
