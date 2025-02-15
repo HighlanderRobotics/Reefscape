@@ -556,8 +556,20 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.INTAKE_ALGAE_LOW)
         .whileTrue(
             Commands.parallel(
-                AutoAim.translateToPose(
-                    swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                Commands.sequence(
+                    AutoAim.translateToPose(
+                            swerve,
+                            () ->
+                                AlgaeIntakeTargets.getOffsetLocation(
+                                    AlgaeIntakeTargets.getClosestTarget(swerve.getPose())))
+                        .until(
+                            () ->
+                                AutoAim.isInTolerance(
+                                    swerve.getPose(),
+                                    AlgaeIntakeTargets.getOffsetLocation(
+                                        AlgaeIntakeTargets.getClosestTarget(swerve.getPose())))),
+                    AutoAim.translateToPose(
+                        swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()))),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 

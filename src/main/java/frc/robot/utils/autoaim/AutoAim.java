@@ -184,4 +184,12 @@ public class AutoAim {
         && MathUtil.isNear(
             0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
   }
+
+  public static boolean isInTolerance(Pose2d pose, Pose2d pose2) {
+    final var diff = pose.minus(pose2);
+    return MathUtil.isNear(
+            0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
+        && MathUtil.isNear(
+            0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
+  }
 }
