@@ -170,7 +170,7 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
-        .whileTrue(funnel.setVoltage(() -> revFunnelReq.getAsBoolean() ? -5.0 : 5.0))
+        .whileTrue(funnel.setVoltage(() -> revFunnelReq.getAsBoolean() ? -5.0 : 8.0))
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
