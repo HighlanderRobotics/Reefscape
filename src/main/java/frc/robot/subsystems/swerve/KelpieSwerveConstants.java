@@ -55,7 +55,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
   @Override
   public double getHeadingVelocityKP() {
     // Copied from Alpha
-    return 4.0;
+    return 6.0;
   }
 
   @Override

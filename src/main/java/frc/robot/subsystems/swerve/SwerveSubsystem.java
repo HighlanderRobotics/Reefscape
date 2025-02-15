@@ -105,8 +105,8 @@ public class SwerveSubsystem extends SubsystemBase {
             rawGyroRotation,
             lastModulePositions,
             new Pose2d(),
-            VecBuilder.fill(0.1, 0.1, 0.01),
-            VecBuilder.fill(0.9, 0.9, 0.9));
+            VecBuilder.fill(0.1, 0.1, 0.03),
+            VecBuilder.fill(0.9, 0.9, 0.4));
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
     this.simulation = simulation;

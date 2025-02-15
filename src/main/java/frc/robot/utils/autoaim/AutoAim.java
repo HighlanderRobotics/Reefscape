@@ -19,9 +19,9 @@ import org.littletonrobotics.junction.Logger;
 
 public class AutoAim {
   static final double MAX_ANGULAR_SPEED = 10.0;
-  static final double MAX_ANGULAR_ACCELERATION = 5.0;
+  static final double MAX_ANGULAR_ACCELERATION = 10.0;
   static final double MAX_AUTOAIM_SPEED = 3.0;
-  static final double MAX_AUTOAIM_ACCELERATION = 2.0;
+  static final double MAX_AUTOAIM_ACCELERATION = 4.0;
 
   public static final Translation2d BLUE_REEF_CENTER =
       new Translation2d(Units.inchesToMeters(176.746), Units.inchesToMeters(158.501));
@@ -47,13 +47,13 @@ public class AutoAim {
     headingController.enableContinuousInput(-Math.PI, Math.PI);
     final ProfiledPIDController vxController =
         new ProfiledPIDController(
-            6.0,
+            10.0,
             0.01,
             0.0,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     final ProfiledPIDController vyController =
         new ProfiledPIDController(
-            6.0,
+            10.0,
             0.01,
             0.0,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
