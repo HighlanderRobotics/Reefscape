@@ -278,6 +278,8 @@ public class Robot extends LoggedRobot {
                   RollerIOReal.getDefaultConfig()
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
+                              .withStatorCurrentLimitEnable(true)
+                              .withStatorCurrentLimit(60.0)
                               .withSupplyCurrentLimit(30.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
@@ -467,7 +469,10 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    new Trigger(() -> superstructure.getState() == SuperState.READY_ALGAE || superstructure.getState() == SuperState.READY_CORAL)
+    new Trigger(
+            () ->
+                superstructure.getState() == SuperState.READY_ALGAE
+                    || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
     new Trigger(
