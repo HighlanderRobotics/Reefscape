@@ -512,7 +512,7 @@ public class Superstructure {
                             .getTranslation()
                             .minus(pose.get().getTranslation())
                             .getNorm()
-                        > 0.5
+                        > 0.3
                     || (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
                         || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK))
         .onTrue(this.forceState(SuperState.READY_ALGAE));
