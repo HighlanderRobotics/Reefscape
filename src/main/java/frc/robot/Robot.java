@@ -169,7 +169,7 @@ public class Robot extends LoggedRobot {
   }
 
   private static ReefTarget currentTarget = ReefTarget.L4;
-  private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
+  private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
