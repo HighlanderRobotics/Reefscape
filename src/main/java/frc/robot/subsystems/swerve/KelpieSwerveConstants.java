@@ -120,12 +120,12 @@ public class KelpieSwerveConstants extends SwerveConstants {
     driveConfig.Feedback.SensorToMechanismRatio = getDriveRotorToMeters();
     // Current control gains
     // Gains copied from AlphaSwerveConstants
-    driveConfig.Slot0.kV = 0.0;
+    driveConfig.Slot0.kV = 5.0;
     // kT (stall torque / stall current) converted to linear wheel frame
     driveConfig.Slot0.kA = 0.0; // (9.37 / 483.0) / getDriveRotorToMeters(); // 3.07135116146;
-    driveConfig.Slot0.kS = 14.0;
-    driveConfig.Slot0.kP = 100.0;
-    driveConfig.Slot0.kD = 1.0;
+    driveConfig.Slot0.kS = 10.0;
+    driveConfig.Slot0.kP = 300.0;
+    driveConfig.Slot0.kD = 0.0; // 1.0;
 
     driveConfig.TorqueCurrent.TorqueNeutralDeadband = 10.0;
 
@@ -157,7 +157,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
     // Controls Gains
     turnConfig.Slot0.kV = 0.42962962963; // ((5800 / 60) / getTurnGearRatio()) / 12
     turnConfig.Slot0.kA = 0.031543;
-    turnConfig.Slot0.kS = 0.28;
+    turnConfig.Slot0.kS = 0.27;
     turnConfig.Slot0.kP = 20.0;
     turnConfig.Slot0.kD = 0.68275;
     turnConfig.MotionMagic.MotionMagicCruiseVelocity = (5500 / 60) / getTurnGearRatio();
