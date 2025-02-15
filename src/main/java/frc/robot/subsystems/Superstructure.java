@@ -18,6 +18,7 @@ import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
+import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
@@ -487,12 +488,17 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.CHECK_ALGAE)
-        .whileTrue(elevator.setExtension(0.0))
+        .whileTrue(elevator.hold())
         .whileTrue(manipulator.intakeAlgae())
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
         .and(() -> stateTimer.hasElapsed(1.0))
         .and(() -> manipulator.getStatorCurrentAmps() > 20.0)
+        .and(
+            () ->
+                AlgaeIntakeTargets.getClosestTarget(pose.get()).getTranslation().getNorm() > 0.75
+                    || (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
+                        || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK))
         .onTrue(this.forceState(SuperState.READY_ALGAE));
 
     // READY_ALGAE logic
