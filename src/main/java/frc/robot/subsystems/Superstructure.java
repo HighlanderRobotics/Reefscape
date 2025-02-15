@@ -82,6 +82,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Home Request")
   private final Trigger homeReq;
 
+  @AutoLogOutput(key = "Superstructure/Rev Funnel Req")
+  private final Trigger revFunnelReq;
+
   private SuperState state = SuperState.IDLE;
   private SuperState prevState = SuperState.IDLE;
   private Map<SuperState, Trigger> stateTriggers = new HashMap<SuperState, Trigger>();
@@ -115,7 +118,8 @@ public class Superstructure {
       Trigger climbConfReq,
       Trigger climbCancelReq,
       Trigger antiJamReq,
-      Trigger homeReq) {
+      Trigger homeReq,
+      Trigger revFunnelReq) {
     this.elevator = elevator;
     this.manipulator = manipulator;
     this.shoulder = shoulder;
@@ -142,6 +146,8 @@ public class Superstructure {
 
     this.homeReq = homeReq;
 
+    this.revFunnelReq = revFunnelReq;
+
     stateTimer.start();
 
     for (var state : SuperState.values()) {
@@ -163,7 +169,7 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
-        .whileTrue(funnel.setVoltage(5.0))
+        .whileTrue(funnel.setVoltage(() -> revFunnelReq.getAsBoolean() ? -5.0 : 5.0))
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
@@ -303,6 +309,11 @@ public class Superstructure {
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
     stateTriggers
+        .get(SuperState.PRE_L1)
+        .and(() -> reefTarget.get() != ReefTarget.L1)
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
         .get(SuperState.PRE_L2)
         .whileTrue(
             this.extendWithClearance(
@@ -315,6 +326,11 @@ public class Superstructure {
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L2_POS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L2)
+        .and(() -> reefTarget.get() != ReefTarget.L2)
+        .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
         .get(SuperState.PRE_L3)
@@ -331,6 +347,11 @@ public class Superstructure {
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
     stateTriggers
+        .get(SuperState.PRE_L3)
+        .and(() -> reefTarget.get() != ReefTarget.L3)
+        .onTrue(this.forceState(SuperState.IDLE));
+
+    stateTriggers
         .get(SuperState.PRE_L4)
         .whileTrue(
             this.extendWithClearance(
@@ -343,6 +364,11 @@ public class Superstructure {
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
+
+    stateTriggers
+        .get(SuperState.PRE_L4)
+        .and(() -> reefTarget.get() != ReefTarget.L4)
+        .onTrue(this.forceState(SuperState.IDLE));
 
     // SCORE_CORAL -> IDLE
     stateTriggers
