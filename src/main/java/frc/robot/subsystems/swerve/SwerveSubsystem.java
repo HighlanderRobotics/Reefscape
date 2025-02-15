@@ -13,6 +13,7 @@
 package frc.robot.subsystems.swerve;
 
 import choreo.trajectory.SwerveSample;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -100,7 +101,12 @@ public class SwerveSubsystem extends SubsystemBase {
     this.kinematics = new SwerveDriveKinematics(constants.getModuleTranslations());
     this.estimator =
         new SwerveDrivePoseEstimator(
-            kinematics, rawGyroRotation, lastModulePositions, new Pose2d());
+            kinematics,
+            rawGyroRotation,
+            lastModulePositions,
+            new Pose2d(),
+            VecBuilder.fill(0.1, 0.1, 0.01),
+            VecBuilder.fill(0.9, 0.9, 0.9));
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
     this.simulation = simulation;
