@@ -467,7 +467,7 @@ public class Robot extends LoggedRobot {
     driver.setDefaultCommand(driver.rumbleCmd(0.0, 0.0));
     operator.setDefaultCommand(operator.rumbleCmd(0.0, 0.0));
 
-    new Trigger(() -> !manipulator.getFirstBeambreak() && manipulator.getSecondBeambreak())
+    new Trigger(() -> superstructure.getState() == SuperState.READY_ALGAE || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
     new Trigger(
@@ -576,8 +576,8 @@ public class Robot extends LoggedRobot {
                             * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     () ->
                         DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                            ? Rotation2d.fromDegrees(0)
-                            : Rotation2d.fromDegrees(180)),
+                            ? Rotation2d.fromDegrees(180)
+                            : Rotation2d.fromDegrees(0)),
                 Commands.waitUntil(
                         () -> {
                           final var diff =

@@ -27,7 +27,7 @@ public class AutoAim {
       new Translation2d(Units.inchesToMeters(176.746), Units.inchesToMeters(158.501));
   public static final Translation2d RED_REEF_CENTER = ChoreoAllianceFlipUtil.flip(BLUE_REEF_CENTER);
 
-  public static double BLUE_NET_X = 8.76 + Units.inchesToMeters(30.0);
+  public static double BLUE_NET_X = 8.08;
   public static double RED_NET_X = ChoreoAllianceFlipUtil.flipX(BLUE_NET_X);
 
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
