@@ -75,4 +75,10 @@ public class RollerIOSim implements RollerIO {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'resetEncoder'");
   }
+
+  @Override
+  public void setCurrent(double amps) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setCurrent'");
+  }
 }

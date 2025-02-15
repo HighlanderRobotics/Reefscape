@@ -17,6 +17,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -35,6 +36,7 @@ public class RollerIOReal implements RollerIO {
   private final TalonFX motor;
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
+  private final TorqueCurrentFOC currentFOC = new TorqueCurrentFOC(0.0);
   private final VelocityVoltage velocityVoltage =
       new VelocityVoltage(0.0).withEnableFOC(true).withSlot(0);
   private final PositionVoltage positionVoltage =
@@ -97,6 +99,11 @@ public class RollerIOReal implements RollerIO {
   @Override
   public void setVoltage(double voltage) {
     motor.setControl(voltageOut.withOutput(voltage));
+  }
+
+  @Override
+  public void setCurrent(double amps) {
+    motor.setControl(currentFOC.withOutput(amps));
   }
 
   @Override

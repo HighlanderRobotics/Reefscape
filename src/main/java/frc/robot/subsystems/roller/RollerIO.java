@@ -23,6 +23,8 @@ public interface RollerIO {
 
   public void setVoltage(double voltage);
 
+  public void setCurrent(double amps);
+
   public default void stop() {
     setVoltage(0.0);
   }
