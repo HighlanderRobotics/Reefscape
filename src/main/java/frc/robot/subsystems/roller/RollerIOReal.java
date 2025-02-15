@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.roller;
 
-import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Celsius;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static edu.wpi.first.units.Units.Volts;
@@ -88,8 +87,8 @@ public class RollerIOReal implements RollerIO {
     BaseStatusSignal.refreshAll(velocity, voltage, statorCurrent, supplyCurrent, temp, position);
     inputs.velocityRotationsPerSec = velocity.getValue().in(RotationsPerSecond);
     inputs.appliedVolts = voltage.getValue().in(Volts);
-    inputs.statorCurrentAmps = statorCurrent.getValue().in(Amps);
-    inputs.supplyCurrentAmps = supplyCurrent.getValue().in(Amps);
+    inputs.statorCurrentAmps = statorCurrent.getValueAsDouble();
+    inputs.supplyCurrentAmps = supplyCurrent.getValueAsDouble();
     inputs.tempCelsius = temp.getValue().in(Celsius);
     inputs.positionRotations = position.getValueAsDouble();
 

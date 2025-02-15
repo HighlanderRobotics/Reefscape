@@ -53,6 +53,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2);
 
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
+    Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
   }
 
   public Command index() {

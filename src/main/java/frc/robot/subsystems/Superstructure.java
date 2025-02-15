@@ -490,13 +490,29 @@ public class Superstructure {
         .get(SuperState.CHECK_ALGAE)
         .whileTrue(elevator.hold())
         .whileTrue(manipulator.intakeAlgae())
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(
+            shoulder.setTargetAngle(
+                () ->
+                    (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
+                            || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK)
+                        ? ShoulderSubsystem.SHOULDER_RETRACTED_POS
+                        : ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS))
+        .whileTrue(
+            wrist.setTargetAngle(
+                () ->
+                    (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
+                            || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK)
+                        ? WristSubsystem.WRIST_RETRACTED_POS
+                        : WristSubsystem.WRIST_INTAKE_ALGAE_REEF_RETRACT_POS))
         .and(() -> stateTimer.hasElapsed(1.0))
         .and(() -> manipulator.getStatorCurrentAmps() > 20.0)
         .and(
             () ->
-                AlgaeIntakeTargets.getClosestTarget(pose.get()).getTranslation().getNorm() > 0.75
+                AlgaeIntakeTargets.getClosestTarget(pose.get())
+                            .getTranslation()
+                            .minus(pose.get().getTranslation())
+                            .getNorm()
+                        > 0.5
                     || (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
                         || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK))
         .onTrue(this.forceState(SuperState.READY_ALGAE));
