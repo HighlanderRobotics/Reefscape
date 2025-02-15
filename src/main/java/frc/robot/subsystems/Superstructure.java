@@ -223,8 +223,8 @@ public class Superstructure {
         .whileTrue(
             Commands.parallel(
                     elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs()))
-                .andThen(this.forceState(SuperState.IDLE)))
-        .and(() -> (elevator.hasZeroed && wrist.hasZeroed))
+                .andThen(Commands.waitUntil(homeReq.negate()), this.forceState(SuperState.IDLE)))
+        .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
