@@ -660,7 +660,9 @@ public class Robot extends LoggedRobot {
         .whileTrue(
             leds.setBlinkingSplitCmd(
                 () -> LEDSubsystem.getAlgaeIntakeTargetColor(algaeIntakeTarget),
-                () -> LEDSubsystem.getAlgaeScoringTargetColor(true),
+                () ->
+                    LEDSubsystem.getAlgaeScoringTargetColor(
+                        algaeScoreTarget == AlgaeScoreTarget.NET),
                 () -> Color.kBlack,
                 5.0));
 
