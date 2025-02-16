@@ -15,6 +15,7 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -286,7 +287,8 @@ public class Robot extends LoggedRobot {
                           new MotorOutputConfigs()
                               .withInverted(InvertedValue.CounterClockwise_Positive))
                       .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                      .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5)))
+                      .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))
+                      .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))
               : new RollerIOSim(
                   0.01,
                   2,
