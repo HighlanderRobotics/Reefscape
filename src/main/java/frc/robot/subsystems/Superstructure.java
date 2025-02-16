@@ -324,11 +324,11 @@ public class Superstructure {
         .whileTrue(
             this.extendWithClearance(
                 ElevatorSubsystem.L1_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_SCORE_POS,
+                ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
                 WristSubsystem.WRIST_SCORE_L1_POS))
         .whileTrue(manipulator.jog(0.3))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L1_POS))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
@@ -402,8 +402,18 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(() -> reefTarget.get().wristAngle))
         .whileTrue(shoulder.setTargetAngle(() -> reefTarget.get().shoulderAngle))
         .whileTrue(manipulator.hold())
-        .and(() -> shoulder.isNearAngle(reefTarget.get().shoulderAngle))
-        .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed));
+        .and(
+            () ->
+                shoulder.isNearAngle(reefTarget.get().shoulderAngle)
+                    || (shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_WHACK_L1_POS)
+                        && reefTarget.get() == ReefTarget.L1))
+        .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
+        .and(() -> reefTarget.get() == ReefTarget.L1)
+        .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_WHACK_CORAL_EXTENSION_METERS))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_WHACK_L1_POS))
+        .whileTrue(
+            Commands.waitSeconds(0.1)
+                .andThen(wrist.setTargetAngle(WristSubsystem.WRIST_WHACK_L1_POS)));
 
     stateTriggers
         .get(SuperState.SCORE_CORAL)
