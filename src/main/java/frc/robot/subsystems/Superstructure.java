@@ -19,10 +19,12 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
+import frc.robot.utils.autoaim.HumanPlayerTargets;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -170,7 +172,20 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
-        .whileTrue(funnel.setVoltage(() -> revFunnelReq.getAsBoolean() ? -5.0 : 8.0))
+        .whileTrue(
+            funnel.setVoltage(
+                () ->
+                    revFunnelReq.getAsBoolean()
+                        ? -5.0
+                        : (Stream.of(HumanPlayerTargets.values())
+                                    .map(
+                                        (t) ->
+                                            t.location.minus(pose.get()).getTranslation().getNorm())
+                                    .min(Double::compare)
+                                    .get()
+                                < 1.0
+                            ? 8.0
+                            : 0.0)))
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 

@@ -105,7 +105,7 @@ public class SwerveSubsystem extends SubsystemBase {
             rawGyroRotation,
             lastModulePositions,
             new Pose2d(),
-            VecBuilder.fill(0.1, 0.1, 0.03),
+            VecBuilder.fill(0.6, 0.6, 0.07),
             VecBuilder.fill(0.9, 0.9, 0.4));
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
@@ -619,7 +619,7 @@ public class SwerveSubsystem extends SubsystemBase {
                   DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
                       ? getPose().getRotation()
                       : getPose().getRotation().minus(Rotation2d.fromDegrees(180)));
-          this.drive(speed, false, new double[4], new double[4]);
+          this.drive(speed, true, new double[4], new double[4]);
         });
   }
 
