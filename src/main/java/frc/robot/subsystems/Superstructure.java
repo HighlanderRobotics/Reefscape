@@ -326,7 +326,7 @@ public class Superstructure {
                 ElevatorSubsystem.L1_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_SCORE_POS,
                 WristSubsystem.WRIST_SCORE_L1_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(manipulator.jog(0.3))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L1_POS))
@@ -345,7 +345,7 @@ public class Superstructure {
                 ElevatorSubsystem.L2_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_SCORE_POS,
                 WristSubsystem.WRIST_SCORE_L2_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(manipulator.jog(0.3))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L2_POS))
@@ -364,7 +364,7 @@ public class Superstructure {
                 ElevatorSubsystem.L3_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_SCORE_POS,
                 WristSubsystem.WRIST_SCORE_L3_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(manipulator.jog(0.3))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L3_POS))
@@ -383,7 +383,7 @@ public class Superstructure {
                 ElevatorSubsystem.L4_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_SCORE_L4_POS,
                 WristSubsystem.WRIST_SCORE_L4_POS))
-        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(manipulator.jog(0.3))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
@@ -401,7 +401,7 @@ public class Superstructure {
         .whileTrue(elevator.setExtension(() -> reefTarget.get().elevatorHeight))
         .whileTrue(wrist.setTargetAngle(() -> reefTarget.get().wristAngle))
         .whileTrue(shoulder.setTargetAngle(() -> reefTarget.get().shoulderAngle))
-        .whileTrue(manipulator.setVelocity(0.0))
+        .whileTrue(manipulator.hold())
         .and(() -> shoulder.isNearAngle(reefTarget.get().shoulderAngle))
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed));
 

@@ -67,6 +67,16 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         setVelocity(0));
   } // TODO check if anything got lost in merge?
 
+  public Command jog(double rotations) {
+    return Commands.sequence(
+        this.runOnce(() -> io.resetEncoder(0.0)),
+        this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations))));
+  }
+
+  public Command hold() {
+    return this.jog(0.0);
+  }
+
   public Command backIndex() {
     return Commands.sequence(
         setVelocity(-INDEXING_VELOCITY).until(() -> !secondBBInputs.get), index());
