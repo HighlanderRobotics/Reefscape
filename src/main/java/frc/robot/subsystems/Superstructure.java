@@ -88,6 +88,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Rev Funnel Req")
   private final Trigger revFunnelReq;
 
+  @AutoLogOutput(key = "Superstructure/Force Funnel Req")
+  private final Trigger forceFunnelReq;
+
   private SuperState state = SuperState.IDLE;
   private SuperState prevState = SuperState.IDLE;
   private Map<SuperState, Trigger> stateTriggers = new HashMap<SuperState, Trigger>();
@@ -122,7 +125,8 @@ public class Superstructure {
       Trigger climbCancelReq,
       Trigger antiJamReq,
       Trigger homeReq,
-      Trigger revFunnelReq) {
+      Trigger revFunnelReq,
+      Trigger forceFunnelReq) {
     this.elevator = elevator;
     this.manipulator = manipulator;
     this.shoulder = shoulder;
@@ -150,6 +154,7 @@ public class Superstructure {
     this.homeReq = homeReq;
 
     this.revFunnelReq = revFunnelReq;
+    this.forceFunnelReq = forceFunnelReq;
 
     stateTimer.start();
 
@@ -177,13 +182,17 @@ public class Superstructure {
                 () ->
                     revFunnelReq.getAsBoolean()
                         ? -5.0
-                        : (Stream.of(HumanPlayerTargets.values())
-                                    .map(
-                                        (t) ->
-                                            t.location.minus(pose.get()).getTranslation().getNorm())
-                                    .min(Double::compare)
-                                    .get()
-                                < 1.0
+                        : (forceFunnelReq.getAsBoolean()
+                                || (Stream.of(HumanPlayerTargets.values())
+                                        .map(
+                                            (t) ->
+                                                t.location
+                                                    .minus(pose.get())
+                                                    .getTranslation()
+                                                    .getNorm())
+                                        .min(Double::compare)
+                                        .get()
+                                    < 1.0)
                             ? 8.0
                             : 0.0)))
         .and(manipulator::getFirstBeambreak)

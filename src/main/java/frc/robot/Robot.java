@@ -366,7 +366,8 @@ public class Robot extends LoggedRobot {
               .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
           driver.a(),
           driver.start(),
-          operator.rightBumper());
+          operator.rightBumper(),
+          operator.leftBumper());
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
