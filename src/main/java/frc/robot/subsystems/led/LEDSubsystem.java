@@ -15,7 +15,7 @@ import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class LEDSubsystem extends SubsystemBase {
-  public static final int LED_LENGTH = 16;
+  public static final int LED_LENGTH = 25;
   public static final int LED_ID = 2;
 
   public static final Color L1 = Color.kGreen;
