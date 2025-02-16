@@ -54,6 +54,10 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
     Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
+
+    if (firstBBInputs.get && !secondBBInputs.get) {
+      io.resetEncoder(0.0);
+    }
   }
 
   public Command index() {
@@ -61,7 +65,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         setVelocity(6.0).until(() -> firstBBInputs.get).unless(() -> firstBBInputs.get),
         setVelocity(3.0).until(() -> secondBBInputs.get).unless(() -> secondBBInputs.get),
         // TODO tune timeout
-        Commands.runOnce(() -> io.resetEncoder(0.0)),
+        // Commands.runOnce(() -> io.resetEncoder(0.0)),
         Commands.run(() -> io.setPosition(Rotation2d.fromRotations(1.1))),
         // setVelocity(2.0).withTimeout(0.25),
         setVelocity(0));
@@ -69,12 +73,12 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command jog(double rotations) {
     return Commands.sequence(
-        this.runOnce(() -> io.resetEncoder(0.0)),
+        // this.runOnce(() -> io.resetEncoder(0.0)),
         this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations))));
   }
 
   public Command hold() {
-    return this.jog(0.0);
+    return this.jog(inputs.positionRotations).until(() -> true).andThen(this.run(() -> {}));
   }
 
   public Command backIndex() {
