@@ -609,14 +609,14 @@ public class Superstructure {
                     .until(
                         () -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION, 0.1)),
                 Commands.parallel(
-                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
                         wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
                     .until(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS)),
                 Commands.parallel(
-                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS),
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
                     wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE_NET));
