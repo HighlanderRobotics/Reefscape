@@ -44,7 +44,7 @@ public class WristSubsystem extends SubsystemBase {
 
   private Rotation2d setpoint = Rotation2d.kZero;
 
-  private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
+  private final LinearFilter currentFilter = LinearFilter.movingAverage(10);
 
   public boolean hasZeroed = false;
 
