@@ -19,6 +19,7 @@ import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Autos {
@@ -102,7 +103,7 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
-                    ? intakeInAuto(steps.get(startPos + "to" + endPos).getFinalPose())
+                    ? intakeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
                     : Commands.sequence(
                         endPos.length() == 1 ? scoreInAuto() : Commands.print("pushed bot")),
                 steps.get(endPos + "to" + nextPos).cmd()));
@@ -266,6 +267,8 @@ public class Autos {
                         swerve.getPose(),
                         CoralTargets.getClosestTarget(swerve.getPose()),
                         swerve.getVelocityFieldRelative())),
+            Commands.waitSeconds(0.25),
+            Commands.print("Scoring!"),
             Commands.runOnce(
                 () -> {
                   autoScore = true;
@@ -285,8 +288,8 @@ public class Autos {
             AutoAim.translateToPose(swerve, () -> CoralTargets.getClosestTarget(swerve.getPose())));
   }
 
-  public Command intakeInAuto(Optional<Pose2d> pose) {
-    if (!pose.isPresent()) {
+  public Command intakeInAuto(Supplier<Optional<Pose2d>> pose) {
+    if (!pose.get().isPresent()) {
       return Commands.none();
     } else {
       return Commands.sequence(
@@ -294,7 +297,7 @@ public class Autos {
               ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
-          AutoAim.translateToPose(swerve, () -> pose.get())
+          AutoAim.translateToPose(swerve, () -> pose.get().get())
               .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
   }
