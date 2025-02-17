@@ -161,7 +161,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
     turnConfig.Slot0.kP = 20.0;
     turnConfig.Slot0.kD = 0.68275;
     turnConfig.MotionMagic.MotionMagicCruiseVelocity = (5500 / 60) / getTurnGearRatio();
-    turnConfig.MotionMagic.MotionMagicAcceleration = (5500 / 60) / (getTurnGearRatio() * 0.1);
+    turnConfig.MotionMagic.MotionMagicAcceleration = (5500 / 60) / (getTurnGearRatio() * 0.020);
     turnConfig.ClosedLoopGeneral.ContinuousWrap = true;
 
     return turnConfig;

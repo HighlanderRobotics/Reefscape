@@ -480,6 +480,12 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
+    new Trigger(() -> DriverStation.isEnabled())
+        .onTrue(Commands.runOnce(() -> Autos.autoScore = false));
+
+    new Trigger(() -> DriverStation.isEnabled())
+        .onTrue(Commands.runOnce(() -> Autos.autoPreScore = false));
+
     new Trigger(
             () -> {
               var allianceChange = !DriverStation.getAlliance().equals(lastAlliance);

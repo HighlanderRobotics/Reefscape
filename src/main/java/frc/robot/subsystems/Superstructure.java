@@ -254,7 +254,7 @@ public class Superstructure {
                     elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs()))
                 .andThen(Commands.waitUntil(homeReq.negate()), this.forceState(SuperState.IDLE)))
         .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
-        .onTrue(this.forceState(SuperState.IDLE));
+        .onTrue(this.forceState(prevState));
 
     // READY_CORAL logic
     stateTriggers
@@ -313,6 +313,11 @@ public class Superstructure {
         .and(preScoreReq)
         .and(() -> reefTarget.get() == ReefTarget.L4)
         .onTrue(this.forceState(SuperState.PRE_L4));
+
+    stateTriggers
+    .get(SuperState.READY_CORAL)
+    .and(() -> !wrist.hasZeroed || !elevator.hasZeroed)
+    .onTrue(this.forceState(SuperState.HOME));
     // READY_CORAL -> SPIT_CORAL
     stateTriggers
         .get(SuperState.READY_CORAL)
