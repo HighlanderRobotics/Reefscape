@@ -495,8 +495,8 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   @SuppressWarnings("resource")
   public Consumer<SwerveSample> choreoDriveController() {
-    final PIDController xController = new PIDController(10.0, 0.0, 0.0);
-    final PIDController yController = new PIDController(10.0, 0.0, 0.0);
+    final PIDController xController = new PIDController(5.0, 0.0, 0.0);
+    final PIDController yController = new PIDController(5.0, 0.0, 0.0);
     final PIDController thetaController =
         new PIDController(constants.getHeadingVelocityKP(), 0.0, 0.0);
     thetaController.enableContinuousInput(-Math.PI, Math.PI);

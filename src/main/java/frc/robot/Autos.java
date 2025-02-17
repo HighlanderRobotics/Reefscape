@@ -8,7 +8,6 @@ import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -17,6 +16,7 @@ import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
@@ -259,24 +259,30 @@ public class Autos {
   }
 
   public Command scoreInAuto() {
-    return Commands.runOnce(
-            () -> {
-              autoScore = true;
-              Robot.setCurrentTarget(ReefTarget.L4);
-            })
-        .andThen(
+    return Commands.sequence(
+            Commands.waitUntil(
+                () ->
+                    AutoAim.isInTolerance(
+                        swerve.getPose(),
+                        CoralTargets.getClosestTarget(swerve.getPose()),
+                        swerve.getVelocityFieldRelative())),
+            Commands.runOnce(
+                () -> {
+                  autoScore = true;
+                  Robot.setCurrentTarget(ReefTarget.L4);
+                }),
             Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
                 .alongWith(
                     Robot.isSimulation()
                         ? Commands.runOnce(() -> manipulator.setSecondBeambreak(false))
-                        : Commands.none())
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          autoScore = false;
-                          autoPreScore = false;
-                        }),
-                    swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
+                        : Commands.none()),
+            Commands.runOnce(
+                () -> {
+                  autoScore = false;
+                  autoPreScore = false;
+                }))
+        .raceWith(
+            AutoAim.translateToPose(swerve, () -> CoralTargets.getClosestTarget(swerve.getPose())));
   }
 
   public Command intakeInAuto(Optional<Pose2d> pose) {

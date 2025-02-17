@@ -32,6 +32,7 @@ public class AutoAim {
 
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
+  public static final double VELOCITY_TOLERANCE_METERSPERSECOND = 0.5;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     // This feels like a horrible way of getting around lambda final requirements
@@ -183,5 +184,16 @@ public class AutoAim {
             0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
         && MathUtil.isNear(
             0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
+  }
+
+  public static boolean isInTolerance(Pose2d pose1, Pose2d pose2, ChassisSpeeds speeds) {
+    final var diff = pose1.minus(pose2);
+    return MathUtil.isNear(
+            0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
+        && MathUtil.isNear(0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS)
+        && MathUtil.isNear(
+            0,
+            Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond),
+            VELOCITY_TOLERANCE_METERSPERSECOND);
   }
 }
