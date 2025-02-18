@@ -105,7 +105,10 @@ public class Autos {
                 endPos.length() == 3
                     ? intakeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
                     : Commands.sequence(
-                        endPos.length() == 1 ? scoreInAuto() : Commands.print("pushed bot")),
+                        endPos.length() == 1
+                            ? scoreInAuto(
+                                () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
+                            : Commands.print("pushed bot")),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -259,13 +262,13 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command scoreInAuto() {
+  public Command scoreInAuto(Supplier<Pose2d> trajEndPose) {
     return Commands.sequence(
             Commands.waitUntil(
                 () ->
                     AutoAim.isInTolerance(
                         swerve.getPose(),
-                        CoralTargets.getClosestTarget(swerve.getPose()),
+                        CoralTargets.getClosestTarget(trajEndPose.get()),
                         swerve.getVelocityFieldRelative())),
             Commands.waitSeconds(0.25),
             Commands.print("Scoring!"),
@@ -285,7 +288,13 @@ public class Autos {
                   autoPreScore = false;
                 }))
         .raceWith(
-            AutoAim.translateToPose(swerve, () -> CoralTargets.getClosestTarget(swerve.getPose())));
+            AutoAim.translateToPose(
+                swerve, () -> CoralTargets.getClosestTarget(trajEndPose.get())));
+  }
+
+  // TODO: REMOVE THIS OVERLOAD
+  public Command scoreInAuto() {
+    return scoreInAuto(() -> swerve.getPose());
   }
 
   public Command intakeInAuto(Supplier<Optional<Pose2d>> pose) {

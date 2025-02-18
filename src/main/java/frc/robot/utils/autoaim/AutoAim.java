@@ -50,13 +50,13 @@ public class AutoAim {
         new ProfiledPIDController(
             10.0,
             0.01,
-            0.0,
+            0.01,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     final ProfiledPIDController vyController =
         new ProfiledPIDController(
             10.0,
             0.01,
-            0.0,
+            0.01,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.runOnce(
             () -> {
