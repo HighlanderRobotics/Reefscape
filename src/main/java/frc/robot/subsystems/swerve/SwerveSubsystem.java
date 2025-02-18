@@ -474,7 +474,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 + moduleForcesY[i] * getRotation().unaryMinus().getCos();
         forceSetpoints[i] =
             new SwerveModuleState(
-                Math.hypot(robotRelForceX, robotRelForceY),
+                Math.hypot(robotRelForceX * 0.5, robotRelForceY * 0.5),
                 new Rotation2d(robotRelForceX, robotRelForceY));
         optimizedSetpointStates[i] =
             modules[i].runSetpoint(setpointStates[i], robotRelForceX, robotRelForceY);

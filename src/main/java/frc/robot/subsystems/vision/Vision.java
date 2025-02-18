@@ -20,7 +20,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 public class Vision {
   public static final Matrix<N3, N1> visionPointBlankDevs =
       new Matrix<N3, N1>(Nat.N3(), Nat.N1(), new double[] {0.4, 0.4, 0.5});
-  public static final double distanceFactor = 0.75;
+  public static final double distanceFactor = 1.25;
 
   public record VisionConstants(
       String cameraName,

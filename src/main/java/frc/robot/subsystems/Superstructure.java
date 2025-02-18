@@ -315,9 +315,9 @@ public class Superstructure {
         .onTrue(this.forceState(SuperState.PRE_L4));
 
     stateTriggers
-    .get(SuperState.READY_CORAL)
-    .and(() -> !wrist.hasZeroed || !elevator.hasZeroed)
-    .onTrue(this.forceState(SuperState.HOME));
+        .get(SuperState.READY_CORAL)
+        .and(() -> !wrist.hasZeroed || !elevator.hasZeroed)
+        .onTrue(this.forceState(SuperState.HOME));
     // READY_CORAL -> SPIT_CORAL
     stateTriggers
         .get(SuperState.READY_CORAL)

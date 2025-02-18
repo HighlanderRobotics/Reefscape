@@ -54,7 +54,10 @@ public class Module {
     // to project a onto b take ||a||*cos(theta) where theta is the angle between the two vectors
     // We want the magnitude of the projection, so we can ignore the direction of this later
     final var theta = Math.atan2(forceYNewtons, forceXNewtons) - inputs.turnPosition.getRadians();
-    final double forceNewtons = Math.hypot(forceXNewtons, forceYNewtons) * Math.cos(theta);
+    double forceNewtons = Math.hypot(forceXNewtons, forceYNewtons) * Math.cos(theta);
+    if (Math.signum(forceNewtons) * Math.signum(state.speedMetersPerSecond) < 0) {
+      forceNewtons = 0;
+    }
 
     io.setTurnSetpoint(state.angle);
     io.setDriveSetpoint(
