@@ -35,6 +35,11 @@ public class AutoAim {
   public static final double VELOCITY_TOLERANCE_METERSPERSECOND = 0.5;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
+    return translateToPose(swerve, target, () -> new ChassisSpeeds());
+  }
+
+  public static Command translateToPose(
+      SwerveSubsystem swerve, Supplier<Pose2d> target, Supplier<ChassisSpeeds> speedsModifier) {
     // This feels like a horrible way of getting around lambda final requirements
     // Is there a cleaner way of doing this?
     final Pose2d cachedTarget[] = {new Pose2d()};
@@ -79,18 +84,19 @@ public class AutoAim {
                       MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(0.25))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(0.25))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 0.5)
-                          ? new ChassisSpeeds()
+                          ? new ChassisSpeeds().plus(speedsModifier.get())
                           : new ChassisSpeeds(
-                              vxController.calculate(
-                                      swerve.getPose().getX(), cachedTarget[0].getX())
-                                  + vxController.getSetpoint().velocity,
-                              vyController.calculate(
-                                      swerve.getPose().getY(), cachedTarget[0].getY())
-                                  + vyController.getSetpoint().velocity,
-                              headingController.calculate(
-                                      swerve.getPose().getRotation().getRadians(),
-                                      cachedTarget[0].getRotation().getRadians())
-                                  + headingController.getSetpoint().velocity);
+                                  vxController.calculate(
+                                          swerve.getPose().getX(), cachedTarget[0].getX())
+                                      + vxController.getSetpoint().velocity,
+                                  vyController.calculate(
+                                          swerve.getPose().getY(), cachedTarget[0].getY())
+                                      + vyController.getSetpoint().velocity,
+                                  headingController.calculate(
+                                          swerve.getPose().getRotation().getRadians(),
+                                          cachedTarget[0].getRotation().getRadians())
+                                      + headingController.getSetpoint().velocity)
+                              .plus(speedsModifier.get());
                   Logger.recordOutput(
                       "AutoAim/Target Pose",
                       new Pose2d(

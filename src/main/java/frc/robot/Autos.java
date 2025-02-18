@@ -8,6 +8,7 @@ import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -306,7 +307,12 @@ public class Autos {
               ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
-          AutoAim.translateToPose(swerve, () -> pose.get().get())
+          AutoAim.translateToPose(
+                  swerve,
+                  () -> pose.get().get(),
+                  () ->
+                      ChassisSpeeds.fromRobotRelativeSpeeds(
+                          new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
               .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
   }
