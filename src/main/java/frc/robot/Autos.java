@@ -9,10 +9,12 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
@@ -266,11 +268,15 @@ public class Autos {
   public Command scoreInAuto(Supplier<Pose2d> trajEndPose) {
     return Commands.sequence(
             Commands.waitUntil(
-                () ->
-                    AutoAim.isInTolerance(
-                        swerve.getPose(),
-                        CoralTargets.getClosestTarget(trajEndPose.get()),
-                        swerve.getVelocityFieldRelative())),
+                new Trigger(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve.getPose(),
+                                CoralTargets.getClosestTarget(trajEndPose.get()),
+                                swerve.getVelocityFieldRelative(),
+                                Units.inchesToMeters(1.25),
+                                Units.degreesToRadians(1.0)))
+                    .debounce(0.25)),
             Commands.waitSeconds(0.25),
             Commands.print("Scoring!"),
             Commands.runOnce(
@@ -318,7 +324,7 @@ public class Autos {
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 3); // TODO tune
+    bindElevatorExtension(routine, 4.0); // TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {

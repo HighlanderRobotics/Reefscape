@@ -193,10 +193,23 @@ public class AutoAim {
   }
 
   public static boolean isInTolerance(Pose2d pose1, Pose2d pose2, ChassisSpeeds speeds) {
+    return isInTolerance(
+        pose1,
+        pose2,
+        speeds,
+        AutoAim.TRANSLATION_TOLERANCE_METERS,
+        AutoAim.ROTATION_TOLERANCE_RADIANS);
+  }
+
+  public static boolean isInTolerance(
+      Pose2d pose1,
+      Pose2d pose2,
+      ChassisSpeeds speeds,
+      double translationTolerance,
+      double rotationTolerance) {
     final var diff = pose1.minus(pose2);
-    return MathUtil.isNear(
-            0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
-        && MathUtil.isNear(0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS)
+    return MathUtil.isNear(0.0, Math.hypot(diff.getX(), diff.getY()), translationTolerance)
+        && MathUtil.isNear(0.0, diff.getRotation().getRadians(), rotationTolerance)
         && MathUtil.isNear(
             0,
             Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond),
