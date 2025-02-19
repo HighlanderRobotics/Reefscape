@@ -49,7 +49,7 @@ public enum AlgaeIntakeTargets {
   }
 
   public static Pose2d getOffsetLocation(Pose2d original) {
-    return original.transformBy(new Transform2d((-0.3), 0, Rotation2d.kZero));
+    return original.transformBy(new Transform2d((-0.2), 0, Rotation2d.kZero));
   }
 
   /** Gets the closest offset target to the given pose. */
