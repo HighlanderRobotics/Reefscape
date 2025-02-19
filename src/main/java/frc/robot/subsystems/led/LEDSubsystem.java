@@ -18,10 +18,12 @@ public class LEDSubsystem extends SubsystemBase {
   public static final int LED_LENGTH = 25;
   public static final int LED_ID = 2;
 
+  public static final Color PURPLE = new Color("#A000D0");
+
   public static final Color L1 = Color.kGreen;
   public static final Color L2 = Color.kTeal;
   public static final Color L3 = Color.kBlue;
-  public static final Color L4 = Color.kMagenta;
+  public static final Color L4 = PURPLE;
 
   private final LEDIO io;
   private final LEDIOInputsAutoLogged inputs = new LEDIOInputsAutoLogged();

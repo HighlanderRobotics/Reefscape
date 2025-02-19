@@ -524,7 +524,7 @@ public class Robot extends LoggedRobot {
                             DriverStation.getAlliance()
                                 .map((a) -> a == Alliance.Blue ? Color.kBlue : Color.kRed)
                                 .orElse(Color.kWhite),
-                        () -> Color.kPurple,
+                        () -> LEDSubsystem.PURPLE,
                         4,
                         1.0)
                     .until(() -> DriverStation.isEnabled()),
