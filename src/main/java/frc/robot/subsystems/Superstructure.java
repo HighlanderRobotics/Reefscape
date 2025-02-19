@@ -532,10 +532,10 @@ public class Superstructure {
         .whileTrue(
             shoulder.setTargetAngle(
                 () ->
-                    (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
-                            || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK)
-                        ? ShoulderSubsystem.SHOULDER_RETRACTED_POS
-                        : ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS))
+                    (prevState == SuperState.INTAKE_ALGAE_HIGH
+                            || prevState == SuperState.INTAKE_ALGAE_LOW)
+                        ? ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS
+                        : ShoulderSubsystem.SHOULDER_RETRACTED_POS))
         .whileTrue(
             wrist.setTargetAngle(
                 () ->
@@ -581,6 +581,11 @@ public class Superstructure {
         .get(SuperState.READY_ALGAE)
         .and(preClimbReq)
         .onTrue(forceState(SuperState.SPIT_ALGAE));
+
+    stateTriggers
+        .get(SuperState.READY_ALGAE)
+        .and(() -> manipulator.getStatorCurrentAmps() < 20.0)
+        .onTrue(forceState(SuperState.CHECK_ALGAE));
     // SPIT_ALGAE -> PRE_CLIMB
     stateTriggers
         .get(SuperState.SPIT_ALGAE)
