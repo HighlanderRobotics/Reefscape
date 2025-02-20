@@ -559,10 +559,10 @@ public class Superstructure {
     // READY_ALGAE logic
     stateTriggers
         .get(SuperState.READY_ALGAE)
-        .whileTrue(elevator.setExtension(0.0))
-        .whileTrue(manipulator.intakeAlgae())
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
+        .whileTrue(
+            extendWithClearance(
+                0.0, ShoulderSubsystem.SHOULDER_RETRACTED_POS, WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(manipulator.intakeAlgae());
     // READY_ALGAE -> PRE_NET
     stateTriggers
         .get(SuperState.READY_ALGAE)
