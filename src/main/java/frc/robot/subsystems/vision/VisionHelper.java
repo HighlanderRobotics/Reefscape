@@ -440,9 +440,10 @@ public class VisionHelper {
     }
     double avgDistance = sumDistance / estimation.targetsUsed.size();
 
-    var deviation = Vision.visionPointBlankDevs.times(avgDistance * Vision.distanceFactor);
+    var deviation =
+        Vision.visionPointBlankDevs.times(Math.max(avgDistance, 0.0) * Vision.distanceFactor);
     if (estimation.targetsUsed.size() == 1) {
-      deviation = deviation.times(2);
+      deviation = deviation.times(3);
     }
     // TAG_COUNT_DEVIATION_PARAMS
     //     .get(

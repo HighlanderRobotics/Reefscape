@@ -81,8 +81,8 @@ public class AutoAim {
                 () -> {
                   final var diff = swerve.getPose().minus(cachedTarget[0]);
                   final var speeds =
-                      MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(0.25))
-                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(0.25))
+                      MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(0.75))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(0.75))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 0.5)
                           ? new ChassisSpeeds().plus(speedsModifier.get())
                           : new ChassisSpeeds(
@@ -213,6 +213,7 @@ public class AutoAim {
         && MathUtil.isNear(
             0,
             Math.hypot(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond),
-            VELOCITY_TOLERANCE_METERSPERSECOND);
+            VELOCITY_TOLERANCE_METERSPERSECOND)
+        && MathUtil.isNear(0.0, speeds.omegaRadiansPerSecond, 3.0);
   }
 }
