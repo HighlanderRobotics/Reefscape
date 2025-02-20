@@ -384,7 +384,9 @@ public class SwerveSubsystem extends SubsystemBase {
       simulation.get().setRobotSpeeds(new ChassisSpeeds());
     }
   }
-
+  public void setYaw(Rotation2d yaw) {
+    resetPose(new Pose2d(getPose().getTranslation(), yaw));
+  }
   /** Returns the module states (turn angles and drive velocitoes) for all of the modules. */
   @AutoLogOutput(key = "SwerveStates/Measured")
   private SwerveModuleState[] getModuleStates() {
