@@ -171,54 +171,15 @@ public class KelpieSwerveConstants extends SwerveConstants {
   public VisionConstants[] getVisionConstants() { // TODO calibrate - stolen from alpha rn
     final Matrix<N3, N3> BACK_LEFT_CAMERA_MATRIX =
         MatBuilder.fill(
-            Nat.N3(),
-            Nat.N3(),
-            901.8012064300815,
-            0.0,
-            830.4004635040717,
-            0.0,
-            903.1944838156696,
-            704.0648345598304,
-            0.0,
-            0.0,
-            1.0);
+            Nat.N3(), Nat.N3(), 907.36, 0.0, 678.66, 0.0, 909.01, 412.26, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> BACK_LEFT_DIST_COEFFS =
         MatBuilder.fill(
-            Nat.N8(),
-            Nat.N1(),
-            0.05096564042945532,
-            -0.08005742255822096,
-            9.362839975047e-5,
-            -2.1069595324007255e-5,
-            0.03230467950441941,
-            -0.0037459354189258794,
-            0.012202835675939619,
-            0.0034143496721838872);
+            Nat.N8(), Nat.N1(), 0.047, -0.07, -0.001, 0.001, 0.017, -0.002, 0.005, 0.002);
     final Matrix<N3, N3> BACK_RIGHT_CAMERA_MATRIX =
         MatBuilder.fill(
-            Nat.N3(),
-            Nat.N3(),
-            901.8012064300815,
-            0.0,
-            830.4004635040717,
-            0.0,
-            903.1944838156696,
-            704.0648345598304,
-            0.0,
-            0.0,
-            1.0);
+            Nat.N3(), Nat.N3(), 910.82, 0.0, 646.15, 0.0, 912.24, 366.98, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> BACK_RIGHT_DIST_COEFFS =
-        MatBuilder.fill(
-            Nat.N8(),
-            Nat.N1(),
-            0.05096564042945532,
-            -0.08005742255822096,
-            9.362839975047e-5,
-            -2.1069595324007255e-5,
-            0.03230467950441941,
-            -0.0037459354189258794,
-            0.012202835675939619,
-            0.0034143496721838872);
+        MatBuilder.fill(Nat.N8(), Nat.N1(), 0.044, -0.063, 0, 0, 0.007, -0.002, 0.005, 0.002);
     final Matrix<N3, N3> FRONT_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(), Nat.N3(), 911.67, 0.0, 663.03, 0.0, 909.82, 408.72, 0.0, 0.0, 1.0);
@@ -227,12 +188,12 @@ public class KelpieSwerveConstants extends SwerveConstants {
             Nat.N8(), Nat.N1(), 0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
     final VisionConstants backLeftCamConstants =
         new VisionConstants(
-            "Back_Left_Camera", // TODO adjust names in pv dashboard
+            "Back_Left", // TODO adjust names in pv dashboard
             new Transform3d(
                 new Translation3d(
-                    Units.inchesToMeters(-11.566),
-                    Units.inchesToMeters(11.396),
-                    Units.inchesToMeters(8.938)),
+                    Units.inchesToMeters(-11.600),
+                    Units.inchesToMeters(11.400),
+                    Units.inchesToMeters(9.052)),
                 new Rotation3d(
                     Units.degreesToRadians(0.0),
                     Units.degreesToRadians(-28.125),
@@ -241,12 +202,12 @@ public class KelpieSwerveConstants extends SwerveConstants {
             BACK_LEFT_DIST_COEFFS);
     final VisionConstants backRightCamConstants =
         new VisionConstants(
-            "Back_Right_Camera",
+            "Back_Right",
             new Transform3d(
                 new Translation3d(
-                    Units.inchesToMeters(-11.566),
-                    Units.inchesToMeters(-11.396),
-                    Units.inchesToMeters(8.938)),
+                    Units.inchesToMeters(-11.600),
+                    Units.inchesToMeters(-11.400488),
+                    Units.inchesToMeters(9.052)),
                 new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
             BACK_RIGHT_CAMERA_MATRIX,
             BACK_RIGHT_DIST_COEFFS);
@@ -261,7 +222,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(30))),
             FRONT_CAMERA_MATRIX,
             FRONT_DIST_COEFFS);
-    return new VisionConstants[] {frontCamConstants};
+    return new VisionConstants[] {frontCamConstants, backLeftCamConstants, backRightCamConstants};
   }
 
   @Override
