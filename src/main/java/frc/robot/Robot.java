@@ -694,7 +694,11 @@ public class Robot extends LoggedRobot {
                 () -> Color.kBlack,
                 5.0));
 
-    driver.leftStick().and(driver.rightStick()).onTrue(Commands.runOnce(() -> swerve.setYaw(new Rotation2d())));;
+    driver
+        .leftStick()
+        .and(driver.rightStick())
+        .onTrue(Commands.runOnce(() -> swerve.setYaw(new Rotation2d())));
+    ;
 
     // Log locations of all autoaim targets
     Logger.recordOutput(

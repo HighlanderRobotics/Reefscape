@@ -384,6 +384,7 @@ public class SwerveSubsystem extends SubsystemBase {
       simulation.get().setRobotSpeeds(new ChassisSpeeds());
     }
   }
+
   public void setYaw(Rotation2d yaw) {
     resetPose(new Pose2d(getPose().getTranslation(), yaw));
   }
