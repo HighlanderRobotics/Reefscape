@@ -603,9 +603,10 @@ public class Robot extends LoggedRobot {
                     // TODO: PUT ACUAL NET POSE
                     swerve,
                     () ->
-                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                            ? AutoAim.BLUE_NET_X
-                            : AutoAim.RED_NET_X,
+                        Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
+                                > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
+                            ? AutoAim.RED_NET_X
+                            : AutoAim.BLUE_NET_X,
                     () ->
                         modifyJoystick(driver.getLeftX())
                             * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
@@ -700,12 +701,17 @@ public class Robot extends LoggedRobot {
                         algaeScoreTarget == AlgaeScoreTarget.NET),
                 () -> Color.kBlack,
                 5.0));
-
+    // heading reset
     driver
         .leftStick()
         .and(driver.rightStick())
-        .onTrue(Commands.runOnce(() -> swerve.setYaw(new Rotation2d())));
-    ;
+        .onTrue(
+            Commands.runOnce(
+                () ->
+                    swerve.setYaw(
+                        DriverStation.getAlliance().equals(Alliance.Blue)
+                            ? Rotation2d.kZero
+                            : Rotation2d.k180deg)));
 
     // Log locations of all autoaim targets
     Logger.recordOutput(
