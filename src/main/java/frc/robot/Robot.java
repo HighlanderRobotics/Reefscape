@@ -492,10 +492,16 @@ public class Robot extends LoggedRobot {
               lastAlliance = DriverStation.getAlliance();
               return allianceChange && DriverStation.getAlliance().isPresent();
             })
-        .onTrue(Commands.runOnce(() -> addAutos()).ignoringDisable(true));
+        .onTrue(
+            Commands.runOnce(() -> addAutos())
+                .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
+                .ignoringDisable(true));
 
     new Trigger(() -> DriverStation.getAlliance().isPresent())
-        .onTrue(Commands.runOnce(() -> addAutos()).ignoringDisable(true));
+        .onTrue(
+            Commands.runOnce(() -> addAutos())
+                .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
+                .ignoringDisable(true));
 
     elevator.setDefaultCommand(
         Commands.sequence(
@@ -732,7 +738,8 @@ public class Robot extends LoggedRobot {
   }
 
   private void addAutos() {
-    System.out.println("Regenerating Autos");
+    System.out.println(
+        "Regenerating Autos on " + DriverStation.getAlliance().map((a) -> a.toString()));
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());
     autoChooser.addOption("Sprint Test", autos.getTestSprint());
     autoChooser.addOption("LM to H", autos.LMtoH());

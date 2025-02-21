@@ -140,7 +140,9 @@ public class Autos {
       runPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
+    routine
+        .observe(steps.get("PLOtoA").done())
+        .onTrue(scoreInAuto(() -> steps.get("PLOtoA").getFinalPose().get()));
     return routine.cmd();
   }
 
@@ -312,12 +314,14 @@ public class Autos {
               ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
-          AutoAim.translateToPose(
-                  swerve,
-                  () -> pose.get().get(),
-                  () ->
-                      ChassisSpeeds.fromRobotRelativeSpeeds(
-                          new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
+          // AutoAim.translateToPose(
+          //         swerve,
+          //         () -> pose.get().get(),
+          //         () ->
+          //             ChassisSpeeds.fromRobotRelativeSpeeds(
+          //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
+          swerve
+              .driveVelocity(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
               .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
   }
