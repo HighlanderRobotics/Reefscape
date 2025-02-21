@@ -613,8 +613,8 @@ public class Robot extends LoggedRobot {
                     () ->
                         Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
                                 > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
-                            ? Rotation2d.k180deg
-                            : Rotation2d.kZero),
+                            ? Rotation2d.kZero
+                            : Rotation2d.k180deg),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
