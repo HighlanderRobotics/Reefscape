@@ -168,18 +168,18 @@ public class KelpieSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public VisionConstants[] getVisionConstants() { // TODO calibrate - stolen from alpha rn
+  public VisionConstants[] getVisionConstants() {
     final Matrix<N3, N3> BACK_LEFT_CAMERA_MATRIX =
         MatBuilder.fill(
-            Nat.N3(), Nat.N3(), 907.36, 0.0, 678.66, 0.0, 909.01, 412.26, 0.0, 0.0, 1.0);
+            Nat.N3(), Nat.N3(), 906.46, 0.0, 	675.30, 0.0, 	907.49, 394.45, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> BACK_LEFT_DIST_COEFFS =
         MatBuilder.fill(
-            Nat.N8(), Nat.N1(), 0.047, -0.07, -0.001, 0.001, 0.017, -0.002, 0.005, 0.002);
+            Nat.N8(), Nat.N1(),  0.039, -0.057, -0.005, 0.001, -0.004, -0.001, 0.003, 0.001);
     final Matrix<N3, N3> BACK_RIGHT_CAMERA_MATRIX =
         MatBuilder.fill(
-            Nat.N3(), Nat.N3(), 910.82, 0.0, 646.15, 0.0, 912.24, 366.98, 0.0, 0.0, 1.0);
+            Nat.N3(), Nat.N3(), 925.82, 0.0, 633.65, 0.0, 927.87, 386.90, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> BACK_RIGHT_DIST_COEFFS =
-        MatBuilder.fill(Nat.N8(), Nat.N1(), 0.044, -0.063, 0, 0, 0.007, -0.002, 0.005, 0.002);
+        MatBuilder.fill(Nat.N8(), Nat.N1(), 0.058, -0.09, 0.006, -0.003, 0.022, -0.002, 0.004, -0.001);
     final Matrix<N3, N3> FRONT_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(), Nat.N3(), 911.67, 0.0, 663.03, 0.0, 909.82, 408.72, 0.0, 0.0, 1.0);
@@ -188,7 +188,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
             Nat.N8(), Nat.N1(), 0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
     final VisionConstants backLeftCamConstants =
         new VisionConstants(
-            "Back_Left", // TODO adjust names in pv dashboard
+            "Back_Left",
             new Transform3d(
                 new Translation3d(
                     Units.inchesToMeters(-11.600),
@@ -217,7 +217,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
             new Transform3d(
                 new Translation3d(
                     Units.inchesToMeters(11.879),
-                    Units.inchesToMeters(-11.664), // TODO scoring side is considered front?
+                    Units.inchesToMeters(-11.664),
                     Units.inchesToMeters(8.804)),
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(30))),
             FRONT_CAMERA_MATRIX,
