@@ -611,9 +611,10 @@ public class Robot extends LoggedRobot {
                         modifyJoystick(driver.getLeftX())
                             * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     () ->
-                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                            ? Rotation2d.fromDegrees(180)
-                            : Rotation2d.fromDegrees(0)),
+                        Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
+                                > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
+                            ? Rotation2d.k180deg
+                            : Rotation2d.kZero),
                 Commands.waitUntil(
                         () -> {
                           final var diff =

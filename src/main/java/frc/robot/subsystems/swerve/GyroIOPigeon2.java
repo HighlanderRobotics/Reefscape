@@ -26,6 +26,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Registration;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
 import java.util.Optional;
+import org.littletonrobotics.junction.Logger;
 
 /** IO implementation for Pigeon2 */
 public class GyroIOPigeon2 implements GyroIO {
@@ -40,7 +41,8 @@ public class GyroIOPigeon2 implements GyroIO {
     pigeon.getConfigurator().apply(new Pigeon2Configuration());
     pigeon.getConfigurator().setYaw(0.0);
     yaw.setUpdateFrequency(PhoenixOdometryThread.ODOMETRY_FREQUENCY_HZ);
-    yawVelocity.setUpdateFrequency(100.0);
+    // yawVelocity.setUpdateFrequency(100.0);
+    yawVelocity.setUpdateFrequency(PhoenixOdometryThread.ODOMETRY_FREQUENCY_HZ);
     pigeon.optimizeBusUtilization();
     PhoenixOdometryThread.getInstance()
         .registerSignals(
@@ -50,6 +52,8 @@ public class GyroIOPigeon2 implements GyroIO {
   @Override
   public void updateInputs(GyroIOInputs inputs) {
     inputs.isConnected = BaseStatusSignal.refreshAll(yaw, yawVelocity).equals(StatusCode.OK);
+    Logger.recordOutput("Odometry/Gyro Status", yaw.getStatus());
+    Logger.recordOutput("Odometry/Gyro timestamp", yaw.getTimestamp().getLatency());
     inputs.yawPosition = new Rotation2d(yaw.getValue());
     inputs.yawVelocityRadPerSec = yawVelocity.getValue().in(RadiansPerSecond);
   }
