@@ -61,7 +61,8 @@ public class Module {
 
     io.setTurnSetpoint(state.angle);
     io.setDriveSetpoint(
-        state.speedMetersPerSecond * Math.cos(state.angle.minus(inputs.turnPosition).getRadians()),
+        state.speedMetersPerSecond, // *
+        // Math.cos(state.angle.minus(inputs.turnPosition).getRadians()),
         forceNewtons);
     Logger.recordOutput(
         new StringBuilder("Swerve/").append(inputs.prefix).append(" Force Feedforward").toString(),

@@ -161,7 +161,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
     turnConfig.Slot0.kP = 20.0;
     turnConfig.Slot0.kD = 0.68275;
     turnConfig.MotionMagic.MotionMagicCruiseVelocity = (5500 / 60) / getTurnGearRatio();
-    turnConfig.MotionMagic.MotionMagicAcceleration = (5500 / 60) / (getTurnGearRatio() * 0.020);
+    turnConfig.MotionMagic.MotionMagicAcceleration = (5500 / 60) / (getTurnGearRatio() * 0.005);
     turnConfig.ClosedLoopGeneral.ContinuousWrap = true;
 
     return turnConfig;
@@ -171,15 +171,16 @@ public class KelpieSwerveConstants extends SwerveConstants {
   public VisionConstants[] getVisionConstants() {
     final Matrix<N3, N3> BACK_LEFT_CAMERA_MATRIX =
         MatBuilder.fill(
-            Nat.N3(), Nat.N3(), 906.46, 0.0, 	675.30, 0.0, 	907.49, 394.45, 0.0, 0.0, 1.0);
+            Nat.N3(), Nat.N3(), 906.46, 0.0, 675.30, 0.0, 907.49, 394.45, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> BACK_LEFT_DIST_COEFFS =
         MatBuilder.fill(
-            Nat.N8(), Nat.N1(),  0.039, -0.057, -0.005, 0.001, -0.004, -0.001, 0.003, 0.001);
+            Nat.N8(), Nat.N1(), 0.039, -0.057, -0.005, 0.001, -0.004, -0.001, 0.003, 0.001);
     final Matrix<N3, N3> BACK_RIGHT_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(), Nat.N3(), 925.82, 0.0, 633.65, 0.0, 927.87, 386.90, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> BACK_RIGHT_DIST_COEFFS =
-        MatBuilder.fill(Nat.N8(), Nat.N1(), 0.058, -0.09, 0.006, -0.003, 0.022, -0.002, 0.004, -0.001);
+        MatBuilder.fill(
+            Nat.N8(), Nat.N1(), 0.058, -0.09, 0.006, -0.003, 0.022, -0.002, 0.004, -0.001);
     final Matrix<N3, N3> FRONT_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(), Nat.N3(), 911.67, 0.0, 663.03, 0.0, 909.82, 408.72, 0.0, 0.0, 1.0);
