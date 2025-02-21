@@ -20,6 +20,13 @@ import org.photonvision.targeting.PhotonPipelineResult;
 public class Vision {
   public static final Matrix<N3, N1> visionPointBlankDevs =
       new Matrix<N3, N1>(Nat.N3(), Nat.N1(), new double[] {0.6, 0.6, 0.5});
+  public static final Matrix<N3, N1> infiniteDevs =
+      new Matrix<N3, N1>(
+          Nat.N3(),
+          Nat.N1(),
+          new double[] {
+            Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY
+          });
   public static final double distanceFactor = 2.0;
 
   public record VisionConstants(
@@ -52,6 +59,9 @@ public class Vision {
     if (result.getTargets().size() < 1) {
       return Optional.empty();
     }
+    Logger.recordOutput(
+        "Vision/" + io.getName() + " Best Distance",
+        result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
     Optional<EstimatedRobotPose> estPose =
         VisionHelper.update(
             result,

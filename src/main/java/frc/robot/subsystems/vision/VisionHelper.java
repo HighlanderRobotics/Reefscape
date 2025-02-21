@@ -390,6 +390,7 @@ public class VisionHelper {
           false);
       return Optional.empty();
     }
+
     var estimatedRobotPose =
         new EstimatedRobotPose(
             targetPosition
@@ -444,6 +445,9 @@ public class VisionHelper {
         Vision.visionPointBlankDevs.times(Math.max(avgDistance, 0.0) * Vision.distanceFactor);
     if (estimation.targetsUsed.size() == 1) {
       deviation = deviation.times(3);
+    }
+    if (estimation.targetsUsed.size() == 1 && estimation.targetsUsed.get(0).poseAmbiguity > 0.15) {
+      return Vision.infiniteDevs;
     }
     // TAG_COUNT_DEVIATION_PARAMS
     //     .get(

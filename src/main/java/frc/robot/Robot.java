@@ -494,6 +494,9 @@ public class Robot extends LoggedRobot {
             })
         .onTrue(Commands.runOnce(() -> addAutos()).ignoringDisable(true));
 
+    new Trigger(() -> DriverStation.getAlliance().isPresent())
+        .onTrue(Commands.runOnce(() -> addAutos()).ignoringDisable(true));
+
     elevator.setDefaultCommand(
         Commands.sequence(
                 elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),

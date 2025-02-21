@@ -277,7 +277,6 @@ public class Autos {
                                 Units.inchesToMeters(2.0),
                                 Units.degreesToRadians(1.0)))
                     .debounce(0.25)),
-            Commands.waitSeconds(0.25),
             Commands.print("Scoring!"),
             Commands.runOnce(
                 () -> {

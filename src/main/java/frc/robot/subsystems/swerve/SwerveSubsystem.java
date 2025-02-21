@@ -257,6 +257,7 @@ public class SwerveSubsystem extends SubsystemBase {
         }
         continue;
       }
+      missingModuleData.set(false);
 
       // If we have all our module data . . .
       // The twist represents the motion of the robot since the last
@@ -309,7 +310,9 @@ public class SwerveSubsystem extends SubsystemBase {
           final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
           Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
           estimator.addVisionMeasurement(
-              visionPose.toPose2d(), camera.inputs.captureTimestampMicros / 1.0e6, deviations);
+              visionPose.toPose2d(),
+              camera.inputs.captureTimestampMicros / 1.0e6,
+              deviations.times(DriverStation.isAutonomous() ? 2.0 : 1.0));
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
           cameraPoses[i] = visionPose;
