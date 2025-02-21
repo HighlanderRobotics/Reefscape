@@ -567,6 +567,16 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   /**
+   * Drive at a robot-relative speed open-loop.
+   *
+   * @param speeds the robot-relative speed reference.
+   * @return a Command driving to the target speeds.
+   */
+  public Command driveVoltage(Supplier<ChassisSpeeds> speeds) {
+    return this.run(() -> drive(speeds.get(), true, new double[4], new double[4]));
+  }
+
+  /**
    * Drive at a robot-relative speed.
    *
    * @param speeds the robot-relative speed reference.

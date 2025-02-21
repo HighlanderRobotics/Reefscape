@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -497,11 +498,21 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
-    new Trigger(() -> DriverStation.getAlliance().isPresent())
+    new Trigger(() -> DriverStation.isDSAttached() && DriverStation.getAlliance().isPresent())
+        .onTrue(Commands.print("connected"))
         .onTrue(
             Commands.runOnce(() -> addAutos())
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
+
+    SmartDashboard.putData(
+        "Add Autos",
+        Commands.runOnce(
+            () -> {
+              if (DriverStation.getAlliance().isPresent()) {
+                addAutos();
+              }
+            }));
 
     elevator.setDefaultCommand(
         Commands.sequence(
@@ -738,6 +749,7 @@ public class Robot extends LoggedRobot {
   }
 
   private void addAutos() {
+    System.out.println("------- Regenerating Autos");
     System.out.println(
         "Regenerating Autos on " + DriverStation.getAlliance().map((a) -> a.toString()));
     autoChooser.addOption("Triangle Test", autos.getTestTriangle());

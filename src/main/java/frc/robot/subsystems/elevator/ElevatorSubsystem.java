@@ -156,7 +156,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public boolean isNearExtension(double expected) {
-    return MathUtil.isNear(expected, inputs.positionMeters, 0.02);
+    return MathUtil.isNear(expected, inputs.positionMeters, 0.05);
   }
 
   public boolean isNearExtension(double expected, double toleranceMeters) {

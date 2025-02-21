@@ -423,7 +423,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
-        .debounce(0.25)
+        // .debounce(0.15)
         .whileTrue(
             this.extendWithClearance(
                 0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))

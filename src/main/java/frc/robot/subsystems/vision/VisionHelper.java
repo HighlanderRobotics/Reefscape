@@ -449,6 +449,10 @@ public class VisionHelper {
     if (estimation.targetsUsed.size() == 1 && estimation.targetsUsed.get(0).poseAmbiguity > 0.15) {
       return Vision.infiniteDevs;
     }
+    // Reject if estimated pose is in the air or ground
+    if (Math.abs(estimation.estimatedPose.getZ()) > 0.125) {
+      return Vision.infiniteDevs;
+    }
     // TAG_COUNT_DEVIATION_PARAMS
     //     .get(
     //         MathUtil.clamp(

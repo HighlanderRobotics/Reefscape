@@ -276,7 +276,7 @@ public class Autos {
                                 swerve.getPose(),
                                 CoralTargets.getClosestTarget(trajEndPose.get()),
                                 swerve.getVelocityFieldRelative(),
-                                Units.inchesToMeters(2.0),
+                                Units.inchesToMeters(3.0),
                                 Units.degreesToRadians(1.0)))
                     .debounce(0.25)),
             Commands.print("Scoring!"),
@@ -294,7 +294,9 @@ public class Autos {
                 () -> {
                   autoScore = false;
                   autoPreScore = false;
-                }))
+                }),
+            // Retract some
+            Commands.waitSeconds(0.3))
         .raceWith(
             AutoAim.translateToPose(
                 swerve, () -> CoralTargets.getClosestTarget(trajEndPose.get())));
@@ -321,7 +323,7 @@ public class Autos {
           //             ChassisSpeeds.fromRobotRelativeSpeeds(
           //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
           swerve
-              .driveVelocity(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
+              .driveVoltage(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
               .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
   }

@@ -70,10 +70,7 @@ public class Vision {
             PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
             inputs.constants.robotToCamera(),
             inputs.coprocPNPTransform);
-    // Reject if estimated pose is in the air or ground
-    if (estPose.isPresent() && Math.abs(estPose.get().estimatedPose.getZ()) > 0.125) {
-      return Optional.empty();
-    }
+
     return estPose;
   }
 
