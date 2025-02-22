@@ -217,9 +217,9 @@ public class KelpieSwerveConstants extends SwerveConstants {
             "Front_Camera",
             new Transform3d(
                 new Translation3d(
-                    Units.inchesToMeters(11.879),
-                    Units.inchesToMeters(-11.664),
-                    Units.inchesToMeters(8.804)),
+                    Units.inchesToMeters(6.664129),
+                    Units.inchesToMeters(-12.320709),
+                    Units.inchesToMeters(8.885504)),
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(30))),
             FRONT_CAMERA_MATRIX,
             FRONT_DIST_COEFFS);
