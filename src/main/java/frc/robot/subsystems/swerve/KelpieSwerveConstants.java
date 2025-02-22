@@ -108,7 +108,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
   public TalonFXConfiguration getDriveConfig() {
     var driveConfig = new TalonFXConfiguration();
     // Current limits
-    driveConfig.CurrentLimits.SupplyCurrentLimit = 40.0;
+    driveConfig.CurrentLimits.SupplyCurrentLimit = 30.0;
     driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
     driveConfig.CurrentLimits.StatorCurrentLimit = 120.0;
     driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
