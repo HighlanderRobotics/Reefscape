@@ -626,7 +626,7 @@ public class Robot extends LoggedRobot {
                         () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()),
                         () ->
                             ChassisSpeeds.fromRobotRelativeSpeeds(
-                                new ChassisSpeeds(1.5, 0.0, 0.0), swerve.getRotation()))),
+                                new ChassisSpeeds(0.75, 0.0, 0.0), swerve.getRotation()))),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
