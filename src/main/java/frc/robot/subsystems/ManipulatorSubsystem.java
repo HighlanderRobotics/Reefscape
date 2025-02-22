@@ -8,6 +8,8 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
@@ -49,12 +51,15 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     Logger.processInputs(NAME + "/First Beambreak", firstBBInputs);
     Logger.processInputs(NAME + "/Second Beambreak", secondBBInputs);
-    Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
-    Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1);
-    Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2);
 
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
-    Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
 
     if (firstBBInputs.get && !secondBBInputs.get) {
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));

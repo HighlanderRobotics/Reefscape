@@ -13,6 +13,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
@@ -75,12 +77,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
 
     carriage.setLength(inputs.positionMeters);
-    Logger.recordOutput("Elevator/Mechanism2d", mech2d);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Elevator/Mechanism2d", mech2d);
 
-    Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
 
-    Logger.recordOutput("Elevator/Has Zeroed", hasZeroed);
-    Logger.recordOutput("Elevator/Filtered Current", currentFilterValue);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Elevator/Has Zeroed", hasZeroed);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Elevator/Filtered Current", currentFilterValue);
   }
 
   public Command setExtension(DoubleSupplier meters) {
@@ -88,7 +92,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         () -> {
           io.setTarget(meters.getAsDouble());
           setpoint = meters.getAsDouble();
-          Logger.recordOutput("Elevator/Setpoint", setpoint);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Elevator/Setpoint", setpoint);
         });
   }
 
@@ -106,7 +111,8 @@ public class ElevatorSubsystem extends SubsystemBase {
             () -> {
               io.setVoltage(-0.5);
               setpoint = 0.0;
-              Logger.recordOutput("Elevator/Setpoint", Double.NaN);
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
         .until(() -> Math.abs(currentFilterValue) > 19.0)
         .finallyDo(

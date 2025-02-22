@@ -12,6 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -67,7 +68,8 @@ public class AutoAim {
             () -> {
               cachedTarget[0] = target.get();
               final var diff = swerve.getPose().minus(cachedTarget[0]);
-              Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
               headingController.reset(
                   swerve.getPose().getRotation().getRadians(),
                   swerve.getVelocityFieldRelative().omegaRadiansPerSecond);
@@ -97,13 +99,15 @@ public class AutoAim {
                                           cachedTarget[0].getRotation().getRadians())
                                       + headingController.getSetpoint().velocity)
                               .plus(speedsModifier.get());
-                  Logger.recordOutput(
-                      "AutoAim/Target Pose",
-                      new Pose2d(
-                          vxController.getSetpoint().position,
-                          vyController.getSetpoint().position,
-                          Rotation2d.fromRadians(headingController.getSetpoint().position)));
-                  Logger.recordOutput("AutoAim/Target Speeds", speeds);
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput(
+                        "AutoAim/Target Pose",
+                        new Pose2d(
+                            vxController.getSetpoint().position,
+                            vyController.getSetpoint().position,
+                            Rotation2d.fromRadians(headingController.getSetpoint().position)));
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput("AutoAim/Target Speeds", speeds);
                   return speeds;
                 }));
   }
@@ -134,7 +138,8 @@ public class AutoAim {
     return Commands.runOnce(
             () -> {
               cachedTarget[0] = new Pose2d(x.getAsDouble(), 0, headingTarget.get());
-              Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
               headingController.reset(swerve.getPose().getRotation().getRadians(), 0.0);
               vxController.reset(swerve.getPose().getX(), 0.0);
             })
@@ -157,13 +162,15 @@ public class AutoAim {
                                       swerve.getPose().getRotation().getRadians(),
                                       cachedTarget[0].getRotation().getRadians())
                                   + headingController.getSetpoint().velocity);
-                  Logger.recordOutput(
-                      "AutoAim/Target Pose",
-                      new Pose2d(
-                          vxController.getSetpoint().position,
-                          0,
-                          Rotation2d.fromRadians(headingController.getSetpoint().position)));
-                  Logger.recordOutput("AutoAim/Target Speeds", speeds);
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput(
+                        "AutoAim/Target Pose",
+                        new Pose2d(
+                            vxController.getSetpoint().position,
+                            0,
+                            Rotation2d.fromRadians(headingController.getSetpoint().position)));
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput("AutoAim/Target Speeds", speeds);
                   return speeds;
                 }));
   }

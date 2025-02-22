@@ -7,6 +7,8 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import frc.robot.utils.Tracer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -68,7 +70,8 @@ public class ShoulderSubsystem extends SubsystemBase {
             dashboardZero.set(false);
           });
     }
-    Logger.recordOutput("Carriage/Shoulder/Cancoder Pos", getZeroingAngle());
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Carriage/Shoulder/Cancoder Pos", getZeroingAngle());
   }
 
   public Rotation2d getZeroingAngle() {
@@ -84,7 +87,8 @@ public class ShoulderSubsystem extends SubsystemBase {
         () -> {
           io.setMotorPosition(target.get());
           setpoint = target.get();
-          Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
         });
   }
 

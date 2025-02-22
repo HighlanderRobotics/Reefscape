@@ -23,6 +23,8 @@ import com.google.common.collect.ImmutableSet;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Registration;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
 import java.util.Optional;
@@ -52,8 +54,10 @@ public class GyroIOPigeon2 implements GyroIO {
   @Override
   public void updateInputs(GyroIOInputs inputs) {
     inputs.isConnected = BaseStatusSignal.refreshAll(yaw, yawVelocity).equals(StatusCode.OK);
-    Logger.recordOutput("Odometry/Gyro Status", yaw.getStatus());
-    Logger.recordOutput("Odometry/Gyro timestamp", yaw.getTimestamp().getLatency());
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Odometry/Gyro Status", yaw.getStatus());
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Odometry/Gyro timestamp", yaw.getTimestamp().getLatency());
     inputs.yawPosition = new Rotation2d(yaw.getValue());
     inputs.yawVelocityRadPerSec = yawVelocity.getValue().in(RadiansPerSecond);
   }

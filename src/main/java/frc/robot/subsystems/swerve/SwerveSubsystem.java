@@ -172,8 +172,10 @@ public class SwerveSubsystem extends SubsystemBase {
           }
           // Log empty setpoint states when disabled
           if (DriverStation.isDisabled()) {
-            Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
-            Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
+            if (Robot.ROBOT_TYPE != RobotType.REAL)
+              Logger.recordOutput("SwerveStates/Setpoints", new SwerveModuleState[] {});
+            if (Robot.ROBOT_TYPE != RobotType.REAL)
+              Logger.recordOutput("SwerveStates/SetpointsOptimized", new SwerveModuleState[] {});
           }
 
           Tracer.trace("Update odometry", this::updateOdometry);
@@ -182,7 +184,8 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   private void updateOdometry() {
-    Logger.recordOutput("Swerve/Updates Since Last", odoThreadInputs.sampledStates.size());
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Swerve/Updates Since Last", odoThreadInputs.sampledStates.size());
     var sampleStates = odoThreadInputs.sampledStates;
     if (sampleStates.size() == 0
         || sampleStates.get(0).values().isEmpty()
@@ -208,7 +211,8 @@ public class SwerveSubsystem extends SubsystemBase {
           // No value at this timestamp
           hasNullModulePosition = true;
 
-          Logger.recordOutput("Odometry/Received Update From Module " + moduleIndex, false);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Odometry/Received Update From Module " + moduleIndex, false);
           break;
         }
 
@@ -217,7 +221,8 @@ public class SwerveSubsystem extends SubsystemBase {
           // No value at this timestamp
           hasNullModulePosition = true;
 
-          Logger.recordOutput("Odometry/Received Update From Module " + moduleIndex, false);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Odometry/Received Update From Module " + moduleIndex, false);
           break;
         }
 
@@ -226,7 +231,8 @@ public class SwerveSubsystem extends SubsystemBase {
             new SwerveModulePosition(
                 dist, Rotation2d.fromRotations(rot)); // gets positions from the thread, NOT inputs
 
-        Logger.recordOutput("Odometry/Received Update From Module " + moduleIndex, true);
+        if (Robot.ROBOT_TYPE != RobotType.REAL)
+          Logger.recordOutput("Odometry/Received Update From Module " + moduleIndex, true);
         moduleDeltas[moduleIndex] =
             new SwerveModulePosition(
                 modulePositions[moduleIndex].distanceMeters
@@ -249,7 +255,8 @@ public class SwerveSubsystem extends SubsystemBase {
           rawGyroRotation =
               Rotation2d.fromDegrees(sample.values().get(new SignalID(SignalType.GYRO, -1)));
           lastGyroRotation = rawGyroRotation;
-          Logger.recordOutput("Odometry/Gyro Rotation", lastGyroRotation);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Odometry/Gyro Rotation", lastGyroRotation);
           Tracer.trace(
               "update estimator",
               () ->
@@ -283,7 +290,8 @@ public class SwerveSubsystem extends SubsystemBase {
       }
       // Apply the twist (change since last sample) to the current pose
       lastGyroRotation = rawGyroRotation;
-      Logger.recordOutput("Odometry/Gyro Rotation", lastGyroRotation);
+      if (Robot.ROBOT_TYPE != RobotType.REAL)
+        Logger.recordOutput("Odometry/Gyro Rotation", lastGyroRotation);
       // Apply update
       estimator.updateWithTime(sample.timestamp(), rawGyroRotation, modulePositions);
     }
@@ -305,11 +313,14 @@ public class SwerveSubsystem extends SubsystemBase {
           var visionPose = estPose.get().estimatedPose;
           // Sets the pose on the sim field
           camera.setSimPose(estPose, camera, !camera.inputs.stale);
-          Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-          Logger.recordOutput(
-              "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput(
+                "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
           final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
-          Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
           Tracer.trace(
               "Add Measurement From " + camera.getName(),
               () -> {
@@ -319,7 +330,9 @@ public class SwerveSubsystem extends SubsystemBase {
                     deviations.times(DriverStation.isAutonomous() ? 2.0 : 1.0));
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
-          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput(
+                "Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
           cameraPoses[i] = visionPose;
           Tracer.trace(
               "Log Tag Poses",
@@ -333,23 +346,29 @@ public class SwerveSubsystem extends SubsystemBase {
                           .getTagPose(result.targets.get(j).getFiducialId())
                           .get();
                 }
-                Logger.recordOutput("Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
+                if (Robot.ROBOT_TYPE != RobotType.REAL)
+                  Logger.recordOutput(
+                      "Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
               });
 
         } else {
-          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
         }
       } catch (NoSuchElementException e) {
-        Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
+        if (Robot.ROBOT_TYPE != RobotType.REAL)
+          Logger.recordOutput(
+              "Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
       }
       i++;
     }
-    Logger.recordOutput("Vision/Camera Poses", cameraPoses);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Vision/Camera Poses", cameraPoses);
     Pose3d[] arr = new Pose3d[cameras.length];
     for (int k = 0; k < cameras.length; k++) {
       arr[k] = getPose3d().transformBy(cameras[k].inputs.constants.robotToCamera());
     }
-    Logger.recordOutput("Vision/Camera Poses on Robot", arr);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Vision/Camera Poses on Robot", arr);
   }
 
   /**
@@ -443,14 +462,17 @@ public class SwerveSubsystem extends SubsystemBase {
     // Calculate module setpoints
     speeds = ChassisSpeeds.discretize(speeds, 0.02);
     final SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
-    Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("SwerveStates/Setpoints", setpointStates);
     SwerveDriveKinematics.desaturateWheelSpeeds(setpointStates, constants.getMaxLinearSpeed());
 
-    Logger.recordOutput("Swerve/Target Speeds", speeds);
-    Logger.recordOutput("Swerve/Speed Error", speeds.minus(getVelocityRobotRelative()));
-    Logger.recordOutput(
-        "Swerve/Target Chassis Speeds Field Relative",
-        ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation()));
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Swerve/Target Speeds", speeds);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Swerve/Speed Error", speeds.minus(getVelocityRobotRelative()));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Swerve/Target Chassis Speeds Field Relative",
+          ChassisSpeeds.fromRobotRelativeSpeeds(speeds, getRotation()));
 
     // Send setpoints to modules
     final SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[modules.length];
@@ -497,8 +519,10 @@ public class SwerveSubsystem extends SubsystemBase {
     }
 
     // Log setpoint states
-    Logger.recordOutput("SwerveStates/ForceSetpoints", forceSetpoints);
-    Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("SwerveStates/ForceSetpoints", forceSetpoints);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("SwerveStates/SetpointsOptimized", optimizedSetpointStates);
   }
 
   /**
@@ -517,12 +541,14 @@ public class SwerveSubsystem extends SubsystemBase {
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
     return (sample) -> {
       final var pose = getPose();
-      Logger.recordOutput(
-          "Choreo/Target Pose",
-          new Pose2d(sample.x, sample.y, Rotation2d.fromRadians(sample.heading)));
-      Logger.recordOutput(
-          "Choreo/Target Speeds Field Relative",
-          new ChassisSpeeds(sample.vx, sample.vy, sample.omega));
+      if (Robot.ROBOT_TYPE != RobotType.REAL)
+        Logger.recordOutput(
+            "Choreo/Target Pose",
+            new Pose2d(sample.x, sample.y, Rotation2d.fromRadians(sample.heading)));
+      if (Robot.ROBOT_TYPE != RobotType.REAL)
+        Logger.recordOutput(
+            "Choreo/Target Speeds Field Relative",
+            new ChassisSpeeds(sample.vx, sample.vy, sample.omega));
       var feedback =
           new ChassisSpeeds(
               xController.calculate(pose.getX(), sample.x),
@@ -531,7 +557,8 @@ public class SwerveSubsystem extends SubsystemBase {
       var speeds =
           ChassisSpeeds.fromFieldRelativeSpeeds(
               new ChassisSpeeds(sample.vx, sample.vy, sample.omega).plus(feedback), getRotation());
-      Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
+      if (Robot.ROBOT_TYPE != RobotType.REAL)
+        Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
       this.drive(
           speeds,
           false,
@@ -551,7 +578,7 @@ public class SwerveSubsystem extends SubsystemBase {
         () -> {
           final var pose = getPose();
           final var target = targetSupplier.get();
-          Logger.recordOutput("Swerve/Target Pose", target);
+          if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Swerve/Target Pose", target);
           final var speeds =
               ChassisSpeeds.fromFieldRelativeSpeeds(
                   new ChassisSpeeds(
@@ -560,7 +587,8 @@ public class SwerveSubsystem extends SubsystemBase {
                       thetaController.calculate(
                           pose.getRotation().getRadians(), target.getRotation().getRadians())),
                   getRotation());
-          Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Choreo/Feedback + FF Target Speeds Robot Relative", speeds);
           this.drive(speeds, false, new double[4], new double[4]);
         });
   }

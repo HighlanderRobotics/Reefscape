@@ -16,6 +16,8 @@ import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import org.littletonrobotics.junction.Logger;
 
 /** Wrapper around ModuleIO and ModuleIOInputs to organize module-level functionality. */
@@ -65,9 +67,13 @@ public class Module {
         state.speedMetersPerSecond, // *
         // Math.cos(state.angle.minus(inputs.turnPosition).getRadians()),
         forceNewtons);
-    Logger.recordOutput(
-        new StringBuilder("Swerve/").append(inputs.prefix).append(" Force Feedforward").toString(),
-        forceNewtons);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          new StringBuilder("Swerve/")
+              .append(inputs.prefix)
+              .append(" Force Feedforward")
+              .toString(),
+          forceNewtons);
     return state;
   }
 
@@ -78,9 +84,10 @@ public class Module {
   public SwerveModuleState runVoltageSetpoint(SwerveModuleState state, boolean focEnabled) {
     // Optimize state based on current angle
     state.optimize(getAngle());
-    Logger.recordOutput(
-        new StringBuilder("Swerve/").append(inputs.prefix).append(" Voltage Target").toString(),
-        state.speedMetersPerSecond);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          new StringBuilder("Swerve/").append(inputs.prefix).append(" Voltage Target").toString(),
+          state.speedMetersPerSecond);
 
     io.setTurnSetpoint(state.angle);
     io.setDriveVoltage(

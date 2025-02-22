@@ -746,17 +746,19 @@ public class Robot extends LoggedRobot {
                             : Rotation2d.k180deg)));
 
     // Log locations of all autoaim targets
-    Logger.recordOutput(
-        "AutoAim/Targets/Coral",
-        Stream.of(CoralTargets.values())
-            .map((target) -> CoralTargets.getRobotTargetLocation(target.location))
-            .toArray(Pose2d[]::new));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "AutoAim/Targets/Coral",
+          Stream.of(CoralTargets.values())
+              .map((target) -> CoralTargets.getRobotTargetLocation(target.location))
+              .toArray(Pose2d[]::new));
     // Log locations of all autoaim targets
-    Logger.recordOutput(
-        "AutoAim/Targets/Algae",
-        Stream.of(AlgaeIntakeTargets.values())
-            .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
-            .toArray(Pose2d[]::new));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "AutoAim/Targets/Algae",
+          Stream.of(AlgaeIntakeTargets.values())
+              .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
+              .toArray(Pose2d[]::new));
   }
 
   private void addAutos() {
@@ -791,10 +793,12 @@ public class Robot extends LoggedRobot {
           String name = command.getName();
           int count = commandCounts.getOrDefault(name, 0) + (active ? 1 : -1);
           commandCounts.put(name, count);
-          Logger.recordOutput(
-              "Commands/CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()),
-              active.booleanValue());
-          Logger.recordOutput("Commands/CommandsAll/" + name, count > 0);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput(
+                "Commands/CommandsUnique/" + name + "_" + Integer.toHexString(command.hashCode()),
+                active.booleanValue());
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Commands/CommandsAll/" + name, count > 0);
         };
 
     var scheduler = CommandScheduler.getInstance();
@@ -809,107 +813,121 @@ public class Robot extends LoggedRobot {
     CommandScheduler.getInstance().run();
     if (ROBOT_TYPE == RobotType.SIM) {
       SimulatedArena.getInstance().simulationPeriodic();
-      Logger.recordOutput(
-          "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+      if (Robot.ROBOT_TYPE != RobotType.REAL)
+        Logger.recordOutput(
+            "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
 
-    Logger.recordOutput("Targets/Reef Target", currentTarget);
-    Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
-    Logger.recordOutput("Targets/Algae Score Target", algaeScoreTarget);
-    Logger.recordOutput(
-        "Mechanism Poses",
-        new Pose3d[] {
-          new Pose3d( // first stage
-              new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
-          // carriage
-          new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
-          new Pose3d( // arm
-              new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS,
-                  0,
-                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
-              new Rotation3d(
-                  0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
-          new Pose3d( // Manipulator
-              new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS
-                      + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                  0,
-                  elevator.getExtensionMeters()
-                      + ShoulderSubsystem.Z_OFFSET_METERS
-                      + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
-              new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
-        });
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Targets/Reef Target", currentTarget);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Targets/Algae Score Target", algaeScoreTarget);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Mechanism Poses",
+          new Pose3d[] {
+            new Pose3d( // first stage
+                new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
+            // carriage
+            new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
+            new Pose3d( // arm
+                new Translation3d(
+                    ShoulderSubsystem.X_OFFSET_METERS,
+                    0,
+                    ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
+                new Rotation3d(
+                    0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
+            new Pose3d( // Manipulator
+                new Translation3d(
+                    ShoulderSubsystem.X_OFFSET_METERS
+                        + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                    0,
+                    elevator.getExtensionMeters()
+                        + ShoulderSubsystem.Z_OFFSET_METERS
+                        + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+                new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
+          });
 
-    Logger.recordOutput(
-        "Mechanism Setpoints",
-        new Pose3d[] {
-          new Pose3d( // first stage
-              new Translation3d(0, 0, elevator.getSetpoint() / 2.0), new Rotation3d()),
-          // carriage
-          new Pose3d(new Translation3d(0, 0, elevator.getSetpoint()), new Rotation3d()),
-          new Pose3d( // arm
-              new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS,
-                  0,
-                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getSetpoint()),
-              new Rotation3d(
-                  0, -Units.degreesToRadians(2.794042) - shoulder.getSetpoint().getRadians(), 0.0)),
-          new Pose3d( // Manipulator
-              new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS
-                      + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                  0,
-                  elevator.getSetpoint()
-                      + ShoulderSubsystem.Z_OFFSET_METERS
-                      + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
-              new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
-        });
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Mechanism Setpoints",
+          new Pose3d[] {
+            new Pose3d( // first stage
+                new Translation3d(0, 0, elevator.getSetpoint() / 2.0), new Rotation3d()),
+            // carriage
+            new Pose3d(new Translation3d(0, 0, elevator.getSetpoint()), new Rotation3d()),
+            new Pose3d( // arm
+                new Translation3d(
+                    ShoulderSubsystem.X_OFFSET_METERS,
+                    0,
+                    ShoulderSubsystem.Z_OFFSET_METERS + elevator.getSetpoint()),
+                new Rotation3d(
+                    0,
+                    -Units.degreesToRadians(2.794042) - shoulder.getSetpoint().getRadians(),
+                    0.0)),
+            new Pose3d( // Manipulator
+                new Translation3d(
+                    ShoulderSubsystem.X_OFFSET_METERS
+                        + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                    0,
+                    elevator.getSetpoint()
+                        + ShoulderSubsystem.Z_OFFSET_METERS
+                        + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+                new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
+          });
 
-    Logger.recordOutput(
-        "Shoulder Zero Viz",
-        new Pose3d[] {
-          new Pose3d( // first stage
-              new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
-          // carriage
-          new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
-          new Pose3d( // arm
-              new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS,
-                  0,
-                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
-              new Rotation3d(
-                  0,
-                  -Units.degreesToRadians(2.794042) - shoulder.getZeroingAngle().getRadians(),
-                  0.0)),
-          new Pose3d( // Manipulator
-              new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS
-                      + shoulder.getZeroingAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                  0,
-                  elevator.getExtensionMeters()
-                      + ShoulderSubsystem.Z_OFFSET_METERS
-                      + shoulder.getZeroingAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
-              new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
-        });
-    Logger.recordOutput(
-        "AutoAim/CoralTarget",
-        Tracer.trace(
-            "Get Closest Coral Target", () -> CoralTargets.getClosestTarget(swerve.getPose())));
-    Logger.recordOutput(
-        "AutoAim/AlgaeIntakeTarget",
-        Tracer.trace(
-            "Get Closest Algae Target",
-            () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Shoulder Zero Viz",
+          new Pose3d[] {
+            new Pose3d( // first stage
+                new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
+            // carriage
+            new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
+            new Pose3d( // arm
+                new Translation3d(
+                    ShoulderSubsystem.X_OFFSET_METERS,
+                    0,
+                    ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
+                new Rotation3d(
+                    0,
+                    -Units.degreesToRadians(2.794042) - shoulder.getZeroingAngle().getRadians(),
+                    0.0)),
+            new Pose3d( // Manipulator
+                new Translation3d(
+                    ShoulderSubsystem.X_OFFSET_METERS
+                        + shoulder.getZeroingAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                    0,
+                    elevator.getExtensionMeters()
+                        + ShoulderSubsystem.Z_OFFSET_METERS
+                        + shoulder.getZeroingAngle().getSin()
+                            * ShoulderSubsystem.ARM_LENGTH_METERS),
+                new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
+          });
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "AutoAim/CoralTarget",
+          Tracer.trace(
+              "Get Closest Coral Target", () -> CoralTargets.getClosestTarget(swerve.getPose())));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "AutoAim/AlgaeIntakeTarget",
+          Tracer.trace(
+              "Get Closest Algae Target",
+              () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())));
 
     carriageLigament.setLength(elevator.getExtensionMeters());
     // Minus 90 to make it relative to horizontal
     shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
-    Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
-    Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
-    Logger.recordOutput("Autos/Score", Autos.autoScore);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
   }
 
   public static void setCurrentTarget(ReefTarget target) {

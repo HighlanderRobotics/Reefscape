@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.ReefTarget;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
@@ -44,12 +45,13 @@ public class Autos {
             true,
             swerve,
             (traj, edge) -> {
-              Logger.recordOutput(
-                  "Choreo/Active Traj",
-                  DriverStation.getAlliance().isPresent()
-                          && DriverStation.getAlliance().get().equals(Alliance.Blue)
-                      ? traj.getPoses()
-                      : traj.flipped().getPoses());
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput(
+                    "Choreo/Active Traj",
+                    DriverStation.getAlliance().isPresent()
+                            && DriverStation.getAlliance().get().equals(Alliance.Blue)
+                        ? traj.getPoses()
+                        : traj.flipped().getPoses());
             });
   }
 

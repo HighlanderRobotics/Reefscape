@@ -10,6 +10,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -59,9 +61,10 @@ public class Vision {
     if (result.getTargets().size() < 1) {
       return Optional.empty();
     }
-    Logger.recordOutput(
-        "Vision/" + io.getName() + " Best Distance",
-        result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Vision/" + io.getName() + " Best Distance",
+          result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
     Optional<EstimatedRobotPose> estPose =
         VisionHelper.update(
             result,

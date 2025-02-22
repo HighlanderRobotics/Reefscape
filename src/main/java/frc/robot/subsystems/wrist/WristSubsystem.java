@@ -7,6 +7,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.shoulder.ShoulderIOInputsAutoLogged;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -57,7 +59,7 @@ public class WristSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Carriage/Wrist", inputs);
-    Logger.recordOutput("Wrist/Has Zeroed", hasZeroed);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Wrist/Has Zeroed", hasZeroed);
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
@@ -65,7 +67,8 @@ public class WristSubsystem extends SubsystemBase {
         () -> {
           io.setMotorPosition(target.get());
           setpoint = target.get();
-          Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
         });
   }
 

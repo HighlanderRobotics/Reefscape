@@ -167,7 +167,8 @@ public class Superstructure {
 
   /** This file is not a subsystem, so this MUST be called manually. */
   public void periodic() {
-    Logger.recordOutput("Superstructure/Superstructure State", state);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Superstructure/Superstructure State", state);
   }
 
   private void configureStateTransitionCommands() {
