@@ -615,12 +615,16 @@ public class Robot extends LoggedRobot {
                         .until(
                             () ->
                                 AutoAim.isInTolerance(
-                                    swerve.getPose(),
-                                    AlgaeIntakeTargets.getOffsetLocation(
-                                        AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
-                                    swerve.getVelocityFieldRelative(),
-                                    Units.inchesToMeters(1.0),
-                                    Units.degreesToRadians(1.0))),
+                                        swerve.getPose(),
+                                        AlgaeIntakeTargets.getOffsetLocation(
+                                            AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                                        swerve.getVelocityFieldRelative(),
+                                        Units.inchesToMeters(1.0),
+                                        Units.degreesToRadians(1.0))
+                                    && elevator.isNearExtension(
+                                        algaeIntakeTarget == AlgaeIntakeTarget.HIGH
+                                            ? ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION
+                                            : ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION)),
                     AutoAim.translateToPose(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()),
