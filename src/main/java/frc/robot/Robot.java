@@ -110,7 +110,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -222,17 +222,17 @@ public class Robot extends LoggedRobot {
   private final SwerveSubsystem swerve =
       new SwerveSubsystem(
           ROBOT_HARDWARE.swerveConstants,
-          ROBOT_TYPE == RobotType.REAL
+          ROBOT_TYPE != RobotType.SIM
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
               : new GyroIOSim(swerveDriveSimulation.get().getGyroSimulation()),
           Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
               .map(
                   (constants) ->
-                      ROBOT_TYPE == RobotType.REAL
+                      ROBOT_TYPE != RobotType.SIM
                           ? new VisionIOReal(constants)
                           : new VisionIOSim(constants))
               .toArray(VisionIO[]::new),
-          ROBOT_TYPE == RobotType.REAL
+          ROBOT_TYPE != RobotType.SIM
               ? new ModuleIO[] {
                 new ModuleIOReal(
                     ROBOT_HARDWARE.swerveConstants.getFrontLeftModule(),
@@ -270,11 +270,11 @@ public class Robot extends LoggedRobot {
 
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
-          ROBOT_TYPE == RobotType.REAL ? new ElevatorIOReal() : new ElevatorIOSim());
+          ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim());
 
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
-          ROBOT_TYPE == RobotType.REAL
+          ROBOT_TYPE != RobotType.SIM
               ? new RollerIOReal(
                   10,
                   RollerIOReal.getDefaultConfig()
@@ -301,10 +301,10 @@ public class Robot extends LoggedRobot {
 
   private final ShoulderSubsystem shoulder =
       new ShoulderSubsystem(
-          ROBOT_TYPE == RobotType.REAL ? new ShoulderIOReal() : new ShoulderIOSim());
+          ROBOT_TYPE != RobotType.SIM ? new ShoulderIOReal() : new ShoulderIOSim());
   private final WristSubsystem wrist =
       new WristSubsystem(
-          ROBOT_TYPE == RobotType.REAL
+          ROBOT_TYPE != RobotType.SIM
               ? new WristIOReal(
                   12,
                   WristIOReal.getDefaultConfiguration()
@@ -324,7 +324,7 @@ public class Robot extends LoggedRobot {
 
   private final FunnelSubsystem funnel =
       new FunnelSubsystem(
-          ROBOT_TYPE == RobotType.REAL
+          ROBOT_TYPE != RobotType.SIM
               ? new RollerIOReal(
                   19,
                   RollerIOReal.getDefaultConfig()
@@ -339,7 +339,7 @@ public class Robot extends LoggedRobot {
           new ServoIOReal(1));
 
   private final ClimberSubsystem climber =
-      new ClimberSubsystem(ROBOT_TYPE == RobotType.REAL ? new ClimberIOReal() : new ClimberIOSim());
+      new ClimberSubsystem(ROBOT_TYPE != RobotType.SIM ? new ClimberIOReal() : new ClimberIOSim());
 
   private final Superstructure superstructure =
       new Superstructure(
