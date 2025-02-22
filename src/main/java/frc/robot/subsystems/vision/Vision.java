@@ -63,7 +63,7 @@ public class Vision {
     }
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
-          "Vision/" + io.getName() + " Best Distance",
+          "Vision/" + inputs.constants.cameraName + " Best Distance",
           result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
     Optional<EstimatedRobotPose> estPose =
         VisionHelper.update(
@@ -78,6 +78,6 @@ public class Vision {
   }
 
   public String getName() {
-    return io.getName();
+    return inputs.constants.cameraName;
   }
 }

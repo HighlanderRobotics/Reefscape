@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * between devices using CANivore time synchronization.
  */
 public class PhoenixOdometryThread extends Thread implements OdometryThreadIO {
-  public static final double ODOMETRY_FREQUENCY_HZ = 250.0;
+  public static final double ODOMETRY_FREQUENCY_HZ = 150.0;
 
   public enum SignalType {
     DRIVE,
