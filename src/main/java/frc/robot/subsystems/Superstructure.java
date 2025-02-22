@@ -194,7 +194,7 @@ public class Superstructure {
                                         .min(Double::compare)
                                         .get()
                                     < 1.0)
-                            ? 9.0
+                            ? 12.0
                             : 0.0)))
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
