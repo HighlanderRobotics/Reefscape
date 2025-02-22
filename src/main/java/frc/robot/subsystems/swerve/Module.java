@@ -12,6 +12,7 @@
 
 package frc.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -142,5 +143,9 @@ public class Module {
 
   public void setTurnSetpoint(Rotation2d rotation) {
     io.setTurnSetpoint(rotation);
+  }
+
+  public void setCurrentLimits(final CurrentLimitsConfigs configs) {
+    io.setCurrentLimits(configs);
   }
 }

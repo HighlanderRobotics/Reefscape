@@ -505,6 +505,17 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
+    new Trigger(() -> DriverStation.isAutonomousEnabled())
+        .onTrue(
+            Commands.runOnce(() -> swerve.setCurrentLimits(new CurrentLimitsConfigs()))
+                .ignoringDisable(true))
+        .onFalse(
+            Commands.runOnce(
+                    () ->
+                        swerve.setCurrentLimits(
+                            ROBOT_HARDWARE.swerveConstants.getDriveConfig().CurrentLimits))
+                .ignoringDisable(true));
+
     SmartDashboard.putData(
         "Add Autos",
         Commands.runOnce(
@@ -881,9 +892,15 @@ public class Robot extends LoggedRobot {
                       + shoulder.getZeroingAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
               new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
         });
-    Logger.recordOutput("AutoAim/CoralTarget", CoralTargets.getClosestTarget(swerve.getPose()));
     Logger.recordOutput(
-        "AutoAim/AlgaeIntakeTarget", AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
+        "AutoAim/CoralTarget",
+        Tracer.trace(
+            "Get Closest Coral Target", () -> CoralTargets.getClosestTarget(swerve.getPose())));
+    Logger.recordOutput(
+        "AutoAim/AlgaeIntakeTarget",
+        Tracer.trace(
+            "Get Closest Algae Target",
+            () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose())));
 
     carriageLigament.setLength(elevator.getExtensionMeters());
     // Minus 90 to make it relative to horizontal

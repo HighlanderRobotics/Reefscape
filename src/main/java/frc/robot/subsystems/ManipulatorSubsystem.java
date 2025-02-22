@@ -12,6 +12,7 @@ import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
+import frc.robot.utils.Tracer;
 import org.littletonrobotics.junction.Logger;
 
 public class ManipulatorSubsystem extends RollerSubsystem {
@@ -56,7 +57,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
 
     if (firstBBInputs.get && !secondBBInputs.get) {
-      io.resetEncoder(0.0);
+      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));
     }
   }
 

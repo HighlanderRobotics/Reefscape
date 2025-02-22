@@ -102,7 +102,12 @@ public class Autos {
       String nextPos,
       HashMap<String, AutoTrajectory> steps) {
     routine
-        .observe(steps.get(startPos + "to" + endPos).done())
+        .observe(
+            steps
+                .get(startPos + "to" + endPos)
+                .atTime(
+                    steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
+                        - (endPos.length() == 1 ? 0.5 : 0.0)))
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
@@ -139,10 +144,7 @@ public class Autos {
       String nextPos = stops[i + 2];
       runPath(routine, startPos, endPos, nextPos, steps);
     }
-    // final path
-    routine
-        .observe(steps.get("PLOtoA").done())
-        .onTrue(scoreInAuto(() -> steps.get("PLOtoA").getFinalPose().get()));
+
     return routine.cmd();
   }
 

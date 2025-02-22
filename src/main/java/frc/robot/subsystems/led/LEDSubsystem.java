@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.ReefTarget;
+import frc.robot.utils.Tracer;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -38,8 +39,12 @@ public class LEDSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    io.updateInputs(inputs);
-    Logger.processInputs("LED", inputs);
+    Tracer.trace(
+        "LEDs/Periodic",
+        () -> {
+          io.updateInputs(inputs);
+          Logger.processInputs("LED", inputs);
+        });
   }
 
   private void setIndex(int i, Color color) {

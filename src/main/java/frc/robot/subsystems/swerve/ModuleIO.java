@@ -12,6 +12,7 @@
 
 package frc.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -59,4 +60,6 @@ public interface ModuleIO {
   public void setTurnSetpoint(final Rotation2d rotation);
 
   public void setCurrent(final double amps);
+
+  public void setCurrentLimits(final CurrentLimitsConfigs configs);
 }

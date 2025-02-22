@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.utils.Tracer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
@@ -60,8 +61,12 @@ public class ShoulderSubsystem extends SubsystemBase {
     io.updateInputs(inputs);
     Logger.processInputs("Carriage/Shoulder", inputs);
     if (dashboardZero.get()) {
-      rezero();
-      dashboardZero.set(false);
+      Tracer.trace(
+          "Shoulder/Zero",
+          () -> {
+            rezero();
+            dashboardZero.set(false);
+          });
     }
     Logger.recordOutput("Carriage/Shoulder/Cancoder Pos", getZeroingAngle());
   }
