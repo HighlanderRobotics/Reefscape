@@ -24,6 +24,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -583,9 +584,16 @@ public class Robot extends LoggedRobot {
             Commands.parallel(
                 AutoAim.translateToPose(
                     swerve,
-                    () ->
-                        CoralTargets.getHandedClosestTarget(
-                            swerve.getPose(), driver.leftBumper().getAsBoolean())),
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                          swerve
+                              .getPose()
+                              .plus(
+                                  new Transform2d(
+                                      twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
+                          driver.leftBumper().getAsBoolean());
+                    }),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
