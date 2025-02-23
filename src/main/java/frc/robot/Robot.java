@@ -549,6 +549,8 @@ public class Robot extends LoggedRobot {
 
     funnel.setDefaultCommand(funnel.setVoltage(0.0));
 
+    climber.setDefaultCommand(climber.setPosition(0.0));
+
     leds.setDefaultCommand(
         Commands.either(
                 leds.setBlinkingCmd(

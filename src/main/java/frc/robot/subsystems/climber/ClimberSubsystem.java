@@ -13,7 +13,7 @@ public class ClimberSubsystem extends SubsystemBase {
   // TODO update
   public static final double CLIMBER_ARM_LENGTH_METERS = Units.inchesToMeters(11.0);
   public static final double CLIMBER_DRUM_RADIUS_METERS = Units.inchesToMeters(1.0);
-  public static final double CLIMB_GEAR_RATIO = 64.0;
+  public static final double CLIMB_GEAR_RATIO = 125.0;
   public static final double CLIMB_EXTENDED_POSITION = 10.0;
 
   private final ClimberIO io;
