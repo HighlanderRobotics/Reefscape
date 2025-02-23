@@ -118,7 +118,17 @@ public class Autos {
                         endPos.length() == 1
                             ? scoreInAuto(
                                 () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                            : AutoAim.translateToPose(swerve, () -> steps.get(startPos + "to" + endPos).getFinalPose().get()).until(() -> AutoAim.isInTolerance(swerve.getPose(), steps.get(startPos + "to" + endPos).getFinalPose().get()))),
+                            : AutoAim.translateToPose(
+                                    swerve,
+                                    () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
+                                .until(
+                                    () ->
+                                        AutoAim.isInTolerance(
+                                            swerve.getPose(),
+                                            steps
+                                                .get(startPos + "to" + endPos)
+                                                .getFinalPose()
+                                                .get()))),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
