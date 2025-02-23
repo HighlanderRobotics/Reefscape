@@ -35,7 +35,8 @@ public class ClimberIOReal implements ClimberIO {
     config.Slot0.kP = 100.0;
 
     config.MotionMagic.MotionMagicCruiseVelocity = (6000 / 60) / ClimberSubsystem.CLIMB_GEAR_RATIO;
-    config.MotionMagic.MotionMagicAcceleration = (6000 / 60) / (ClimberSubsystem.CLIMB_GEAR_RATIO * 0.01);
+    config.MotionMagic.MotionMagicAcceleration =
+        (6000 / 60) / (ClimberSubsystem.CLIMB_GEAR_RATIO * 0.01);
 
     config.Feedback.SensorToMechanismRatio = ClimberSubsystem.CLIMB_GEAR_RATIO;
 
