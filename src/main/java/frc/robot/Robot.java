@@ -632,7 +632,9 @@ public class Robot extends LoggedRobot {
                                     && elevator.isNearExtension(
                                         algaeIntakeTarget == AlgaeIntakeTarget.HIGH
                                             ? ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION
-                                            : ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION)),
+                                            : ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION)
+                                    && shoulder.isNearAngle(
+                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)),
                     AutoAim.approachAlgae(
                         swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
