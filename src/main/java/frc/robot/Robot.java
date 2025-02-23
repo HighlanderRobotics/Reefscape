@@ -25,6 +25,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -594,12 +595,41 @@ public class Robot extends LoggedRobot {
                     swerve,
                     () -> {
                       var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      var twist2 = swerve.getVelocityFieldRelative().toTwist2d(0.5);
+
+                      Pose2d targetPose =
+                          CoralTargets.getHandedClosestTarget(
+                              swerve
+                                  .getPose()
+                                  .plus(
+                                      new Transform2d(
+                                          twist.dx,
+                                          twist.dy,
+                                          Rotation2d.fromRadians(twist.dtheta))),
+                              driver.leftBumper().getAsBoolean());
+
+                      // VR - robot, VT - target, VN - robot in 0.3 sec
+                      Translation2d vectorR =
+                          new Translation2d(swerve.getPose().getX(), swerve.getPose().getY());
+                      Translation2d vectorT =
+                          new Translation2d(targetPose.getX(), targetPose.getY());
+                      Translation2d vectorN =
+                          new Translation2d(vectorR.getX() + twist.dx, vectorR.getY() + twist.dy);
+
+                      Translation2d vectorRT = vectorT.minus(vectorR);
+                      Translation2d vectorNT = vectorT.minus(vectorN);
+
+                      double dotProd =
+                          vectorRT.getX() * vectorNT.getX() + vectorRT.getY() * vectorNT.getY();
+
                       return CoralTargets.getHandedClosestTarget(
-                          swerve
-                              .getPose()
-                              .plus(
-                                  new Transform2d(
-                                      twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
+                          dotProd >= 0
+                              ? swerve
+                                  .getPose()
+                                  .plus(
+                                      new Transform2d(
+                                          twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta)))
+                              : swerve.getPose(),
                           driver.leftBumper().getAsBoolean());
                     }),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
