@@ -81,6 +81,7 @@ import org.ironmaple.simulation.drivesims.GyroSimulation;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
 import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.LogFileUtil;
 import org.littletonrobotics.junction.LoggedRobot;
 import org.littletonrobotics.junction.Logger;
@@ -111,7 +112,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -174,6 +175,8 @@ public class Robot extends LoggedRobot {
   private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+
+  @AutoLogOutput private boolean haveAutosGenerated = false;
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
   private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
@@ -499,7 +502,11 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
-    new Trigger(() -> DriverStation.isDSAttached() && DriverStation.getAlliance().isPresent())
+    new Trigger(
+            () ->
+                DriverStation.isDSAttached()
+                    && DriverStation.getAlliance().isPresent()
+                    && !haveAutosGenerated)
         .onTrue(Commands.print("connected"))
         .onTrue(
             Commands.runOnce(() -> addAutos())
@@ -520,11 +527,12 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData(
         "Add Autos",
         Commands.runOnce(
-            () -> {
-              if (DriverStation.getAlliance().isPresent()) {
-                addAutos();
-              }
-            }));
+                () -> {
+                  if (DriverStation.getAlliance().isPresent()) {
+                    addAutos();
+                  }
+                })
+            .ignoringDisable(true));
 
     elevator.setDefaultCommand(
         Commands.sequence(
