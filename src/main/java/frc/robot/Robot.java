@@ -633,12 +633,8 @@ public class Robot extends LoggedRobot {
                                         algaeIntakeTarget == AlgaeIntakeTarget.HIGH
                                             ? ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION
                                             : ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION)),
-                    AutoAim.translateToPose(
-                        swerve,
-                        () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()),
-                        () ->
-                            ChassisSpeeds.fromRobotRelativeSpeeds(
-                                new ChassisSpeeds(0.75, 0.0, 0.0), swerve.getRotation()))),
+                    AutoAim.approachAlgae(
+                        swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 

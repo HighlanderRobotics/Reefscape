@@ -2,6 +2,7 @@ package frc.robot.utils.autoaim;
 
 import choreo.util.ChoreoAllianceFlipUtil;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -171,6 +172,46 @@ public class AutoAim {
                             Rotation2d.fromRadians(headingController.getSetpoint().position)));
                   if (Robot.ROBOT_TYPE != RobotType.REAL)
                     Logger.recordOutput("AutoAim/Target Speeds", speeds);
+                  return speeds;
+                }));
+  }
+
+  public static Command approachAlgae(
+      SwerveSubsystem swerve, Supplier<Pose2d> target, double approachSpeed) {
+    // This feels like a horrible way of getting around lambda final requirements
+    // Is there a cleaner way of doing this?
+    final Pose2d cachedTarget[] = {new Pose2d()};
+    final PIDController headingController =
+        // assume we can accelerate to max in 2/3 of a second
+        new PIDController(Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(), 0.0, 0.0);
+    headingController.enableContinuousInput(-Math.PI, Math.PI);
+    final PIDController vyController = new PIDController(10.0, 0.01, 0.01);
+    return Commands.runOnce(
+            () -> {
+              cachedTarget[0] = target.get();
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
+            })
+        .andThen(
+            swerve.driveVelocity(
+                () -> {
+                  final var diff = cachedTarget[0].relativeTo(swerve.getPose());
+                  final var speeds =
+                      MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(0.75))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(0.75))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 0.5)
+                          ? new ChassisSpeeds()
+                          : new ChassisSpeeds(
+                              approachSpeed,
+                              -vyController.calculate(diff.getY(), 0.0),
+                              headingController.calculate(
+                                  swerve.getPose().getRotation().getRadians(),
+                                  cachedTarget[0].getRotation().getRadians()));
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput("AutoAim/Target Pose", target.get());
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput("AutoAim/Target Speeds", speeds);
+                  if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("AutoAim/Diff", diff);
                   return speeds;
                 }));
   }
