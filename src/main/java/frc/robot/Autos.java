@@ -118,7 +118,7 @@ public class Autos {
                         endPos.length() == 1
                             ? scoreInAuto(
                                 () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                            : Commands.print("pushed bot")),
+                            : AutoAim.translateToPose(swerve, () -> steps.get(startPos + "to" + endPos).getFinalPose().get()).until(() -> AutoAim.isInTolerance(swerve.getPose(), steps.get(startPos + "to" + endPos).getFinalPose().get()))),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -242,7 +242,7 @@ public class Autos {
 
   public Command PMtoPL() {
     final var routine = factory.newRoutine("PM to PL");
-    bindElevatorExtension(routine);
+    bindElevatorExtension(routine, 2.0);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
