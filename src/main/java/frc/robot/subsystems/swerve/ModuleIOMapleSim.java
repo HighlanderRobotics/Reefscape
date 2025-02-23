@@ -15,6 +15,7 @@ package frc.robot.subsystems.swerve;
 import static edu.wpi.first.units.Units.Radian;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -210,5 +211,10 @@ public class ModuleIOMapleSim implements ModuleIO {
   public void setCurrent(double amps) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'setCurrent'");
+  }
+
+  @Override
+  public void setCurrentLimits(CurrentLimitsConfigs configs) {
+    driveTalon.getConfigurator().apply(configs);
   }
 }

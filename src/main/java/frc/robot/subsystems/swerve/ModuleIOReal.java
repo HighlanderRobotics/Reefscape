@@ -13,6 +13,7 @@
 package frc.robot.subsystems.swerve;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
@@ -190,5 +191,10 @@ public class ModuleIOReal implements ModuleIO {
   @Override
   public void setCurrent(final double amps) {
     driveTalon.setControl(driveControlCurrent.withOutput(amps));
+  }
+
+  @Override
+  public void setCurrentLimits(CurrentLimitsConfigs configs) {
+    driveTalon.getConfigurator().apply(configs);
   }
 }

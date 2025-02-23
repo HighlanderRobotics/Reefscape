@@ -3,6 +3,7 @@ package frc.robot.subsystems.wrist;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -10,6 +11,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
@@ -43,7 +45,6 @@ public class WristIOReal implements WristIO {
     appliedVoltage = motor.getMotorVoltage();
 
     motor.getConfigurator().apply(config);
-    motor.optimizeBusUtilization();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
@@ -53,6 +54,10 @@ public class WristIOReal implements WristIO {
         supplyCurrentAmps,
         statorCurrentAmps,
         motorPositionRotations);
+
+    motor.optimizeBusUtilization();
+
+    motor.setPosition(edu.wpi.first.math.util.Units.degreesToRotations(-10.0));
   }
 
   @Override
@@ -88,6 +93,11 @@ public class WristIOReal implements WristIO {
     motor.setPosition(rotation.getRotations());
   }
 
+  @Override
+  public void setMotionMagicConfigs(final MotionMagicConfigs configs) {
+    motor.getConfigurator().apply(configs);
+  }
+
   public static TalonFXConfiguration getDefaultConfiguration() {
     return new TalonFXConfiguration()
         .withCurrentLimits(
@@ -95,6 +105,9 @@ public class WristIOReal implements WristIO {
                 .withSupplyCurrentLimit(20.0)
                 .withSupplyCurrentLimitEnable(true))
         .withSlot0(new Slot0Configs().withGravityType(GravityTypeValue.Arm_Cosine))
-        .withMotorOutput(new MotorOutputConfigs().withNeutralMode(NeutralModeValue.Brake));
+        .withMotorOutput(
+            new MotorOutputConfigs()
+                .withNeutralMode(NeutralModeValue.Brake)
+                .withInverted(InvertedValue.Clockwise_Positive));
   }
 }
