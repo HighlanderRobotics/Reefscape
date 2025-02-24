@@ -9,10 +9,10 @@ import frc.robot.subsystems.servo.ServoIOInputsAutoLogged;
 import org.littletonrobotics.junction.Logger;
 
 public class FunnelSubsystem extends RollerSubsystem {
-  public static final Rotation2d FIRST_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(0.0);
-  public static final Rotation2d FIRST_LATCH_OPEN_POSITION = Rotation2d.fromDegrees(180.0);
-  public static final Rotation2d SECOND_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(0.0);
-  public static final Rotation2d SECOND_LATCH_OPEN_POSITION = Rotation2d.fromDegrees(180.0);
+  public static final Rotation2d FIRST_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(125.0);
+  public static final Rotation2d FIRST_LATCH_OPEN_POSITION = Rotation2d.fromDegrees(35.0);
+  public static final Rotation2d SECOND_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(35.0);
+  public static final Rotation2d SECOND_LATCH_OPEN_POSITION = Rotation2d.fromDegrees(125.0);
   // this could be in its own subsystem but it doesnt really matter tbh
   private final ServoIO firstLatchIO, secondLatchIO;
   private final ServoIOInputsAutoLogged firstLatchInputs = new ServoIOInputsAutoLogged(),
