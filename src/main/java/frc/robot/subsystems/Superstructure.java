@@ -167,8 +167,7 @@ public class Superstructure {
 
   /** This file is not a subsystem, so this MUST be called manually. */
   public void periodic() {
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput("Superstructure/Superstructure State", state);
+    Logger.recordOutput("Superstructure/Superstructure State", state);
   }
 
   private void configureStateTransitionCommands() {
@@ -655,7 +654,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.CLIMB)
         .whileTrue(
-            climber.setPosition(0.0).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
+            climber.setPosition(1.3).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
 
     // May need more checks to see if canceling is safe
     stateTriggers

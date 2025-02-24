@@ -8,7 +8,6 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -40,11 +39,11 @@ public class ClimberIOReal implements ClimberIO {
 
     config.Feedback.SensorToMechanismRatio = ClimberSubsystem.CLIMB_GEAR_RATIO;
 
-    config.CurrentLimits.StatorCurrentLimit = 10.0;
+    config.CurrentLimits.StatorCurrentLimit = 40.0;
     config.CurrentLimits.StatorCurrentLimitEnable = true;
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+    config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
     motor.getConfigurator().apply(config);
     BaseStatusSignal.setUpdateFrequencyForAll(
@@ -63,7 +62,7 @@ public class ClimberIOReal implements ClimberIO {
     BaseStatusSignal.refreshAll(
         angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position, appliedVoltage);
 
-    inputs.position = Rotation2d.fromRotations(position.getValueAsDouble());
+    inputs.position = position.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
@@ -79,5 +78,10 @@ public class ClimberIOReal implements ClimberIO {
   @Override
   public void setPosition(final double position) {
     motor.setControl(motionMagic.withPosition(position));
+  }
+
+  @Override
+  public void resetEncoder(double position) {
+    motor.setPosition(position);
   }
 }

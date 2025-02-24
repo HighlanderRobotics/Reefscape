@@ -5,7 +5,9 @@
 package frc.robot.subsystems.climber;
 
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import org.littletonrobotics.junction.Logger;
 
@@ -14,13 +16,16 @@ public class ClimberSubsystem extends SubsystemBase {
   public static final double CLIMBER_ARM_LENGTH_METERS = Units.inchesToMeters(11.0);
   public static final double CLIMBER_DRUM_RADIUS_METERS = Units.inchesToMeters(1.0);
   public static final double CLIMB_GEAR_RATIO = 125.0;
-  public static final double CLIMB_EXTENDED_POSITION = 10.0;
+  public static final double CLIMB_EXTENDED_POSITION = 3.5;
 
   private final ClimberIO io;
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
   public ClimberSubsystem(ClimberIO io) {
     this.io = io;
+
+    SmartDashboard.putData(
+        "Reset Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
   }
 
   @Override
