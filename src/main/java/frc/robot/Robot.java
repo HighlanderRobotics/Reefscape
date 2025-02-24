@@ -595,7 +595,6 @@ public class Robot extends LoggedRobot {
                     swerve,
                     () -> {
                       var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
-                      var twist2 = swerve.getVelocityFieldRelative().toTwist2d(0.5);
 
                       Pose2d targetPose =
                           CoralTargets.getHandedClosestTarget(
