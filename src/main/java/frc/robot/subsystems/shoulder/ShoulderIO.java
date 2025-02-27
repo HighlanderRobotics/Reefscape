@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shoulder;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -26,4 +27,6 @@ public interface ShoulderIO {
   public default void resetEncoder() {
     resetEncoder(Rotation2d.kZero);
   }
+
+  public void setMotionMagicConfigs(final MotionMagicConfigs configs);
 }

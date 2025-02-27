@@ -1,5 +1,6 @@
 package frc.robot.subsystems.shoulder;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
@@ -42,6 +43,11 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(75.0);
   public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
+
+  private static final MotionMagicConfigs DEFAULT_CONFIGS =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(4.0);
+  private static final MotionMagicConfigs TOSS_CONFIGS =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.6).withMotionMagicAcceleration(4.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
@@ -93,6 +99,22 @@ public class ShoulderSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngle(final Rotation2d target) {
+    return setTargetAngle(() -> target);
+  }
+
+  public Command setTargetAngleSlow(final Supplier<Rotation2d> target) {
+    return Commands.sequence(
+        this.runOnce(() -> io.setMotionMagicConfigs(TOSS_CONFIGS)),
+        this.run(
+            () -> {
+              io.setMotorPosition(target.get());
+              setpoint = target.get();
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
+            })).finallyDo(() -> io.setMotionMagicConfigs(DEFAULT_CONFIGS));
+  }
+
+  public Command setTargetAngleSlow(final Rotation2d target) {
     return setTargetAngle(() -> target);
   }
 

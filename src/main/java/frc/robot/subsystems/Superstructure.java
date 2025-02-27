@@ -626,7 +626,7 @@ public class Superstructure {
         .onTrue(Commands.runOnce(() -> stateTimer.reset()))
         .whileTrue(manipulator.setVoltage(13.0))
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+        .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> stateTimer.hasElapsed(1))
         .whileTrue(
