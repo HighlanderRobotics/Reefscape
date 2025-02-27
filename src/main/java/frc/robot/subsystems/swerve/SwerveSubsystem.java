@@ -313,13 +313,13 @@ public class SwerveSubsystem extends SubsystemBase {
           var visionPose = estPose.get().estimatedPose;
           // Sets the pose on the sim field
           camera.setSimPose(estPose, camera, !camera.inputs.stale);
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
             Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
             Logger.recordOutput(
                 "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
           final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
             Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
           Tracer.trace(
               "Add Measurement From " + camera.getName(),
@@ -330,7 +330,7 @@ public class SwerveSubsystem extends SubsystemBase {
                     deviations.times(DriverStation.isAutonomous() ? 2.0 : 1.0));
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
             Logger.recordOutput(
                 "Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
           cameraPoses[i] = visionPose;
@@ -346,17 +346,17 @@ public class SwerveSubsystem extends SubsystemBase {
                           .getTagPose(result.targets.get(j).getFiducialId())
                           .get();
                 }
-                if (Robot.ROBOT_TYPE != RobotType.REAL)
+                // if (Robot.ROBOT_TYPE != RobotType.REAL)
                   Logger.recordOutput(
                       "Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
               });
 
         } else {
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
             Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
         }
       } catch (NoSuchElementException e) {
-        if (Robot.ROBOT_TYPE != RobotType.REAL)
+        // if (Robot.ROBOT_TYPE != RobotType.REAL)
           Logger.recordOutput(
               "Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
       }
@@ -541,11 +541,11 @@ public class SwerveSubsystem extends SubsystemBase {
     thetaController.enableContinuousInput(-Math.PI, Math.PI);
     return (sample) -> {
       final var pose = getPose();
-      if (Robot.ROBOT_TYPE != RobotType.REAL)
+      // if (Robot.ROBOT_TYPE != RobotType.REAL)
         Logger.recordOutput(
             "Choreo/Target Pose",
             new Pose2d(sample.x, sample.y, Rotation2d.fromRadians(sample.heading)));
-      if (Robot.ROBOT_TYPE != RobotType.REAL)
+      // if (Robot.ROBOT_TYPE != RobotType.REAL)
         Logger.recordOutput(
             "Choreo/Target Speeds Field Relative",
             new ChassisSpeeds(sample.vx, sample.vy, sample.omega));

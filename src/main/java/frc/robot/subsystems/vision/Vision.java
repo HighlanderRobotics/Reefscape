@@ -42,6 +42,7 @@ public class Vision {
 
   public Vision(final VisionIO io) {
     this.io = io;
+    io.updateInputs(inputs);
   }
 
   public void setSimPose(Optional<EstimatedRobotPose> simEst, Vision camera, boolean newResult) {
@@ -53,7 +54,7 @@ public class Vision {
   }
 
   public void processInputs() {
-    Logger.processInputs("Apriltag Vision/" + io.getName(), inputs);
+    Logger.processInputs("Apriltag Vision/" + inputs.constants.cameraName, inputs);
   }
 
   public Optional<EstimatedRobotPose> update(PhotonPipelineResult result) {

@@ -23,7 +23,7 @@ public class VisionIOSim implements VisionIO {
   private final PhotonCameraSim simCamera;
   private final VisionConstants constants;
 
-  public static Supplier<Pose3d> pose;
+  public static Supplier<Pose3d> pose = () -> Pose3d.kZero;
 
   public VisionIOSim(VisionConstants constants) {
     this.sim = new VisionSystemSim(constants.cameraName());
@@ -67,11 +67,11 @@ public class VisionIOSim implements VisionIO {
   public void updateInputs(VisionIOInputs inputs) {
     sim.update(pose.get());
     var results = camera.getAllUnreadResults();
+    inputs.constants = constants;
     if (results.size() > 0) {
       final var result = results.get(results.size() - 1);
       inputs.latency = result.metadata.getLatencyMillis();
       inputs.targets = result.targets;
-      inputs.constants = constants;
       inputs.sequenceID = result.metadata.getSequenceID();
       inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
       inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
