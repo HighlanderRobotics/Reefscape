@@ -366,7 +366,11 @@ public class Robot extends LoggedRobot {
               .or(() -> Autos.autoScore),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
-          driver.x().and(driver.pov(-1).negate()).debounce(0.5),
+          driver
+              .x()
+              .and(driver.pov(-1).negate())
+              .debounce(0.5)
+              .or(operator.x().and(operator.pov(-1).negate()).debounce(0.5)),
           driver.rightTrigger(),
           driver
               .y()
