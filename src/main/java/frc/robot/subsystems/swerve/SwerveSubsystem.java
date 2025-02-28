@@ -327,7 +327,9 @@ public class SwerveSubsystem extends SubsystemBase {
                 estimator.addVisionMeasurement(
                     visionPose.toPose2d(),
                     camera.inputs.captureTimestampMicros / 1.0e6,
-                    deviations.times(DriverStation.isAutonomous() ? 2.0 : 1.0));
+                    deviations
+                        .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
+                        .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5));
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
