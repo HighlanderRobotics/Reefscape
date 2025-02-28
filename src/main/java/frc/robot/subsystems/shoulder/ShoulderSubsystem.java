@@ -104,14 +104,15 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public Command setTargetAngleSlow(final Supplier<Rotation2d> target) {
     return Commands.sequence(
-        this.runOnce(() -> io.setMotionMagicConfigs(TOSS_CONFIGS)),
-        this.run(
-            () -> {
-              io.setMotorPosition(target.get());
-              setpoint = target.get();
-              if (Robot.ROBOT_TYPE != RobotType.REAL)
-                Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
-            })).finallyDo(() -> io.setMotionMagicConfigs(DEFAULT_CONFIGS));
+            this.runOnce(() -> io.setMotionMagicConfigs(TOSS_CONFIGS)),
+            this.run(
+                () -> {
+                  io.setMotorPosition(target.get());
+                  setpoint = target.get();
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
+                }))
+        .finallyDo(() -> io.setMotionMagicConfigs(DEFAULT_CONFIGS));
   }
 
   public Command setTargetAngleSlow(final Rotation2d target) {
