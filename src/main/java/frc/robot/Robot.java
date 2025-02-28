@@ -538,7 +538,7 @@ public class Robot extends LoggedRobot {
                 })
             .ignoringDisable(true));
     SmartDashboard.putData("Reset + Rezero Climber", 
-        climber.resetClimber().andThen(climber.zeroClimber())
+        climber.resetClimber().finallyDo(() -> climber.zeroClimber())
     );
     elevator.setDefaultCommand(
         Commands.sequence(

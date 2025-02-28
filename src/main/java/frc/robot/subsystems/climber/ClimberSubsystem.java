@@ -44,7 +44,7 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public Command resetClimber() {
-    return this.run(() -> io.setVoltage(-8.0)).until(() -> Math.abs(currentFilterValue) > 1.0); //TODO find from log
+    return this.run(() -> io.setVoltage(-8.0)).until(() -> Math.abs(currentFilterValue) > 15.0); //TODO find from log
   }
 
   public Command zeroClimber() {
