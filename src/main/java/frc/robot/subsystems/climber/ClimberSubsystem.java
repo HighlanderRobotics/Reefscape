@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.climber;
 
-import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -27,8 +26,7 @@ public class ClimberSubsystem extends SubsystemBase {
 
     SmartDashboard.putData(
         "rezero Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
-        SmartDashboard.putData(
-        "Reset Climber (MANUAL STOP)", resetClimber());
+    SmartDashboard.putData("Reset Climber (MANUAL STOP)", resetClimber());
   }
 
   @Override
