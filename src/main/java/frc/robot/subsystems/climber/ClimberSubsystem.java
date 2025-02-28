@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.climber;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -21,6 +22,9 @@ public class ClimberSubsystem extends SubsystemBase {
   private final ClimberIO io;
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
+    private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
+  public double currentFilterValue = 0.0;
+
   public ClimberSubsystem(ClimberIO io) {
     this.io = io;
 
@@ -32,9 +36,18 @@ public class ClimberSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Climber", inputs);
+    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
   }
 
   public Command setPosition(double position) {
     return this.run(() -> io.setPosition(position));
+  }
+
+  public Command resetClimber() {
+    return this.run(() -> io.setVoltage(-8.0)).until(() -> Math.abs(currentFilterValue) > 1.0); //TODO find from log
+  }
+
+  public Command zeroClimber() {
+    return Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true);
   }
 }
