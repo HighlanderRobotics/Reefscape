@@ -22,21 +22,19 @@ public class ClimberSubsystem extends SubsystemBase {
   private final ClimberIO io;
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
-  private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
-  public double currentFilterValue = 0.0;
-
   public ClimberSubsystem(ClimberIO io) {
     this.io = io;
 
     SmartDashboard.putData(
-        "Reset Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
+        "rezero Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
+        SmartDashboard.putData(
+        "Reset Climber (MANUAL STOP)", resetClimber());
   }
 
   @Override
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Climber", inputs);
-    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
   }
 
   public Command setPosition(double position) {
@@ -44,8 +42,7 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public Command resetClimber() {
-    return this.run(() -> io.setVoltage(-8.0))
-        .until(() -> Math.abs(currentFilterValue) > 10.0); // TODO find from log
+    return this.run(() -> io.setVoltage(-8.0));
   }
 
   public Command zeroClimber() {
