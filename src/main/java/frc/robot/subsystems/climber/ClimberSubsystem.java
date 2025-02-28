@@ -22,7 +22,7 @@ public class ClimberSubsystem extends SubsystemBase {
   private final ClimberIO io;
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
 
-    private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
+  private final LinearFilter currentFilter = LinearFilter.movingAverage(5);
   public double currentFilterValue = 0.0;
 
   public ClimberSubsystem(ClimberIO io) {
@@ -44,7 +44,8 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public Command resetClimber() {
-    return this.run(() -> io.setVoltage(-8.0)).until(() -> Math.abs(currentFilterValue) > 15.0); //TODO find from log
+    return this.run(() -> io.setVoltage(-8.0))
+        .until(() -> Math.abs(currentFilterValue) > 5.0); // TODO find from log
   }
 
   public Command zeroClimber() {
