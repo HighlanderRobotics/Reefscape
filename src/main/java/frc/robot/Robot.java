@@ -10,7 +10,10 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.CANBus.CANBusStatus;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -177,6 +180,10 @@ public class Robot extends LoggedRobot {
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
+
+  private static CANBus canivore = new CANBus("*");
+  @AutoLogOutput (key = "Canivore Status")
+  private static CANBusStatus canivoreStatus = canivore.getStatus();
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
   private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
