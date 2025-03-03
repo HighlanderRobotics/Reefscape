@@ -9,16 +9,21 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.ReefTarget;
+import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
+import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 public class Autos {
@@ -40,12 +45,13 @@ public class Autos {
             true,
             swerve,
             (traj, edge) -> {
-              Logger.recordOutput(
-                  "Choreo/Active Traj",
-                  DriverStation.getAlliance().isPresent()
-                          && DriverStation.getAlliance().get().equals(Alliance.Blue)
-                      ? traj.getPoses()
-                      : traj.flipped().getPoses());
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput(
+                    "Choreo/Active Traj",
+                    DriverStation.getAlliance().isPresent()
+                            && DriverStation.getAlliance().get().equals(Alliance.Blue)
+                        ? traj.getPoses()
+                        : traj.flipped().getPoses());
             });
   }
 
@@ -98,13 +104,32 @@ public class Autos {
       String nextPos,
       HashMap<String, AutoTrajectory> steps) {
     routine
-        .observe(steps.get(startPos + "to" + endPos).done())
+        .observe(
+            steps
+                .get(startPos + "to" + endPos)
+                .atTime(
+                    steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
+                        - (endPos.length() == 1 ? 0.5 : 0.0)))
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
-                    ? intakeInAuto(steps.get(startPos + "to" + endPos).getFinalPose())
+                    ? intakeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
                     : Commands.sequence(
-                        endPos.length() == 1 ? scoreInAuto() : Commands.print("pushed bot")),
+                        endPos.length() == 1
+                            ? scoreInAuto(
+                                () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
+                            : AutoAim.translateToPose(
+                                    swerve,
+                                    () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
+                                .until(
+                                    () ->
+                                        AutoAim.isInTolerance(
+                                            swerve.getPose(),
+                                            steps
+                                                .get(startPos + "to" + endPos)
+                                                .getFinalPose()
+                                                .get()))
+                                .withTimeout(2.0)),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -132,8 +157,7 @@ public class Autos {
       String nextPos = stops[i + 2];
       runPath(routine, startPos, endPos, nextPos, steps);
     }
-    // final path
-    routine.observe(steps.get("PLOtoA").done()).onTrue(scoreInAuto());
+
     return routine.cmd();
   }
 
@@ -229,7 +253,7 @@ public class Autos {
 
   public Command PMtoPL() {
     final var routine = factory.newRoutine("PM to PL");
-    bindElevatorExtension(routine);
+    bindElevatorExtension(routine, 2.0);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -258,29 +282,48 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command scoreInAuto() {
-    return Commands.runOnce(
-            () -> {
-              autoScore = true;
-              Robot.setCurrentTarget(ReefTarget.L4);
-            })
-        .andThen(
+  public Command scoreInAuto(Supplier<Pose2d> trajEndPose) {
+    return Commands.sequence(
+            Commands.waitUntil(
+                new Trigger(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve.getPose(),
+                                CoralTargets.getClosestTarget(trajEndPose.get()),
+                                swerve.getVelocityFieldRelative(),
+                                Units.inchesToMeters(3.0),
+                                Units.degreesToRadians(1.0)))
+                    .debounce(0.25)),
+            Commands.print("Scoring!"),
+            Commands.runOnce(
+                () -> {
+                  autoScore = true;
+                  Robot.setCurrentTarget(ReefTarget.L4);
+                }),
             Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
                 .alongWith(
                     Robot.isSimulation()
                         ? Commands.runOnce(() -> manipulator.setSecondBeambreak(false))
-                        : Commands.none())
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          autoScore = false;
-                          autoPreScore = false;
-                        }),
-                    swerve.driveVelocity(() -> new ChassisSpeeds(-1, 0, 0)).withTimeout(0.25)));
+                        : Commands.none()),
+            Commands.runOnce(
+                () -> {
+                  autoScore = false;
+                  autoPreScore = false;
+                }),
+            // Retract some
+            Commands.waitSeconds(0.3))
+        .raceWith(
+            AutoAim.translateToPose(
+                swerve, () -> CoralTargets.getClosestTarget(trajEndPose.get())));
   }
 
-  public Command intakeInAuto(Optional<Pose2d> pose) {
-    if (!pose.isPresent()) {
+  // TODO: REMOVE THIS OVERLOAD
+  public Command scoreInAuto() {
+    return scoreInAuto(() -> swerve.getPose());
+  }
+
+  public Command intakeInAuto(Supplier<Optional<Pose2d>> pose) {
+    if (!pose.get().isPresent()) {
       return Commands.none();
     } else {
       return Commands.sequence(
@@ -288,13 +331,20 @@ public class Autos {
               ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
-          AutoAim.translateToPose(swerve, () -> pose.get())
+          // AutoAim.translateToPose(
+          //         swerve,
+          //         () -> pose.get().get(),
+          //         () ->
+          //             ChassisSpeeds.fromRobotRelativeSpeeds(
+          //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
+          swerve
+              .driveVoltage(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
               .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
     }
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 3); // TODO tune
+    bindElevatorExtension(routine, 4.0); // TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {

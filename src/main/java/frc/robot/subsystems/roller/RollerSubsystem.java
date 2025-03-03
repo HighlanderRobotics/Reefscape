@@ -47,6 +47,10 @@ public class RollerSubsystem extends SubsystemBase {
   }
 
   public Command setVoltage(double vel) {
-    return this.setVelocity(() -> vel); // TODO should this get renamed?
+    return this.setVoltage(() -> vel);
+  }
+
+  public Command setCurrent(DoubleSupplier amps) {
+    return this.run(() -> io.setCurrent(amps.getAsDouble()));
   }
 }

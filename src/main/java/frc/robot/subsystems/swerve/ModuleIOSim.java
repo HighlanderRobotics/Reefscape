@@ -12,6 +12,7 @@
 
 package frc.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -132,5 +133,10 @@ public class ModuleIOSim implements ModuleIO {
   public void setCurrent(double amps) {
     // TODO Auto-generated method stub
     throw new UnsupportedOperationException("Unimplemented method 'setCurrent'");
+  }
+
+  @Override
+  public void setCurrentLimits(CurrentLimitsConfigs configs) {
+    // not simulated
   }
 }

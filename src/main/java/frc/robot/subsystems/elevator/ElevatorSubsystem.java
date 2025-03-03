@@ -11,7 +11,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
@@ -27,19 +30,21 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
-  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(6.0);
+  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(8.0);
+  public static final double L1_WHACK_CORAL_EXTENSION_METERS = Units.inchesToMeters(18);
   public static final double L2_EXTENSION_METERS = Units.inchesToMeters(16.0);
-  public static final double L3_EXTENSION_METERS = Units.inchesToMeters(32.0);
-  public static final double L4_EXTENSION_METERS = Units.inchesToMeters(56.0);
+  public static final double L3_EXTENSION_METERS = Units.inchesToMeters(31.5);
+  public static final double L4_EXTENSION_METERS = Units.inchesToMeters(58.0);
 
-  public static final double INTAKE_ALGAE_STACK_EXTENSION = Units.inchesToMeters(12.0);
-  public static final double INTAKE_ALGAE_LOW_EXTENSION = Units.inchesToMeters(19.75);
-  public static final double INTAKE_ALGAE_HIGH_EXTENSION = Units.inchesToMeters(35.25);
+  public static final double INTAKE_ALGAE_GROUND_EXTENSION = Units.inchesToMeters(5.0);
+  public static final double INTAKE_ALGAE_STACK_EXTENSION = Units.inchesToMeters(12.5);
+  public static final double INTAKE_ALGAE_LOW_EXTENSION = Units.inchesToMeters(25.4);
+  public static final double INTAKE_ALGAE_HIGH_EXTENSION = Units.inchesToMeters(40.5);
 
-  public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(50.0);
-  public static final double ALGAE_PROCESSOR_EXTENSION = Units.inchesToMeters(10.0);
+  public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(61.5);
+  public static final double ALGAE_PROCESSOR_EXTENSION = 0.0;
 
-  public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
+  public static final double HP_EXTENSION_METERS = Units.inchesToMeters(1.0);
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
@@ -72,9 +77,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
 
     carriage.setLength(inputs.positionMeters);
-    Logger.recordOutput("Elevator/Mechanism2d", mech2d);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Elevator/Mechanism2d", mech2d);
 
-    Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
+
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Elevator/Has Zeroed", hasZeroed);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Elevator/Filtered Current", currentFilterValue);
   }
 
   public Command setExtension(DoubleSupplier meters) {
@@ -82,7 +92,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         () -> {
           io.setTarget(meters.getAsDouble());
           setpoint = meters.getAsDouble();
-          Logger.recordOutput("Elevator/Setpoint", setpoint);
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Elevator/Setpoint", setpoint);
         });
   }
 
@@ -90,14 +101,20 @@ public class ElevatorSubsystem extends SubsystemBase {
     return this.setExtension(() -> meters);
   }
 
+  public Command hold() {
+    return Commands.sequence(
+        setExtension(() -> inputs.positionMeters).until(() -> true), this.run(() -> {}));
+  }
+
   public Command runCurrentZeroing() {
     return this.run(
             () -> {
               io.setVoltage(-0.5);
               setpoint = 0.0;
-              Logger.recordOutput("Elevator/Setpoint", Double.NaN);
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> currentFilterValue > 20.0)
+        .until(() -> Math.abs(currentFilterValue) > 19.0)
         .finallyDo(
             (interrupted) -> {
               if (!interrupted) {
@@ -145,6 +162,10 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public boolean isNearExtension(double expected) {
-    return MathUtil.isNear(expected, inputs.positionMeters, 0.02);
+    return MathUtil.isNear(expected, inputs.positionMeters, 0.05);
+  }
+
+  public boolean isNearExtension(double expected, double toleranceMeters) {
+    return MathUtil.isNear(expected, inputs.positionMeters, toleranceMeters);
   }
 }

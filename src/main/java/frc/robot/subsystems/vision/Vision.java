@@ -10,6 +10,8 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import java.util.Optional;
 import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
@@ -19,8 +21,15 @@ import org.photonvision.targeting.PhotonPipelineResult;
 /** Add your docs here. */
 public class Vision {
   public static final Matrix<N3, N1> visionPointBlankDevs =
-      new Matrix<N3, N1>(Nat.N3(), Nat.N1(), new double[] {0.4, 0.4, 1});
-  public static final double distanceFactor = 0.5;
+      new Matrix<N3, N1>(Nat.N3(), Nat.N1(), new double[] {0.6, 0.6, 0.5});
+  public static final Matrix<N3, N1> infiniteDevs =
+      new Matrix<N3, N1>(
+          Nat.N3(),
+          Nat.N1(),
+          new double[] {
+            Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY
+          });
+  public static final double distanceFactor = 2.0;
 
   public record VisionConstants(
       String cameraName,
@@ -33,6 +42,7 @@ public class Vision {
 
   public Vision(final VisionIO io) {
     this.io = io;
+    io.updateInputs(inputs);
   }
 
   public void setSimPose(Optional<EstimatedRobotPose> simEst, Vision camera, boolean newResult) {
@@ -44,7 +54,7 @@ public class Vision {
   }
 
   public void processInputs() {
-    Logger.processInputs("Apriltag Vision/" + io.getName(), inputs);
+    Logger.processInputs("Apriltag Vision/" + inputs.constants.cameraName, inputs);
   }
 
   public Optional<EstimatedRobotPose> update(PhotonPipelineResult result) {
@@ -52,6 +62,10 @@ public class Vision {
     if (result.getTargets().size() < 1) {
       return Optional.empty();
     }
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Vision/" + inputs.constants.cameraName + " Best Distance",
+          result.getBestTarget().getBestCameraToTarget().getTranslation().getNorm());
     Optional<EstimatedRobotPose> estPose =
         VisionHelper.update(
             result,
@@ -60,14 +74,11 @@ public class Vision {
             PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR,
             inputs.constants.robotToCamera(),
             inputs.coprocPNPTransform);
-    // Reject if estimated pose is in the air or ground
-    if (estPose.isPresent() && Math.abs(estPose.get().estimatedPose.getZ()) > 0.25) {
-      return Optional.empty();
-    }
+
     return estPose;
   }
 
   public String getName() {
-    return io.getName();
+    return inputs.constants.cameraName;
   }
 }

@@ -3,6 +3,7 @@ package frc.robot.subsystems.shoulder;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -56,5 +57,12 @@ public class ShoulderIOSim implements ShoulderIO {
     setMotorVoltage(
         pid.calculate(armSim.getAngleRads(), targetPosition.getRadians())
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));
+  }
+
+  @Override
+  public void setMotionMagicConfigs(MotionMagicConfigs configs) {
+    pid.setConstraints(
+        new TrapezoidProfile.Constraints(
+            configs.MotionMagicCruiseVelocity, configs.MotionMagicAcceleration));
   }
 }

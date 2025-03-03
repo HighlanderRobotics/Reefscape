@@ -5,7 +5,6 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
@@ -37,7 +36,7 @@ public class ClimberIOSim implements ClimberIO {
 
     inputs.angularVelocityRPS =
         RadiansPerSecond.of(armSim.getVelocityRadPerSec()).in(RotationsPerSecond);
-    inputs.position = Rotation2d.fromRadians(armSim.getAngleRads());
+    inputs.position = armSim.getAngleRads(); // TODO fix
     inputs.statorCurrentAmps = armSim.getCurrentDrawAmps();
     inputs.supplyCurrentAmps = 0.0;
     inputs.tempDegreesC = 0.0;
@@ -60,5 +59,10 @@ public class ClimberIOSim implements ClimberIO {
                             * ClimberSubsystem.CLIMBER_DRUM_RADIUS_METERS)
                         / ClimberSubsystem.CLIMBER_ARM_LENGTH_METERS))
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));
+  }
+
+  @Override
+  public void resetEncoder(double position) {
+    armSim.setState(position, 0);
   }
 }

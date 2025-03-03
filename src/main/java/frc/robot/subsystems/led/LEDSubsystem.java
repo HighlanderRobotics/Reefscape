@@ -9,17 +9,22 @@ import edu.wpi.first.wpilibj.util.Color;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot.AlgaeIntakeTarget;
+import frc.robot.Robot.ReefTarget;
+import frc.robot.utils.Tracer;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class LEDSubsystem extends SubsystemBase {
-  public static final int LED_LENGTH = 16;
-  public static final int LED_ID = 3;
+  public static final int LED_LENGTH = 25;
+  public static final int LED_ID = 2;
+
+  public static final Color PURPLE = new Color("#A000D0");
 
   public static final Color L1 = Color.kGreen;
   public static final Color L2 = Color.kTeal;
   public static final Color L3 = Color.kBlue;
-  public static final Color L4 = Color.kViolet;
+  public static final Color L4 = PURPLE;
 
   private final LEDIO io;
   private final LEDIOInputsAutoLogged inputs = new LEDIOInputsAutoLogged();
@@ -29,12 +34,17 @@ public class LEDSubsystem extends SubsystemBase {
   /** Creates a new LEDSubsystem. */
   public LEDSubsystem(LEDIO io) {
     this.io = io;
+    io.solid(Color.kPurple);
   }
 
   @Override
   public void periodic() {
-    io.updateInputs(inputs);
-    Logger.processInputs("LED", inputs);
+    Tracer.trace(
+        "LEDs/Periodic",
+        () -> {
+          io.updateInputs(inputs);
+          Logger.processInputs("LED", inputs);
+        });
   }
 
   private void setIndex(int i, Color color) {
@@ -75,6 +85,16 @@ public class LEDSubsystem extends SubsystemBase {
         setSolidCmd(offColor).withTimeout(1.0 / frequency));
   }
 
+  public Command setBlinkingSplitCmd(
+      Supplier<Color> upOnColor,
+      Supplier<Color> downOnColor,
+      Supplier<Color> offColor,
+      double frequency) {
+    return Commands.repeatingSequence(
+        setSplitCmd(upOnColor, downOnColor).withTimeout(1.0 / frequency),
+        setSolidCmd(offColor).withTimeout(1.0 / frequency));
+  }
+
   /** Sets the first portion of the leds to a color, and the rest off */
   public Command setProgressCmd(Color color, DoubleSupplier progress) {
     return this.run(
@@ -107,5 +127,42 @@ public class LEDSubsystem extends SubsystemBase {
           dashStart += LED_LENGTH * frequency * 0.020;
           dashStart %= LED_LENGTH;
         });
+  }
+
+  public static Color getReefTargetColor(ReefTarget currentTarget) {
+    if (currentTarget == ReefTarget.L1) {
+      return LEDSubsystem.L1;
+    } else if (currentTarget == ReefTarget.L2) {
+      return LEDSubsystem.L2;
+    } else if (currentTarget == ReefTarget.L3) {
+      return LEDSubsystem.L3;
+    } else if (currentTarget == ReefTarget.L4) {
+      return LEDSubsystem.L4;
+    }
+    // impossible
+    return Color.kYellow;
+  }
+
+  public static Color getAlgaeIntakeTargetColor(AlgaeIntakeTarget algaeIntakeTarget) {
+
+    if (algaeIntakeTarget == AlgaeIntakeTarget.GROUND) {
+      return LEDSubsystem.L1;
+    } else if (algaeIntakeTarget == AlgaeIntakeTarget.LOW) {
+      return LEDSubsystem.L2;
+    } else if (algaeIntakeTarget == AlgaeIntakeTarget.HIGH) {
+      return LEDSubsystem.L3;
+    } else if (algaeIntakeTarget == AlgaeIntakeTarget.STACK) {
+      return LEDSubsystem.L4;
+    }
+    // impossible
+    return Color.kYellow;
+  }
+
+  public static Color getAlgaeScoringTargetColor(boolean isNet) {
+    if (isNet) {
+      return Color.kRed;
+    } else {
+      return Color.kYellow;
+    }
   }
 }
