@@ -423,12 +423,31 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .and(
+            () ->
+                !intakeAlgaeReq.getAsBoolean()
+                    || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK
+                    || algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND)
         // .debounce(0.15)
         .whileTrue(
             this.extendWithClearance(
                 0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
         .and(() -> elevator.isNearExtension(0))
-        .onTrue(this.forceState(SuperState.IDLE));
+        .onTrue(forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.SCORE_CORAL)
+        .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .and(intakeAlgaeReq)
+        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH)
+        .onTrue(forceState(SuperState.INTAKE_ALGAE_HIGH));
+
+    stateTriggers
+        .get(SuperState.SCORE_CORAL)
+        .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .and(intakeAlgaeReq)
+        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.LOW)
+        .onTrue(forceState(SuperState.INTAKE_ALGAE_LOW));
 
     antiJamReq
         .and(stateTriggers.get(SuperState.CLIMB).negate())
