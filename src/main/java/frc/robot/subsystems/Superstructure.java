@@ -14,6 +14,7 @@ import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
@@ -385,9 +386,7 @@ public class Superstructure {
         .get(SuperState.PRE_L4)
         .whileTrue(
             this.extendWithClearance(
-                ElevatorSubsystem.L4_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_SCORE_L4_POS,
-                WristSubsystem.WRIST_SCORE_L4_POS))
+                ExtensionKinematics.L4_EXTENSION))
         .whileTrue(manipulator.jog(1.4))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
@@ -661,6 +660,14 @@ public class Superstructure {
         .get(SuperState.CLIMB)
         .and(climbCancelReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
+  }
+
+  private Command extendWithClearance(ExtensionState extension) {
+    return extendWithClearance(extension.elevatorHeightMeters(), extension.shoulderAngle(), extension.wristAngle());
+  }
+
+  private Command extendWithClearance(Supplier<ExtensionState> extension) {
+    return extendWithClearance(() -> extension.get().elevatorHeightMeters(), () -> extension.get().shoulderAngle(), () -> extension.get().wristAngle());
   }
 
   private Command extendWithClearance(

@@ -7,12 +7,18 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem;
 
 public class ExtensionKinematics {
-  private ExtensionKinematics() {}
+  public static final ExtensionState L2_EXTENSION = new ExtensionState(ElevatorSubsystem.L2_EXTENSION_METERS, ShoulderSubsystem.SHOULDER_SCORE_POS, WristSubsystem.WRIST_SCORE_L2_POS);
+  public static final ExtensionState L3_EXTENSION = new ExtensionState(ElevatorSubsystem.L3_EXTENSION_METERS, ShoulderSubsystem.SHOULDER_SCORE_POS, WristSubsystem.WRIST_SCORE_L3_POS);
+  public static final ExtensionState L4_EXTENSION = new ExtensionState(ElevatorSubsystem.L4_EXTENSION_METERS, ShoulderSubsystem.SHOULDER_SCORE_L4_POS, WristSubsystem.WRIST_SCORE_L4_POS);
 
   public record ExtensionState (double elevatorHeightMeters, Rotation2d shoulderAngle, Rotation2d wristAngle) {}
+
+  private ExtensionKinematics() {}
 
   /** @param target pose where +x is robot +x from elevator, +y is robot +z from elevator min, and rotation is coral angle from horizontal */
   public static ExtensionState solveIK(Pose2d target) {
