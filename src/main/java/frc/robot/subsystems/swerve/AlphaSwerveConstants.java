@@ -242,4 +242,10 @@ public class AlphaSwerveConstants extends SwerveConstants {
   public double getBumperLength() {
     return Units.inchesToMeters(36.1);
   }
+
+  @Override
+  public VisionConstants getAlgaeVisionConstants() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getAlgaeVisionConstants'");
+  }
 }

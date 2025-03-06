@@ -270,7 +270,7 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().getModules()[3])
               },
           PhoenixOdometryThread.getInstance(),
-          swerveDriveSimulation);
+          swerveDriveSimulation, new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
 
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(

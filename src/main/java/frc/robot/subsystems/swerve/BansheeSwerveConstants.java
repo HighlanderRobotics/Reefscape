@@ -258,4 +258,10 @@ public class BansheeSwerveConstants extends SwerveConstants {
   public double getBumperLength() {
     return Units.inchesToMeters(39.66);
   }
+
+  @Override
+  public VisionConstants getAlgaeVisionConstants() {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'getAlgaeVisionConstants'");
+  }
 }

@@ -12,14 +12,30 @@
 
 package frc.robot.subsystems.swerve;
 
-import choreo.trajectory.SwerveSample;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
+
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
+import org.photonvision.targeting.PhotonPipelineResult;
+
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
+
+import choreo.trajectory.SwerveSample;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -31,6 +47,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
@@ -42,17 +59,6 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionHelper;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.utils.Tracer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
-import org.photonvision.targeting.PhotonPipelineResult;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final SwerveConstants constants;
@@ -61,6 +67,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final Module[] modules; // FL, FR, BL, BR
   private final OdometryThreadIO odoThread;
   private final OdometryThreadIOInputs odoThreadInputs = new OdometryThreadIOInputs();
+  private final Vision algaeCamera;
 
   private SwerveDriveKinematics kinematics;
 
@@ -97,7 +104,8 @@ public class SwerveSubsystem extends SubsystemBase {
       VisionIO[] visionIOs,
       ModuleIO[] moduleIOs,
       OdometryThreadIO odoThread,
-      Optional<SwerveDriveSimulation> simulation) {
+      Optional<SwerveDriveSimulation> simulation,
+      VisionIO algaeCameraIO) {
     this.constants = constants;
     this.kinematics = new SwerveDriveKinematics(constants.getModuleTranslations());
     this.estimator =
@@ -111,6 +119,7 @@ public class SwerveSubsystem extends SubsystemBase {
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
     this.simulation = simulation;
+    this.algaeCamera = new Vision(algaeCameraIO);
     cameras = new Vision[visionIOs.length];
     modules = new Module[moduleIOs.length];
 
@@ -140,6 +149,7 @@ public class SwerveSubsystem extends SubsystemBase {
             Tracer.trace("Update cam inputs", camera::updateInputs);
             Tracer.trace("Process cam inputs", camera::processInputs);
           }
+          algaeCamera.updateInputs();
           Tracer.trace(
               "Update odo inputs",
               () -> odoThread.updateInputs(odoThreadInputs, lastOdometryUpdateTimestamp));
@@ -179,10 +189,22 @@ public class SwerveSubsystem extends SubsystemBase {
           }
 
           Tracer.trace("Update odometry", this::updateOdometry);
-          Tracer.trace("Update vision", this::updateVision);
+          Tracer.trace("Update tag vision", this::updateVision);
+          Tracer.trace("Update algae vision", this::updateAlgaeVision);
         });
   }
 
+  private void updateAlgaeVision() {
+    Logger.recordOutput("Vision/Algae Result",
+    new PhotonPipelineResult(
+      algaeCamera.inputs.sequenceID,
+      algaeCamera.inputs.captureTimestampMicros,
+      algaeCamera.inputs.publishTimestampMicros,
+      algaeCamera.inputs.timeSinceLastPong,
+      algaeCamera.inputs.targets));
+      //TODO maybe add estimating pose of algae?
+  }
+  
   private void updateOdometry() {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Swerve/Updates Since Last", odoThreadInputs.sampledStates.size());
@@ -307,57 +329,57 @@ public class SwerveSubsystem extends SubsystemBase {
               camera.inputs.publishTimestampMicros,
               camera.inputs.timeSinceLastPong,
               camera.inputs.targets);
-      try {
-        if (!camera.inputs.stale) {
-          var estPose = Tracer.trace("Update Camera", () -> camera.update(result));
-          var visionPose = estPose.get().estimatedPose;
-          // Sets the pose on the sim field
-          camera.setSimPose(estPose, camera, !camera.inputs.stale);
+        try {
+          if (!camera.inputs.stale) {
+            var estPose = Tracer.trace("Update Camera", () -> camera.update(result));
+            var visionPose = estPose.get().estimatedPose;
+            // Sets the pose on the sim field
+            camera.setSimPose(estPose, camera, !camera.inputs.stale);
+            // if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
+            // if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput(
+                "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+            final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
+            // if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
+            Tracer.trace(
+                "Add Measurement From " + camera.getName(),
+                () -> {
+                  estimator.addVisionMeasurement(
+                      visionPose.toPose2d(),
+                      camera.inputs.captureTimestampMicros / 1.0e6,
+                      deviations
+                          .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
+                          .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5));
+                });
+            lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
+            // if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
+            cameraPoses[i] = visionPose;
+            Tracer.trace(
+                "Log Tag Poses",
+                () -> {
+                  Pose3d[] targetPose3ds = new Pose3d[result.targets.size()];
+                  for (int j = 0; j < result.targets.size(); j++) {
+                    targetPose3ds[j] =
+                        Robot.ROBOT_HARDWARE
+                            .swerveConstants
+                            .getFieldTagLayout()
+                            .getTagPose(result.targets.get(j).getFiducialId())
+                            .get();
+                  }
+                  // if (Robot.ROBOT_TYPE != RobotType.REAL)
+                  Logger.recordOutput("Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
+                });
+  
+          } else {
+            // if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
+          }
+        } catch (NoSuchElementException e) {
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-          // if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput(
-              "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
-          final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
-          // if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
-          Tracer.trace(
-              "Add Measurement From " + camera.getName(),
-              () -> {
-                estimator.addVisionMeasurement(
-                    visionPose.toPose2d(),
-                    camera.inputs.captureTimestampMicros / 1.0e6,
-                    deviations
-                        .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
-                        .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5));
-              });
-          lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
-          // if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
-          cameraPoses[i] = visionPose;
-          Tracer.trace(
-              "Log Tag Poses",
-              () -> {
-                Pose3d[] targetPose3ds = new Pose3d[result.targets.size()];
-                for (int j = 0; j < result.targets.size(); j++) {
-                  targetPose3ds[j] =
-                      Robot.ROBOT_HARDWARE
-                          .swerveConstants
-                          .getFieldTagLayout()
-                          .getTagPose(result.targets.get(j).getFiducialId())
-                          .get();
-                }
-                // if (Robot.ROBOT_TYPE != RobotType.REAL)
-                Logger.recordOutput("Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
-              });
-
-        } else {
-          // if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
-        }
-      } catch (NoSuchElementException e) {
-        // if (Robot.ROBOT_TYPE != RobotType.REAL)
-        Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
+          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
       }
       i++;
     }
@@ -693,5 +715,19 @@ public class SwerveSubsystem extends SubsystemBase {
     for (var module : modules) {
       module.setCurrentLimits(configs);
     }
+  }
+
+  public Command driveToAlgae() {
+    var note = VisionHelper.getBestTarget(getPose(), new PhotonPipelineResult(
+      algaeCamera.inputs.sequenceID,
+      algaeCamera.inputs.captureTimestampMicros,
+      algaeCamera.inputs.publishTimestampMicros,
+      algaeCamera.inputs.timeSinceLastPong,
+      algaeCamera.inputs.targets), 0); //TODO what is camerax
+      if (note.isEmpty()) {
+        return Commands.none();
+      } // TODO driver feedback? Must be proxied for duration
+      var pickup = note.get().transformBy(new Transform2d(new Translation2d(-1, 0), new Rotation2d())); //TODO ??
+      return poseLockDriveCommand(() -> pickup);
   }
 }
