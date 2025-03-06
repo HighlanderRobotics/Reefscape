@@ -446,7 +446,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.CHECK_ALGAE)
         .and(() -> stateTimer.hasElapsed(1.0))
-        .and(() -> manipulator.getStatorCurrentAmps() <= 20.0)
+        .and(() -> manipulator.getStatorCurrentAmps() <= 20.0 && Robot.ROBOT_TYPE != RobotType.SIM)
         .onTrue(this.forceState(SuperState.IDLE));
 
     // change intake target
@@ -544,7 +544,7 @@ public class Superstructure {
                         ? WristSubsystem.WRIST_RETRACTED_POS
                         : WristSubsystem.WRIST_INTAKE_ALGAE_REEF_RETRACT_POS))
         .and(() -> stateTimer.hasElapsed(1.0))
-        .and(() -> manipulator.getStatorCurrentAmps() > 20.0)
+        .and(() -> manipulator.getStatorCurrentAmps() > 20.0 || Robot.ROBOT_TYPE == RobotType.SIM)
         .and(
             () ->
                 AlgaeIntakeTargets.getClosestTarget(pose.get())
@@ -584,7 +584,7 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.READY_ALGAE)
-        .and(() -> manipulator.getStatorCurrentAmps() < 20.0)
+        .and(() -> manipulator.getStatorCurrentAmps() < 20.0 && Robot.ROBOT_TYPE != RobotType.SIM)
         .onTrue(forceState(SuperState.CHECK_ALGAE));
     // SPIT_ALGAE -> PRE_CLIMB
     stateTriggers

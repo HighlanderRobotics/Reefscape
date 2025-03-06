@@ -71,6 +71,7 @@ import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CoralTargets;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -112,7 +113,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -644,6 +645,41 @@ public class Robot extends LoggedRobot {
                         swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.READY_ALGAE
+                    || superstructure.getState() == SuperState.PRE_PROCESSOR)
+        .and(() -> algaeScoreTarget == AlgaeScoreTarget.PROCESSOR)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () ->
+                        swerve
+                            .getPose()
+                            .nearest(
+                                Arrays.stream(
+                                        new Pose2d[] {
+                                          AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS
+                                        })
+                                    .toList())),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve
+                                    .getPose()
+                                    .nearest(
+                                        Arrays.stream(
+                                                new Pose2d[] {
+                                                  AutoAim.BLUE_PROCESSOR_POS,
+                                                  AutoAim.RED_PROCESSOR_POS
+                                                })
+                                            .toList()),
+                                swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
         .rightBumper()
@@ -652,10 +688,10 @@ public class Robot extends LoggedRobot {
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
                     || superstructure.getState() == SuperState.PRE_NET)
+        .and(() -> algaeScoreTarget == AlgaeScoreTarget.NET)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToXCoord(
-                    // TODO: PUT ACUAL NET POSE
                     swerve,
                     () ->
                         Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
