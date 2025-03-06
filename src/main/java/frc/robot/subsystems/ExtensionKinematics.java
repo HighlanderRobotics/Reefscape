@@ -9,8 +9,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 
-public class ExtensionIK {
-  private ExtensionIK() {}
+public class ExtensionKinematics {
+  private ExtensionKinematics() {}
 
   public record ExtensionState (double elevatorHeightMeters, Rotation2d shoulderAngle, Rotation2d wristAngle) {}
 
@@ -25,5 +25,13 @@ public class ExtensionIK {
     // Elevator goes to remaining needed height
     final var elevatorHeight = wristPose.getTranslation().minus(new Translation2d(ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle), ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle))).getY();
     return new ExtensionState(elevatorHeight, Rotation2d.fromRadians(shoulderAngle), wristPose.getRotation());
+  }
+
+  public static Pose2d solveFK(ExtensionState state) {
+    return new Pose2d(
+      state.shoulderAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+      state.elevatorHeightMeters() + state.shoulderAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS,
+      state.wristAngle()
+    );
   }
 }
