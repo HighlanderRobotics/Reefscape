@@ -112,7 +112,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -685,12 +685,11 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(
-            Commands.runOnce(() -> manipulator.setSecondBeambreak(false)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
