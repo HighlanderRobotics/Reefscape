@@ -32,7 +32,7 @@ public class AutoAim {
   public static double BLUE_NET_X = 8.08;
   public static double RED_NET_X = ChoreoAllianceFlipUtil.flipX(BLUE_NET_X);
 
-  public static Pose2d BLUE_PROCESSOR_POS = new Pose2d(5.973, 0, Rotation2d.fromDegrees(90));
+  public static Pose2d BLUE_PROCESSOR_POS = new Pose2d(5.973, 0, Rotation2d.fromDegrees(270));
   public static Pose2d RED_PROCESSOR_POS = ChoreoAllianceFlipUtil.flip(BLUE_PROCESSOR_POS);
 
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
