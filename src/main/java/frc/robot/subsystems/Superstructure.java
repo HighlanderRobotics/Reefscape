@@ -423,11 +423,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
-        .and(
-            () ->
-                !intakeAlgaeReq.getAsBoolean()
-                    || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK
-                    || algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND)
+        .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
         // .debounce(0.15)
         .whileTrue(
             this.extendWithClearance(
@@ -439,21 +435,12 @@ public class Superstructure {
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .and(intakeAlgaeReq)
-        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH)
-        .onTrue(forceState(SuperState.INTAKE_ALGAE_HIGH));
-
-    stateTriggers
-        .get(SuperState.SCORE_CORAL)
-        .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
-        .and(intakeAlgaeReq)
-        .and(() -> algaeIntakeTarget.get() == AlgaeIntakeTarget.LOW)
-        .onTrue(forceState(SuperState.INTAKE_ALGAE_LOW));
-
-    antiJamReq
-        .and(stateTriggers.get(SuperState.CLIMB).negate())
-        .and(stateTriggers.get(SuperState.PRE_CLIMB).negate())
-        .onTrue(forceState(SuperState.ANTI_JAM))
-        .onFalse(forceState(SuperState.IDLE));
+        .and(() -> intakeTargetOnReef())
+        .onTrue(
+            forceState(
+                algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH
+                    ? SuperState.INTAKE_ALGAE_HIGH
+                    : SuperState.INTAKE_ALGAE_LOW));
 
     // ANTI_JAM logic
     stateTriggers
@@ -738,6 +725,11 @@ public class Superstructure {
         || this.state == SuperState.PRE_PROCESSOR
         || this.state == SuperState.SCORE_ALGAE_NET
         || this.state == SuperState.SCORE_ALGAE_PROCESSOR;
+  }
+
+  public boolean intakeTargetOnReef() {
+    return this.algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH
+        || this.algaeIntakeTarget.get() == AlgaeIntakeTarget.LOW;
   }
 
   private Command forceState(SuperState nextState) {
