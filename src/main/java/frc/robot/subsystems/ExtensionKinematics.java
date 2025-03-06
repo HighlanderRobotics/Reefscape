@@ -12,32 +12,57 @@ import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 
 public class ExtensionKinematics {
-  public static final ExtensionState L2_EXTENSION = new ExtensionState(ElevatorSubsystem.L2_EXTENSION_METERS, ShoulderSubsystem.SHOULDER_SCORE_POS, WristSubsystem.WRIST_SCORE_L2_POS);
-  public static final ExtensionState L3_EXTENSION = new ExtensionState(ElevatorSubsystem.L3_EXTENSION_METERS, ShoulderSubsystem.SHOULDER_SCORE_POS, WristSubsystem.WRIST_SCORE_L3_POS);
-  public static final ExtensionState L4_EXTENSION = new ExtensionState(ElevatorSubsystem.L4_EXTENSION_METERS, ShoulderSubsystem.SHOULDER_SCORE_L4_POS, WristSubsystem.WRIST_SCORE_L4_POS);
+  public static final ExtensionState L2_EXTENSION =
+      new ExtensionState(
+          ElevatorSubsystem.L2_EXTENSION_METERS,
+          ShoulderSubsystem.SHOULDER_SCORE_POS,
+          WristSubsystem.WRIST_SCORE_L2_POS);
+  public static final ExtensionState L3_EXTENSION =
+      new ExtensionState(
+          ElevatorSubsystem.L3_EXTENSION_METERS,
+          ShoulderSubsystem.SHOULDER_SCORE_POS,
+          WristSubsystem.WRIST_SCORE_L3_POS);
+  public static final ExtensionState L4_EXTENSION =
+      new ExtensionState(
+          ElevatorSubsystem.L4_EXTENSION_METERS,
+          ShoulderSubsystem.SHOULDER_SCORE_L4_POS,
+          WristSubsystem.WRIST_SCORE_L4_POS);
 
-  public record ExtensionState (double elevatorHeightMeters, Rotation2d shoulderAngle, Rotation2d wristAngle) {}
+  public record ExtensionState(
+      double elevatorHeightMeters, Rotation2d shoulderAngle, Rotation2d wristAngle) {}
 
   private ExtensionKinematics() {}
 
-  /** @param target pose where +x is robot +x from elevator, +y is robot +z from elevator min, and rotation is coral angle from horizontal */
+  /**
+   * @param target pose where +x is robot +x from elevator, +y is robot +z from elevator min, and
+   *     rotation is coral angle from horizontal
+   */
   public static ExtensionState solveIK(Pose2d target) {
     // Offset wrist pose from target
     final var wristPose = target.transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL.inverse());
     // Find shoulder angle from needed horizontal extension
     var shoulderAngle = Math.acos(wristPose.getX() / ShoulderSubsystem.ARM_LENGTH_METERS);
     // Set angle to horizontal if we can't reach
-    if (shoulderAngle == Double.NaN) shoulderAngle = 0.0;
+    if (Double.isNaN(shoulderAngle)) shoulderAngle = 0.0;
     // Elevator goes to remaining needed height
-    final var elevatorHeight = wristPose.getTranslation().minus(new Translation2d(ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle), ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle))).getY();
-    return new ExtensionState(elevatorHeight, Rotation2d.fromRadians(shoulderAngle), wristPose.getRotation());
+    final var elevatorHeight =
+        wristPose
+            .getTranslation()
+            .minus(
+                new Translation2d(
+                    ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle),
+                    ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
+            .getY();
+    return new ExtensionState(
+        elevatorHeight, Rotation2d.fromRadians(shoulderAngle), wristPose.getRotation());
   }
 
   public static Pose2d solveFK(ExtensionState state) {
     return new Pose2d(
-      state.shoulderAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-      state.elevatorHeightMeters() + state.shoulderAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS,
-      state.wristAngle()
-    );
+            state.shoulderAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+            state.elevatorHeightMeters()
+                + state.shoulderAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS,
+            state.wristAngle())
+        .transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL);
   }
 }
