@@ -593,7 +593,7 @@ public class Robot extends LoggedRobot {
       SimulatedArena.getInstance().simulationPeriodic();
       Logger.recordOutput(
           "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
-      FieldSim.updateLogging();
+      FieldSim.updateLogging(manipulator.getPose(shoulder, elevator, wrist, swerve.getPose()));
     }
 
     Logger.recordOutput("Targets/Reef Target", currentTarget);

@@ -16,13 +16,13 @@ public class FieldSim {
   // example pieces
 
   static {
-    gamePieces.add(new GamePiece(new Pose3d(3, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+    gamePieces.add(new GamePiece(new Pose3d(3, 2, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
 
-    gamePieces.add(new GamePiece(new Pose3d(4, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+    gamePieces.add(new GamePiece(new Pose3d(4, 2, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
 
-    gamePieces.add(new GamePiece(new Pose3d(5, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+    gamePieces.add(new GamePiece(new Pose3d(5, 2, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
 
-    gamePieces.add(new GamePiece(new Pose3d(6, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
+    gamePieces.add(new GamePiece(new Pose3d(6, 2, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
 
     gamePieces.add(new GamePiece(new Pose3d(7, 3, 0, new Rotation3d()), GamePiece.Piece.ALGAE));
     gamePieces.add(new GamePiece(new Pose3d(4, 4, 3, new Rotation3d()), GamePiece.Piece.CORAL));
@@ -34,10 +34,30 @@ public class FieldSim {
     updateLogging();
   }
 
-  public static void updateLogging() {
+  public static void updateLogging(){
     for (int i = 0; i < gamePieces.size(); i++) {
       GamePiece gamePiece = gamePieces.get(i);
+      
       Pose3d pose = gamePiece.getPose();
+      System.out.println(pose);
+      Logger.recordOutput("FieldSim/GamePiece" + i + "/Pose", pose);
+    }
+    Logger.recordOutput("FieldSim/Held Piece", heldPiece);
+    if (heldPiece != -1) {
+      Logger.recordOutput("FieldSim/Held Piece", gamePieces.get(heldPiece).getPose());
+      Logger.recordOutput("FieldSim/Type", gamePieces.get(heldPiece).getType());
+    }
+
+  }
+
+  public static void updateLogging(Pose3d manipulatorPose) {
+    for (int i = 0; i < gamePieces.size(); i++) {
+      GamePiece gamePiece = gamePieces.get(i);
+      if(gamePiece.isHeld()){
+        gamePiece.setPose(manipulatorPose);
+      }
+      Pose3d pose = gamePiece.getPose();
+      System.out.println(pose);
       Logger.recordOutput("FieldSim/GamePiece" + i + "/Pose", pose);
     }
     Logger.recordOutput("FieldSim/Held Piece", heldPiece);
@@ -58,13 +78,13 @@ public class FieldSim {
 
     for (int i = 0; i < gamePieces.size(); i++) {
       if (gamePieces.get(i).getPose() == null || gamePieces.get(i).getType() == Piece.NONE) {
-        System.out.println("Game Piece is null");
+        //  System.out.println("Game Piece is null");
         continue;
       }
 
       double distance =
           pose.getTranslation().getDistance(gamePieces.get(i).getPose().getTranslation());
-      System.out.println(distance + " /  " + closestDistance + " / " + i);
+      // System.out.println(distance + " /  " + closestDistance + " / " + i);
       if (distance < closestDistance) {
         closestDistance = distance;
         closestGamePiece = i;
@@ -106,7 +126,7 @@ public class FieldSim {
     Logger.recordOutput("FieldSim/Pickup", "Pickup");
     int gamePiece = getClosestGamePiece(pose);
 
-    System.out.println(gamePiece + " game piece");
+    // System.out.println(gamePiece + " game piece");
     if (inRange(pose)) {
 
       Logger.recordOutput("FieldSim/Type", gamePieces.get(gamePiece).getType());

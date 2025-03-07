@@ -52,6 +52,10 @@ public class GamePiece implements StructSerializable, ProtobufSerializable {
     return pose;
   }
 
+  public void setPose(Pose3d pose) {
+    this.pose = pose;
+  }
+
   public Piece getType() {
     return type;
   }
