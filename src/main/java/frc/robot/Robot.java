@@ -70,6 +70,7 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -685,6 +686,23 @@ public class Robot extends LoggedRobot {
                                             .toList()),
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.PRE_CLIMB
+                    || superstructure.getState() == SuperState.CLIMB)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve, () -> CageTargets.getOffsetClosestTarget(swerve.getPose())),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                CageTargets.getOffsetClosestTarget(swerve.getPose()),
+                                swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
         .rightBumper()
@@ -818,6 +836,12 @@ public class Robot extends LoggedRobot {
               .map((target) -> CoralTargets.getRobotTargetLocation(target.location))
               .toArray(Pose2d[]::new));
     // Log locations of all autoaim targets
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "AutoAim/Targets/Cage",
+          Stream.of(CageTargets.values())
+              .map((target) -> target.getLocation())
+              .toArray(Pose2d[]::new));
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
           "AutoAim/Targets/Algae",
