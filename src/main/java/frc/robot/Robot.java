@@ -74,6 +74,7 @@ import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -646,6 +647,7 @@ public class Robot extends LoggedRobot {
                         swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -662,11 +664,8 @@ public class Robot extends LoggedRobot {
                         swerve
                             .getPose()
                             .nearest(
-                                Arrays.stream(
-                                        new Pose2d[] {
-                                          AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS
-                                        })
-                                    .toList())
+                                List.of(AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
+                            // Moves the target pose inside the field, with the bumpers aligned with the wall
                             .transformBy(
                                 new Transform2d(
                                     -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
@@ -686,6 +685,7 @@ public class Robot extends LoggedRobot {
                                             .toList()),
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
     driver
         .rightBumper()
         .or(driver.leftBumper())
