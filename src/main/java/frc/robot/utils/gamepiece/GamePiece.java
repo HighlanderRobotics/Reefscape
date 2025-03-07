@@ -37,10 +37,15 @@ public class GamePiece implements StructSerializable, ProtobufSerializable {
 
   private Pose3d pose;
   private Piece type;
+  private boolean isHeld = false;
 
   public GamePiece(Pose3d pose, Piece type) {
     this.pose = pose;
     this.type = type;
+  }
+
+  public boolean isHeld() {
+    return isHeld;
   }
 
   public Pose3d getPose() {
@@ -53,14 +58,15 @@ public class GamePiece implements StructSerializable, ProtobufSerializable {
 
   public void pickup() {
     pose = null;
+    isHeld = true;
   }
 
   public void drop(Pose3d pose) {
     this.pose = pose;
+    isHeld = false;
   }
 
   public String toString() {
     return "GamePiece {" + "pose =" + pose + ", typ e=" + type + '}';
   }
-
 }
