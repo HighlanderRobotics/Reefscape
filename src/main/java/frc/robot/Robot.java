@@ -665,7 +665,12 @@ public class Robot extends LoggedRobot {
                                         new Pose2d[] {
                                           AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS
                                         })
-                                    .toList())),
+                                    .toList())
+                            .transformBy(
+                                new Transform2d(
+                                    -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
+                                    0.0,
+                                    Rotation2d.kZero))),
                 Commands.waitUntil(
                         () ->
                             AutoAim.isInTolerance(
