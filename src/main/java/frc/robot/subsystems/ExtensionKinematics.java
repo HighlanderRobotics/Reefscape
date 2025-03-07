@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
+import frc.robot.utils.autoaim.CoralTargets;
 
 public class ExtensionKinematics {
   public static final ExtensionState L2_EXTENSION =
@@ -64,5 +65,12 @@ public class ExtensionKinematics {
                 + state.shoulderAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS,
             state.wristAngle())
         .transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL);
+  }
+
+  public static ExtensionState getPoseCompensatedExtension(Pose2d pose, ExtensionState target) {
+    final var fk = ExtensionKinematics.solveFK(target);
+    final var diff = pose.minus(CoralTargets.getClosestTarget(pose));
+    final var adjustedFk = new Pose2d(fk.getX() - diff.getX(), fk.getY(), fk.getRotation());
+    return ExtensionKinematics.solveIK(adjustedFk);
   }
 }

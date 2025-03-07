@@ -2,9 +2,7 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -22,7 +20,6 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
-import frc.robot.utils.autoaim.CoralTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
 import java.util.HashMap;
 import java.util.Map;
@@ -351,9 +348,9 @@ public class Superstructure {
         .get(SuperState.PRE_L2)
         .whileTrue(
             this.extendWithClearance(
-                ElevatorSubsystem.L2_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_SCORE_POS,
-                WristSubsystem.WRIST_SCORE_L2_POS))
+                () ->
+                    ExtensionKinematics.getPoseCompensatedExtension(
+                        pose.get(), ExtensionKinematics.L4_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
@@ -370,9 +367,9 @@ public class Superstructure {
         .get(SuperState.PRE_L3)
         .whileTrue(
             this.extendWithClearance(
-                ElevatorSubsystem.L3_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_SCORE_POS,
-                WristSubsystem.WRIST_SCORE_L3_POS))
+                () ->
+                    ExtensionKinematics.getPoseCompensatedExtension(
+                        pose.get(), ExtensionKinematics.L4_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
@@ -389,21 +386,9 @@ public class Superstructure {
         .get(SuperState.PRE_L4)
         .whileTrue(
             this.extendWithClearance(
-                () -> {
-                  final var fk = ExtensionKinematics.solveFK(ExtensionKinematics.L4_EXTENSION);
-                  final var diff = pose.get().minus(CoralTargets.getClosestTarget(pose.get()));
-                  final var adjustedFk =
-                      fk.plus(
-                          new Transform2d(
-                              //   MathUtil.clamp(
-                              //       Units.inchesToMeters(4.0) - diff.getX(),
-                              //       0.0,
-                              //       ShoulderSubsystem.ARM_LENGTH_METERS),
-                              Units.inchesToMeters(4.0 * Math.sin(Timer.getTimestamp())),
-                              0.0,
-                              Rotation2d.kZero));
-                  return ExtensionKinematics.solveIK(adjustedFk);
-                }))
+                () ->
+                    ExtensionKinematics.getPoseCompensatedExtension(
+                        pose.get(), ExtensionKinematics.L4_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
@@ -420,17 +405,26 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .whileTrue(
-            this.extendWithClearance(
-                () -> {
-                  final var fk = ExtensionKinematics.solveFK(ExtensionKinematics.L4_EXTENSION);
-                  Logger.recordOutput("Superstructure/FK", fk);
-                  final var diff = pose.get().minus(CoralTargets.getClosestTarget(pose.get()));
-                  final var adjustedFk =
-                      new Pose2d(fk.getX() - diff.getX(), fk.getY(), fk.getRotation());
-                  Logger.recordOutput("Superstructure/Adjusted FK", adjustedFk);
-
-                  return ExtensionKinematics.solveIK(adjustedFk);
-                }))
+            Commands.either(
+                Commands.parallel(
+                    elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS),
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS)),
+                this.extendWithClearance(
+                    () ->
+                        ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(),
+                            switch (reefTarget.get()) {
+                              case L2 -> ExtensionKinematics.L2_EXTENSION;
+                              case L3 -> ExtensionKinematics.L3_EXTENSION;
+                              case L4 -> ExtensionKinematics.L4_EXTENSION;
+                              default -> // shouldnt be reachable
+                              new ExtensionState(
+                                  ElevatorSubsystem.L1_EXTENSION_METERS,
+                                  ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+                                  WristSubsystem.WRIST_SCORE_L1_POS);
+                            })),
+                () -> reefTarget.get() == ReefTarget.L1))
         .whileTrue(manipulator.hold())
         .and(
             () ->
