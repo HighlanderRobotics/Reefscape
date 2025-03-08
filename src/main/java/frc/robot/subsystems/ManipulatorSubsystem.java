@@ -27,7 +27,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
   public static final Transform2d IK_WRIST_TO_CORAL =
       new Transform2d(
-          Units.inchesToMeters(3.0), Units.inchesToMeters(6.0), Rotation2d.fromDegrees(0.0));
+          Units.inchesToMeters(1.0), Units.inchesToMeters(3.0), Rotation2d.fromDegrees(0.0));
 
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
