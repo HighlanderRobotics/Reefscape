@@ -182,7 +182,6 @@ public class Robot extends LoggedRobot {
 
   private static CANBus canivore = new CANBus("*");
 
-  @AutoLogOutput(key = "Canivore Status")
   private static CANBusStatus canivoreStatus = canivore.getStatus();
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
@@ -463,6 +462,7 @@ public class Robot extends LoggedRobot {
     // be added.
     swerve.startOdoThread();
     SignalLogger.setPath("/media/sda1/");
+    Logger.recordOutput("Canivore Status", canivoreStatus.Status);
 
     if (ROBOT_TYPE == RobotType.SIM) {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
