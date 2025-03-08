@@ -598,17 +598,51 @@ public class Robot extends LoggedRobot {
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToPose(
-                    swerve,
-                    () -> {
-                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
-                      return CoralTargets.getHandedClosestTarget(
-                          swerve
-                              .getPose()
-                              .plus(
+                        swerve,
+                        () -> {
+                          var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                          return CoralTargets.getHandedClosestTarget(
+                                  swerve
+                                      .getPose()
+                                      .plus(
+                                          new Transform2d(
+                                              twist.dx,
+                                              twist.dy,
+                                              Rotation2d.fromRadians(twist.dtheta))),
+                                  driver.leftBumper().getAsBoolean())
+                              // Keeps the robot off the reef wall until it's aligned side-side
+                              .transformBy(
                                   new Transform2d(
-                                      twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
-                          driver.leftBumper().getAsBoolean());
-                    }),
+                                      AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS,
+                                      0.0,
+                                      Rotation2d.kZero));
+                        })
+                    .until(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve.getPose(),
+                                CoralTargets.getClosestTarget(swerve.getPose())
+                                    .transformBy(
+                                        new Transform2d(
+                                            AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS,
+                                            0.0,
+                                            Rotation2d.kZero))))
+                    // Align in all 3 axis
+                    .andThen(
+                        AutoAim.translateToPose(
+                            swerve,
+                            () -> {
+                              var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                              return CoralTargets.getHandedClosestTarget(
+                                  swerve
+                                      .getPose()
+                                      .plus(
+                                          new Transform2d(
+                                              twist.dx,
+                                              twist.dy,
+                                              Rotation2d.fromRadians(twist.dtheta))),
+                                  driver.leftBumper().getAsBoolean());
+                            })),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
