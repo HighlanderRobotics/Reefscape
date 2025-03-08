@@ -6,6 +6,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -41,6 +42,14 @@ public class AutoAim {
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     return translateToPose(swerve, target, () -> new ChassisSpeeds());
+  }
+
+  public static Command autoAimWithIntermediatePose(SwerveSubsystem swerve, Supplier<Pose2d> intermediate, Supplier<Pose2d> end) {
+    return translateToPose(swerve, intermediate).until(() -> isInTolerance(swerve.getPose(), intermediate.get())).andThen(translateToPose(swerve, end));
+  }
+
+  public static Command autoAimWithIntermediatePose(SwerveSubsystem swerve, Supplier<Pose2d> end, Transform2d translationToIntermediate) {
+    return translateToPose(swerve, () -> end.get().transformBy(translationToIntermediate)).until(() -> isInTolerance(swerve.getPose(), end.get().transformBy(translationToIntermediate))).andThen(translateToPose(swerve, end));
   }
 
   public static Command translateToPose(
