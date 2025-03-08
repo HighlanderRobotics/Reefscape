@@ -603,23 +603,21 @@ public class Robot extends LoggedRobot {
         .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
-                AutoAim.autoAimWithIntermediatePose(swerve, () -> {
-                    var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
-                    return CoralTargets.getHandedClosestTarget(
-                            swerve
-                                .getPose()
-                                .plus(
-                                    new Transform2d(
-                                        twist.dx,
-                                        twist.dy,
-                                        Rotation2d.fromRadians(twist.dtheta))),
-                            driver.leftBumper().getAsBoolean());
-                        }, 
-                        // Keeps the robot off the reef wall until it's aligned side-side
-                        new Transform2d(
-                            AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS,
-                            0.0,
-                        Rotation2d.kZero)),
+                AutoAim.autoAimWithIntermediatePose(
+                    swerve,
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                          swerve
+                              .getPose()
+                              .plus(
+                                  new Transform2d(
+                                      twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
+                          driver.leftBumper().getAsBoolean());
+                    },
+                    // Keeps the robot off the reef wall until it's aligned side-side
+                    new Transform2d(
+                        AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
