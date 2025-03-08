@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -420,20 +421,71 @@ public class Superstructure {
                     elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS),
                     shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS)),
-                this.extendWithClearance(
+                // Score on L2-4
+                Commands.either(
+                    Commands.parallel(
+                        // I hate this way of evaluating this, i should make it better
+                        shoulder.setTargetAngle(
+                            () ->
+                                ExtensionKinematics.getPoseCompensatedExtension(
+                                        pose.get(),
+                                        switch (reefTarget.get()) {
+                                          case L2 -> ExtensionKinematics.L2_EXTENSION;
+                                          case L3 -> ExtensionKinematics.L3_EXTENSION;
+                                          case L4 -> ExtensionKinematics.L4_EXTENSION;
+                                          default -> // shouldnt be reachable
+                                          new ExtensionState(
+                                              ElevatorSubsystem.L1_EXTENSION_METERS,
+                                              ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+                                              WristSubsystem.WRIST_SCORE_L1_POS);
+                                        })
+                                    .shoulderAngle()),
+                        wrist.setTargetAngle(
+                            ExtensionKinematics.getPoseCompensatedExtension(
+                                    pose.get(),
+                                    switch (reefTarget.get()) {
+                                      case L2 -> ExtensionKinematics.L2_EXTENSION;
+                                      case L3 -> ExtensionKinematics.L3_EXTENSION;
+                                      case L4 -> ExtensionKinematics.L4_EXTENSION;
+                                      default -> // shouldnt be reachable
+                                      new ExtensionState(
+                                          ElevatorSubsystem.L1_EXTENSION_METERS,
+                                          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+                                          WristSubsystem.WRIST_SCORE_L1_POS);
+                                    })
+                                .wristAngle()),
+                        elevator.setExtension(
+                            ExtensionKinematics.getPoseCompensatedExtension(
+                                    pose.get(),
+                                    switch (reefTarget.get()) {
+                                      case L2 -> ExtensionKinematics.L2_EXTENSION;
+                                      case L3 -> ExtensionKinematics.L3_EXTENSION;
+                                      case L4 -> ExtensionKinematics.L4_EXTENSION;
+                                      default -> // shouldnt be reachable
+                                      new ExtensionState(
+                                          ElevatorSubsystem.L1_EXTENSION_METERS,
+                                          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+                                          WristSubsystem.WRIST_SCORE_L1_POS);
+                                    })
+                                .elevatorHeightMeters())),
+                    this.extendWithClearance(
+                        () ->
+                            ExtensionKinematics.getPoseCompensatedExtension(
+                                pose.get(),
+                                switch (reefTarget.get()) {
+                                  case L2 -> ExtensionKinematics.L2_EXTENSION;
+                                  case L3 -> ExtensionKinematics.L3_EXTENSION;
+                                  case L4 -> ExtensionKinematics.L4_EXTENSION;
+                                  default -> // shouldnt be reachable
+                                  new ExtensionState(
+                                      ElevatorSubsystem.L1_EXTENSION_METERS,
+                                      ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+                                      WristSubsystem.WRIST_SCORE_L1_POS);
+                                })),
+                    // End L2-4
                     () ->
-                        ExtensionKinematics.getPoseCompensatedExtension(
-                            pose.get(),
-                            switch (reefTarget.get()) {
-                              case L2 -> ExtensionKinematics.L2_EXTENSION;
-                              case L3 -> ExtensionKinematics.L3_EXTENSION;
-                              case L4 -> ExtensionKinematics.L4_EXTENSION;
-                              default -> // shouldnt be reachable
-                              new ExtensionState(
-                                  ElevatorSubsystem.L1_EXTENSION_METERS,
-                                  ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-                                  WristSubsystem.WRIST_SCORE_L1_POS);
-                            })),
+                        MathUtil.isNear(
+                            elevator.getExtensionMeters(), 0.0, Units.inchesToMeters(4.0))),
                 () -> reefTarget.get() == ReefTarget.L1))
         .whileTrue(manipulator.hold())
         .and(
