@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -350,11 +351,13 @@ public class Superstructure {
             this.extendWithClearance(
                 () ->
                     ExtensionKinematics.getPoseCompensatedExtension(
-                        pose.get(), ExtensionKinematics.L4_EXTENSION)))
+                        pose.get(), ExtensionKinematics.L2_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
-        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L2_POS))
+        .and(
+            () ->
+                ExtensionKinematics.getDistToBranch(
+                        pose.get(), getExtensionState(), reefTarget.get())
+                    < Units.inchesToMeters(1.5))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -369,11 +372,13 @@ public class Superstructure {
             this.extendWithClearance(
                 () ->
                     ExtensionKinematics.getPoseCompensatedExtension(
-                        pose.get(), ExtensionKinematics.L4_EXTENSION)))
+                        pose.get(), ExtensionKinematics.L3_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
-        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L3_EXTENSION_METERS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_POS))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L3_POS))
+        .and(
+            () ->
+                ExtensionKinematics.getDistToBranch(
+                        pose.get(), getExtensionState(), reefTarget.get())
+                    < Units.inchesToMeters(1.5))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -390,9 +395,14 @@ public class Superstructure {
                     ExtensionKinematics.getPoseCompensatedExtension(
                         pose.get(), ExtensionKinematics.L4_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
-        .and(() -> elevator.isNearExtension(ElevatorSubsystem.L4_EXTENSION_METERS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L4_POS))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L4_POS))
+        .and(
+            () -> {
+              final var dist =
+                  ExtensionKinematics.getDistToBranch(
+                      pose.get(), getExtensionState(), reefTarget.get());
+              Logger.recordOutput("Superstructure/Placing Dist", dist);
+              return dist < Units.inchesToMeters(1.5);
+            })
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -686,6 +696,10 @@ public class Superstructure {
         .get(SuperState.CLIMB)
         .and(climbCancelReq)
         .onTrue(forceState(SuperState.PRE_CLIMB));
+  }
+
+  public ExtensionState getExtensionState() {
+    return new ExtensionState(elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
   }
 
   private Command extendWithClearance(ExtensionState extension) {

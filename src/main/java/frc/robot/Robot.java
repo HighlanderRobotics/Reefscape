@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
@@ -951,6 +952,11 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Manipulator FK Pose",
+          ExtensionKinematics.getManipulatorPose(
+              swerve.getPose(), superstructure.getExtensionState()));
   }
 
   public static void setCurrentTarget(ReefTarget target) {

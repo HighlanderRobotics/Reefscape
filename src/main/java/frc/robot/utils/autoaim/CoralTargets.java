@@ -63,6 +63,16 @@ public enum CoralTargets {
             Rotation2d.fromDegrees(180.0)));
   }
 
+  public static Pose2d getBranchLocation(Pose2d transformed) {
+    // 0.248 for trough
+    return transformed.transformBy(
+        new Transform2d(
+                0.291 + (Robot.ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
+                0,
+                Rotation2d.fromDegrees(180.0))
+            .inverse());
+  }
+
   /** Gets the closest offset target to the given pose. */
   public static Pose2d getClosestTarget(Pose2d pose) {
     return pose.nearest(transformedPoses);

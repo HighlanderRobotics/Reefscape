@@ -5,29 +5,44 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.CoralTargets;
 
 public class ExtensionKinematics {
+  // Not super accurate bc of whack
+  public static final ExtensionState L1_EXTENSION =
+      new ExtensionState(
+          ElevatorSubsystem.L1_EXTENSION_METERS,
+          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+          WristSubsystem.WRIST_SCORE_L1_POS);
+  public static final Pose2d L1_POSE = solveFK(L1_EXTENSION);
   public static final ExtensionState L2_EXTENSION =
       new ExtensionState(
           ElevatorSubsystem.L2_EXTENSION_METERS,
           ShoulderSubsystem.SHOULDER_SCORE_POS,
           WristSubsystem.WRIST_SCORE_L2_POS);
+  public static final Pose2d L2_POSE = solveFK(L2_EXTENSION);
   public static final ExtensionState L3_EXTENSION =
       new ExtensionState(
           ElevatorSubsystem.L3_EXTENSION_METERS,
           ShoulderSubsystem.SHOULDER_SCORE_POS,
           WristSubsystem.WRIST_SCORE_L3_POS);
+  public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final ExtensionState L4_EXTENSION =
       new ExtensionState(
           ElevatorSubsystem.L4_EXTENSION_METERS,
           ShoulderSubsystem.SHOULDER_SCORE_L4_POS,
           WristSubsystem.WRIST_SCORE_L4_POS);
+  public static final Pose2d L4_POSE = solveFK(L4_EXTENSION);
 
   public record ExtensionState(
       double elevatorHeightMeters, Rotation2d shoulderAngle, Rotation2d wristAngle) {}
@@ -72,5 +87,43 @@ public class ExtensionKinematics {
     final var diff = pose.minus(CoralTargets.getClosestTarget(pose));
     final var adjustedFk = new Pose2d(fk.getX() - diff.getX(), fk.getY(), fk.getRotation());
     return ExtensionKinematics.solveIK(adjustedFk);
+  }
+
+  public static Pose3d getManipulatorPose(Pose2d robotPose, ExtensionState state) {
+    final var fk = solveFK(state);
+    return new Pose3d(
+            robotPose.transformBy(
+                new Transform2d(
+                    fk.getX() + ElevatorSubsystem.X_OFFSET_METERS, 0.0, Rotation2d.kZero)))
+        .transformBy(
+            new Transform3d(
+                0,
+                0,
+                fk.getY() + ElevatorSubsystem.Z_OFFSET_METERS,
+                new Rotation3d(0, -state.wristAngle().getRadians(), 0)));
+  }
+
+  public static double getDistToBranch(Pose2d pose, ExtensionState state, ReefTarget level) {
+    return new Pose3d(CoralTargets.getClosestTarget(pose))
+        .transformBy(
+            new Transform3d(
+                ElevatorSubsystem.X_OFFSET_METERS
+                    + switch (level) {
+                      case L1 -> L1_POSE.getX();
+                      case L2 -> L2_POSE.getX();
+                      case L3 -> L3_POSE.getX();
+                      case L4 -> L4_POSE.getX();
+                    },
+                0,
+                ElevatorSubsystem.Z_OFFSET_METERS
+                    + switch (level) {
+                      case L1 -> L1_POSE.getY();
+                      case L2 -> L2_POSE.getY();
+                      case L3 -> L3_POSE.getY();
+                      case L4 -> L4_POSE.getY();
+                    },
+                new Rotation3d()))
+        .getTranslation()
+        .getDistance(getManipulatorPose(pose, state).getTranslation());
   }
 }
