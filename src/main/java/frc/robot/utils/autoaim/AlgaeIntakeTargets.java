@@ -6,7 +6,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import frc.robot.Robot;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Stream;
 
 public enum AlgaeIntakeTargets {
   // All coordinates are global coordinates from the lower, blue alliance side corner, if the walls
@@ -53,7 +56,18 @@ public enum AlgaeIntakeTargets {
   }
 
   /** Gets the closest offset target to the given pose. */
-  public static Pose2d getClosestTarget(Pose2d pose) {
+  public static Pose2d getClosestTargetPose(Pose2d pose) {
     return pose.nearest(transformedPoses);
+  }
+
+  public static AlgaeIntakeTargets getClosestTarget(Pose2d pose) {
+    return Collections.min(
+        Stream.of(AlgaeIntakeTargets.values()).toList(),
+        Comparator.comparing(
+                (AlgaeIntakeTargets other) ->
+                    pose.getTranslation().getDistance(other.location.getTranslation()))
+            .thenComparing(
+                (AlgaeIntakeTargets other) ->
+                    Math.abs(pose.getRotation().minus(other.location.getRotation()).getRadians())));
   }
 }
