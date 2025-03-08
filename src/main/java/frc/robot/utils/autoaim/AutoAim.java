@@ -53,12 +53,12 @@ public class AutoAim {
         .andThen(translateToPose(swerve, end));
   }
 
+  /**
+   * Transforms the end pose by translationToIntermediate to get the intermediate pose
+  */
   public static Command autoAimWithIntermediatePose(
       SwerveSubsystem swerve, Supplier<Pose2d> end, Transform2d translationToIntermediate) {
-    return translateToPose(swerve, () -> end.get().transformBy(translationToIntermediate))
-        .until(
-            () -> isInTolerance(swerve.getPose(), end.get().transformBy(translationToIntermediate)))
-        .andThen(translateToPose(swerve, end));
+    return autoAimWithIntermediatePose(swerve, () -> end.get().transformBy(translationToIntermediate), end);
   }
 
   public static Command translateToPose(
