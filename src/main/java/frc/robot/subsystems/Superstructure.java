@@ -173,9 +173,11 @@ public class Superstructure {
   private void configureStateTransitionCommands() {
     stateTriggers
         .get(SuperState.IDLE)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
+        .whileTrue(
+            extendWithClearance(
+                ElevatorSubsystem.HP_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_HP_POS,
+                WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
         .whileTrue(
             funnel.setVoltage(
