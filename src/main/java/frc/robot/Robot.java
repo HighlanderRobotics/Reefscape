@@ -72,8 +72,10 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -658,11 +660,70 @@ public class Robot extends LoggedRobot {
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
+                    || superstructure.getState() == SuperState.PRE_PROCESSOR)
+        .and(() -> algaeScoreTarget == AlgaeScoreTarget.PROCESSOR)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () ->
+                        swerve
+                            .getPose()
+                            .nearest(List.of(AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
+                            // Moves the target pose inside the field, with the bumpers aligned with
+                            // the wall
+                            .transformBy(
+                                new Transform2d(
+                                    -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
+                                    0.0,
+                                    Rotation2d.kZero))),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve
+                                    .getPose()
+                                    .nearest(
+                                        List.of(
+                                            AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
+                                    // Moves the target pose inside the field, with the bumpers
+                                    // aligned with the wall
+                                    .transformBy(
+                                        new Transform2d(
+                                            -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
+                                            0.0,
+                                            Rotation2d.kZero)),
+                                swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.PRE_CLIMB
+                    || superstructure.getState() == SuperState.CLIMB)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve, () -> CageTargets.getOffsetClosestTarget(swerve.getPose())),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                CageTargets.getOffsetClosestTarget(swerve.getPose()),
+                                swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.READY_ALGAE
                     || superstructure.getState() == SuperState.PRE_NET)
+        .and(() -> algaeScoreTarget == AlgaeScoreTarget.NET)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToXCoord(
-                    // TODO: PUT ACUAL NET POSE
                     swerve,
                     () ->
                         Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
@@ -692,12 +753,11 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(
-            Commands.runOnce(() -> manipulator.setSecondBeambreak(false)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
@@ -784,6 +844,12 @@ public class Robot extends LoggedRobot {
               .map((target) -> CoralTargets.getRobotTargetLocation(target.location))
               .toArray(Pose2d[]::new));
     // Log locations of all autoaim targets
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "AutoAim/Targets/Cage",
+          Stream.of(CageTargets.values())
+              .map((target) -> target.getLocation())
+              .toArray(Pose2d[]::new));
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
           "AutoAim/Targets/Algae",
