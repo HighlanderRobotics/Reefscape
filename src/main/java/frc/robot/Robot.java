@@ -367,7 +367,11 @@ public class Robot extends LoggedRobot {
               .or(() -> Autos.autoScore),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
-          driver.x().and(driver.pov(-1).negate()).debounce(0.5),
+          driver
+              .x()
+              .and(driver.pov(-1).negate())
+              .debounce(0.5)
+              .or(operator.x().and(operator.pov(-1).negate()).debounce(0.5)),
           driver.rightTrigger(),
           driver
               .y()
@@ -534,7 +538,6 @@ public class Robot extends LoggedRobot {
                   }
                 })
             .ignoringDisable(true));
-
     elevator.setDefaultCommand(
         Commands.sequence(
                 elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
@@ -549,6 +552,8 @@ public class Robot extends LoggedRobot {
     wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
 
     funnel.setDefaultCommand(funnel.setVoltage(0.0));
+
+    climber.setDefaultCommand(climber.setPosition(0.0));
 
     leds.setDefaultCommand(
         Commands.either(
@@ -709,12 +714,11 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(
-            Commands.runOnce(() -> manipulator.setSecondBeambreak(false)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)

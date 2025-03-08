@@ -128,7 +128,8 @@ public class Autos {
                                             steps
                                                 .get(startPos + "to" + endPos)
                                                 .getFinalPose()
-                                                .get()))),
+                                                .get()))
+                                .withTimeout(2.0)),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 

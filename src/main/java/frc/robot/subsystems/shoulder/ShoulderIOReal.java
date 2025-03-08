@@ -3,6 +3,7 @@ package frc.robot.subsystems.shoulder;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -132,5 +133,10 @@ public class ShoulderIOReal implements ShoulderIO {
   @Override
   public void resetEncoder(final Rotation2d rotation) {
     motor.setPosition(rotation.getRotations());
+  }
+
+  @Override
+  public void setMotionMagicConfigs(final MotionMagicConfigs configs) {
+    motor.getConfigurator().apply(configs);
   }
 }
