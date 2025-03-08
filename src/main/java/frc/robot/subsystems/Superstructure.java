@@ -779,6 +779,20 @@ public class Superstructure {
         && elevator.getSetpoint() > (Units.inchesToMeters(40)));
   }
 
+  /*
+   consider: using vectors to make better collison dections
+   VectorB is bar
+   VectorW is wrist
+   VectorS is shoulder
+            Translation2d vectorB =
+                           new Translation2d(TODO); using offet from origin, how much its raised
+            Translation2d vectorW =
+                           new Translation2d(TODO); use rotation 2d to figure out the rotation also
+            Translation2d vectorS =
+                           new Translation2d(TODO);
+                           basically find vectors using offset from origin, elevator height and rotation. find if it collides
+   */
+
   private Command forceState(SuperState nextState) {
     return Commands.runOnce(
             () -> {
