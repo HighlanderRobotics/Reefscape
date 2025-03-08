@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.util.Units;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
@@ -62,7 +63,7 @@ public class ExtensionKinematics {
     // Set angle to horizontal if we can't reach
     if (Double.isNaN(shoulderAngle)) shoulderAngle = 0.0;
     // Elevator goes to remaining needed height
-    final var elevatorHeight =
+    var elevatorHeight =
         wristPose
             .getTranslation()
             .minus(
@@ -70,6 +71,15 @@ public class ExtensionKinematics {
                     ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle),
                     ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
             .getY();
+            
+    if (elevatorHeight > ElevatorSubsystem.MAX_EXTENSION_METERS) {
+        elevatorHeight = ElevatorSubsystem.MAX_EXTENSION_METERS;
+        shoulderAngle = Math.asin((target.getY() - ElevatorSubsystem.MAX_EXTENSION_METERS) / ShoulderSubsystem.ARM_LENGTH_METERS);
+        if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
+            shoulderAngle = Units.degreesToRadians(85.0);
+        }
+    }
+
     return new ExtensionState(
         MathUtil.clamp(elevatorHeight, 0.0, ElevatorSubsystem.MAX_EXTENSION_METERS),
         Rotation2d.fromRadians(shoulderAngle),
