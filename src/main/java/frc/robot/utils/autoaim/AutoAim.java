@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -35,6 +36,7 @@ public class AutoAim {
 
   public static Pose2d BLUE_PROCESSOR_POS = new Pose2d(5.973, 0, Rotation2d.fromDegrees(270));
   public static Pose2d RED_PROCESSOR_POS = ChoreoAllianceFlipUtil.flip(BLUE_PROCESSOR_POS);
+  public static List<Pose2d> PROCESSOR_POSES = List.of(BLUE_PROCESSOR_POS, RED_PROCESSOR_POS);
 
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
@@ -44,12 +46,19 @@ public class AutoAim {
     return translateToPose(swerve, target, () -> new ChassisSpeeds());
   }
 
-  public static Command autoAimWithIntermediatePose(SwerveSubsystem swerve, Supplier<Pose2d> intermediate, Supplier<Pose2d> end) {
-    return translateToPose(swerve, intermediate).until(() -> isInTolerance(swerve.getPose(), intermediate.get())).andThen(translateToPose(swerve, end));
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve, Supplier<Pose2d> intermediate, Supplier<Pose2d> end) {
+    return translateToPose(swerve, intermediate)
+        .until(() -> isInTolerance(swerve.getPose(), intermediate.get()))
+        .andThen(translateToPose(swerve, end));
   }
 
-  public static Command autoAimWithIntermediatePose(SwerveSubsystem swerve, Supplier<Pose2d> end, Transform2d translationToIntermediate) {
-    return translateToPose(swerve, () -> end.get().transformBy(translationToIntermediate)).until(() -> isInTolerance(swerve.getPose(), end.get().transformBy(translationToIntermediate))).andThen(translateToPose(swerve, end));
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve, Supplier<Pose2d> end, Transform2d translationToIntermediate) {
+    return translateToPose(swerve, () -> end.get().transformBy(translationToIntermediate))
+        .until(
+            () -> isInTolerance(swerve.getPose(), end.get().transformBy(translationToIntermediate)))
+        .andThen(translateToPose(swerve, end));
   }
 
   public static Command translateToPose(
