@@ -745,12 +745,11 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(
-            Commands.runOnce(() -> manipulator.setSecondBeambreak(false)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
