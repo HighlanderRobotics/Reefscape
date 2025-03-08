@@ -72,7 +72,7 @@ public class AutoAim {
             () -> {
               cachedTarget[0] = target.get();
               final var diff = swerve.getPose().minus(cachedTarget[0]);
-              // if (Robot.ROBOT_TYPE != RobotType.REAL)
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
               Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
               headingController.reset(
                   swerve.getPose().getRotation().getRadians(),
