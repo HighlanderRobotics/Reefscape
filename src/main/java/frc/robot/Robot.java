@@ -72,7 +72,6 @@ import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
@@ -663,9 +662,9 @@ public class Robot extends LoggedRobot {
                     () ->
                         swerve
                             .getPose()
-                            .nearest(
-                                List.of(AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
-                            // Moves the target pose inside the field, with the bumpers aligned with the wall
+                            .nearest(List.of(AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
+                            // Moves the target pose inside the field, with the bumpers aligned with
+                            // the wall
                             .transformBy(
                                 new Transform2d(
                                     -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
@@ -675,15 +674,17 @@ public class Robot extends LoggedRobot {
                         () ->
                             AutoAim.isInTolerance(
                                 swerve
-                            .getPose()
-                            .nearest(
-                                List.of(AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
-                            // Moves the target pose inside the field, with the bumpers aligned with the wall
-                            .transformBy(
-                                new Transform2d(
-                                    -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
-                                    0.0,
-                                    Rotation2d.kZero)),
+                                    .getPose()
+                                    .nearest(
+                                        List.of(
+                                            AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
+                                    // Moves the target pose inside the field, with the bumpers
+                                    // aligned with the wall
+                                    .transformBy(
+                                        new Transform2d(
+                                            -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
+                                            0.0,
+                                            Rotation2d.kZero)),
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
