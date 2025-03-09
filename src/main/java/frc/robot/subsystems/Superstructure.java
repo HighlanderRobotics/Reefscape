@@ -679,33 +679,6 @@ public class Superstructure {
         () -> elevatorExtension, () -> shoulderAngle, () -> wristAngle, () -> clearanceNeeded());
   }
 
-  /*   private Command extendWithClearance(
-      DoubleSupplier elevatorExtension,
-      Supplier<Rotation2d> shoulderAngle,
-      Supplier<Rotation2d> wristAngle) {
-    return Commands.sequence(
-        // Retract shoulder + wrist
-        Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
-                elevator.hold())
-            .until(
-                () ->
-                    shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
-                        && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)),
-        // extend elevator
-        Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
-                elevator.setExtension(elevatorExtension))
-            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05)),
-        // re-extend joints
-        Commands.parallel(
-            shoulder.setTargetAngle(shoulderAngle),
-            wrist.setTargetAngle(wristAngle),
-            elevator.setExtension(elevatorExtension)));
-  } */
-
   private Command extendWithClearance(
       DoubleSupplier elevatorExtension,
       Supplier<Rotation2d> shoulderAngle,
@@ -776,8 +749,8 @@ public class Superstructure {
 
   public boolean clearanceNeeded() {
     return (shoulder.getSetpoint().getDegrees() >= 80
-        && Math.signum(Units.inchesToMeters(40)-elevator.getSetpoint()) 
-        != Math.signum(Units.inchesToMeters(40)-elevator.getExtensionMeters()));
+        && Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT-elevator.getSetpoint()) 
+        != Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT-elevator.getExtensionMeters()));
   }
 
   private Command forceState(SuperState nextState) {
