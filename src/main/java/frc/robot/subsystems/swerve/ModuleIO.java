@@ -12,6 +12,7 @@
 
 package frc.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import edu.wpi.first.math.geometry.Rotation2d;
 import org.littletonrobotics.junction.AutoLog;
 
@@ -23,14 +24,17 @@ public interface ModuleIO {
     public double drivePositionMeters = 0.0;
     public double driveVelocityMetersPerSec = 0.0;
     public double driveAppliedVolts = 0.0;
-    public double driveCurrentAmps = 0.0;
+    public double driveStatorCurrentAmps = 0.0;
     public double driveSupplyCurrentAmps = 0.0;
+    public double driveTempC = 0.0;
 
     public Rotation2d turnAbsolutePosition = new Rotation2d();
     public Rotation2d turnPosition = new Rotation2d();
     public double turnVelocityRadPerSec = 0.0;
     public double turnAppliedVolts = 0.0;
-    public double turnCurrentAmps = 0.0;
+    public double turnStatorCurrentAmps = 0.0;
+    public double turnSupplyCurrentAmps = 0.0;
+    public double turnTempC = 0.0;
   }
 
   /** Updates the set of loggable inputs. */
@@ -57,4 +61,8 @@ public interface ModuleIO {
 
   /** Use onboard PIDF to run the turn motor to the specified rotation */
   public void setTurnSetpoint(final Rotation2d rotation);
+
+  public void setCurrent(final double amps);
+
+  public void setCurrentLimits(final CurrentLimitsConfigs configs);
 }

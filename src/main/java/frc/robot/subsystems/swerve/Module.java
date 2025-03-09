@@ -12,9 +12,12 @@
 
 package frc.robot.subsystems.swerve;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import org.littletonrobotics.junction.Logger;
 
 /** Wrapper around ModuleIO and ModuleIOInputs to organize module-level functionality. */
@@ -54,15 +57,23 @@ public class Module {
     // to project a onto b take ||a||*cos(theta) where theta is the angle between the two vectors
     // We want the magnitude of the projection, so we can ignore the direction of this later
     final var theta = Math.atan2(forceYNewtons, forceXNewtons) - inputs.turnPosition.getRadians();
-    final double forceNewtons = Math.hypot(forceXNewtons, forceYNewtons) * Math.cos(theta);
+    double forceNewtons = Math.hypot(forceXNewtons, forceYNewtons) * Math.cos(theta);
+    if (Math.signum(forceNewtons) * Math.signum(state.speedMetersPerSecond) < 0) {
+      forceNewtons = 0;
+    }
 
     io.setTurnSetpoint(state.angle);
     io.setDriveSetpoint(
-        state.speedMetersPerSecond * Math.cos(state.angle.minus(inputs.turnPosition).getRadians()),
+        state.speedMetersPerSecond, // *
+        // Math.cos(state.angle.minus(inputs.turnPosition).getRadians()),
         forceNewtons);
-    Logger.recordOutput(
-        new StringBuilder("Swerve/").append(inputs.prefix).append(" Force Feedforward").toString(),
-        forceNewtons);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          new StringBuilder("Swerve/")
+              .append(inputs.prefix)
+              .append(" Force Feedforward")
+              .toString(),
+          forceNewtons);
     return state;
   }
 
@@ -73,9 +84,10 @@ public class Module {
   public SwerveModuleState runVoltageSetpoint(SwerveModuleState state, boolean focEnabled) {
     // Optimize state based on current angle
     state.optimize(getAngle());
-    Logger.recordOutput(
-        new StringBuilder("Swerve/").append(inputs.prefix).append(" Voltage Target").toString(),
-        state.speedMetersPerSecond);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          new StringBuilder("Swerve/").append(inputs.prefix).append(" Voltage Target").toString(),
+          state.speedMetersPerSecond);
 
     io.setTurnSetpoint(state.angle);
     io.setDriveVoltage(
@@ -130,5 +142,17 @@ public class Module {
   /** Returns the module state (turn angle and drive velocity) at normal sampling frequency. */
   public SwerveModuleState getState() {
     return new SwerveModuleState(getVelocityMetersPerSec(), getAngle());
+  }
+
+  public void setCurrent(double amps) {
+    io.setCurrent(amps);
+  }
+
+  public void setTurnSetpoint(Rotation2d rotation) {
+    io.setTurnSetpoint(rotation);
+  }
+
+  public void setCurrentLimits(final CurrentLimitsConfigs configs) {
+    io.setCurrentLimits(configs);
   }
 }
