@@ -17,7 +17,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
@@ -34,8 +36,6 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -47,7 +47,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
@@ -717,17 +716,24 @@ public class SwerveSubsystem extends SubsystemBase {
     }
   }
 
-  public Command driveToAlgae() {
-    var note = VisionHelper.getBestTarget(getPose(), new PhotonPipelineResult(
-      algaeCamera.inputs.sequenceID,
-      algaeCamera.inputs.captureTimestampMicros,
-      algaeCamera.inputs.publishTimestampMicros,
-      algaeCamera.inputs.timeSinceLastPong,
-      algaeCamera.inputs.targets), 0); //TODO what is camerax
-      if (note.isEmpty()) {
-        return Commands.none();
-      } // TODO driver feedback? Must be proxied for duration
-      var pickup = note.get().transformBy(new Transform2d(new Translation2d(-1, 0), new Rotation2d())); //TODO ??
-      return poseLockDriveCommand(() -> pickup);
+  @SuppressWarnings("resource")
+  public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta, double maxLinearSpeed) {
+    return this.run(
+      () -> {
+        final PIDController yController = new PIDController(0.01, 0.0, 0.0); //TODO tune
+            OptionalDouble tx = new PhotonPipelineResult(
+                  algaeCamera.inputs.sequenceID,
+                  algaeCamera.inputs.captureTimestampMicros,
+                  algaeCamera.inputs.publishTimestampMicros,
+                  algaeCamera.inputs.timeSinceLastPong,
+                  algaeCamera.inputs.targets).getBestTarget().getMinAreaRectCorners().stream().mapToDouble(c -> c.x).average(); //should never be optional?
+            drive(ChassisSpeeds.fromFieldRelativeSpeeds(
+                  new ChassisSpeeds(
+                    xVel.getAsDouble(),
+                      yVel.getAsDouble(),
+                      theta.getAsDouble()),
+                  getRotation()).plus(new ChassisSpeeds(xVel.getAsDouble(), yController.calculate(tx.getAsDouble(), 0.0), theta.getAsDouble())), false, new double[4], new double[4]);
+      }
+    );
   }
 }
