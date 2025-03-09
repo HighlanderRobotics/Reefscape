@@ -414,7 +414,8 @@ public class Robot extends LoggedRobot {
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
 
-  public static Supplier<SuperState> state;
+  public static Supplier<SuperState> state =
+      () -> SuperState.IDLE; // TODO i feel like im breaking a rule
 
   @SuppressWarnings("resource")
   public Robot() {

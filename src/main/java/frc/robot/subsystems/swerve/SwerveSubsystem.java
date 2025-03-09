@@ -331,7 +331,7 @@ public class SwerveSubsystem extends SubsystemBase {
                     deviations
                         .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
                         .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5)
-                        //reef positions
+                        // reef positions
                         .times(
                             camera.getName().equals("Front_Camera")
                                     && (Robot.state.get().toString().startsWith("PRE_L")
@@ -339,7 +339,7 @@ public class SwerveSubsystem extends SubsystemBase {
                                         || Robot.state.get() == SuperState.INTAKE_ALGAE_HIGH
                                         || Robot.state.get() == SuperState.INTAKE_ALGAE_LOW)
                                 ? 0.8
-                                : 1.5) //TODO tune these sorts of numbers
+                                : 1.5) // TODO tune these sorts of numbers
                         // hp tags
                         .times(
                             !camera.getName().equals("Front_Camera")
