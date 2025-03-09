@@ -181,6 +181,8 @@ public class Robot extends LoggedRobot {
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
+  @AutoLogOutput private boolean killVisionIK = false;
+
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
   private static CANBus canivore = new CANBus("*");
@@ -388,7 +390,8 @@ public class Robot extends LoggedRobot {
           driver.a(),
           driver.start(),
           operator.rightBumper(),
-          operator.leftBumper());
+          operator.leftBumper(),
+          new Trigger(() -> killVisionIK));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -850,6 +853,11 @@ public class Robot extends LoggedRobot {
     operator
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
+
+    operator
+        .back()
+        .and(operator.start())
+        .onTrue(Commands.runOnce(() -> killVisionIK = !killVisionIK));
 
     new Trigger(() -> superstructure.stateIsAlgaeAlike())
         .whileTrue(

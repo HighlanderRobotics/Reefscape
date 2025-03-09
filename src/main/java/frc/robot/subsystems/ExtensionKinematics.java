@@ -174,4 +174,17 @@ public class ExtensionKinematics {
                         Rotation2d.fromRotations(
                             wristFilter.calculate(target.get().wristAngle().getRotations())))));
   }
+
+  public static ExtensionState getExtensionForLevel(ReefTarget target) {
+    return switch (target) {
+      case L2 -> ExtensionKinematics.L2_EXTENSION;
+      case L3 -> ExtensionKinematics.L3_EXTENSION;
+      case L4 -> ExtensionKinematics.L4_EXTENSION;
+      default -> // shouldnt be reachable
+      new ExtensionState(
+          ElevatorSubsystem.L1_EXTENSION_METERS,
+          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+          WristSubsystem.WRIST_SCORE_L1_POS);
+    };
+  }
 }

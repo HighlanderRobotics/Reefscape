@@ -94,6 +94,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Force Funnel Req")
   private final Trigger forceFunnelReq;
 
+  @AutoLogOutput(key = "Superstructure/Kill Vision and IK")
+  private final Trigger killVisionIK;
+
   private SuperState state = SuperState.IDLE;
   private SuperState prevState = SuperState.IDLE;
   private Map<SuperState, Trigger> stateTriggers = new HashMap<SuperState, Trigger>();
@@ -129,7 +132,8 @@ public class Superstructure {
       Trigger antiJamReq,
       Trigger homeReq,
       Trigger revFunnelReq,
-      Trigger forceFunnelReq) {
+      Trigger forceFunnelReq,
+      Trigger killVisionIK) {
     this.elevator = elevator;
     this.manipulator = manipulator;
     this.shoulder = shoulder;
@@ -158,6 +162,8 @@ public class Superstructure {
 
     this.revFunnelReq = revFunnelReq;
     this.forceFunnelReq = forceFunnelReq;
+
+    this.killVisionIK = killVisionIK;
 
     stateTimer.start();
 
@@ -351,8 +357,10 @@ public class Superstructure {
         .whileTrue(
             this.extendWithClearance(
                 () ->
-                    ExtensionKinematics.getPoseCompensatedExtension(
-                        pose.get(), ExtensionKinematics.L2_EXTENSION)))
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.L2_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.L2_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
         .and(
             () ->
@@ -372,8 +380,10 @@ public class Superstructure {
         .whileTrue(
             this.extendWithClearance(
                 () ->
-                    ExtensionKinematics.getPoseCompensatedExtension(
-                        pose.get(), ExtensionKinematics.L3_EXTENSION)))
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.L3_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.L3_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
         .and(
             () ->
@@ -393,8 +403,10 @@ public class Superstructure {
         .whileTrue(
             this.extendWithClearance(
                 () ->
-                    ExtensionKinematics.getPoseCompensatedExtension(
-                        pose.get(), ExtensionKinematics.L4_EXTENSION)))
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.L4_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.L4_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
         .and(
             () -> {
@@ -424,64 +436,24 @@ public class Superstructure {
                 // Score on L2-4
                 Commands.either(
                     Commands.parallel(
-                        // I hate this way of evaluating this, i should make it better
-                        shoulder.setTargetAngle(
+                        ExtensionKinematics.holdStateCommand(
+                            elevator,
+                            shoulder,
+                            wrist,
                             () ->
-                                ExtensionKinematics.getPoseCompensatedExtension(
+                                killVisionIK.getAsBoolean()
+                                    ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+                                    : ExtensionKinematics.getPoseCompensatedExtension(
                                         pose.get(),
-                                        switch (reefTarget.get()) {
-                                          case L2 -> ExtensionKinematics.L2_EXTENSION;
-                                          case L3 -> ExtensionKinematics.L3_EXTENSION;
-                                          case L4 -> ExtensionKinematics.L4_EXTENSION;
-                                          default -> // shouldnt be reachable
-                                          new ExtensionState(
-                                              ElevatorSubsystem.L1_EXTENSION_METERS,
-                                              ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-                                              WristSubsystem.WRIST_SCORE_L1_POS);
-                                        })
-                                    .shoulderAngle()),
-                        wrist.setTargetAngle(
-                            ExtensionKinematics.getPoseCompensatedExtension(
-                                    pose.get(),
-                                    switch (reefTarget.get()) {
-                                      case L2 -> ExtensionKinematics.L2_EXTENSION;
-                                      case L3 -> ExtensionKinematics.L3_EXTENSION;
-                                      case L4 -> ExtensionKinematics.L4_EXTENSION;
-                                      default -> // shouldnt be reachable
-                                      new ExtensionState(
-                                          ElevatorSubsystem.L1_EXTENSION_METERS,
-                                          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-                                          WristSubsystem.WRIST_SCORE_L1_POS);
-                                    })
-                                .wristAngle()),
-                        elevator.setExtension(
-                            ExtensionKinematics.getPoseCompensatedExtension(
-                                    pose.get(),
-                                    switch (reefTarget.get()) {
-                                      case L2 -> ExtensionKinematics.L2_EXTENSION;
-                                      case L3 -> ExtensionKinematics.L3_EXTENSION;
-                                      case L4 -> ExtensionKinematics.L4_EXTENSION;
-                                      default -> // shouldnt be reachable
-                                      new ExtensionState(
-                                          ElevatorSubsystem.L1_EXTENSION_METERS,
-                                          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-                                          WristSubsystem.WRIST_SCORE_L1_POS);
-                                    })
-                                .elevatorHeightMeters())),
+                                        ExtensionKinematics.getExtensionForLevel(
+                                            reefTarget.get())))),
                     this.extendWithClearance(
                         () ->
-                            ExtensionKinematics.getPoseCompensatedExtension(
-                                pose.get(),
-                                switch (reefTarget.get()) {
-                                  case L2 -> ExtensionKinematics.L2_EXTENSION;
-                                  case L3 -> ExtensionKinematics.L3_EXTENSION;
-                                  case L4 -> ExtensionKinematics.L4_EXTENSION;
-                                  default -> // shouldnt be reachable
-                                  new ExtensionState(
-                                      ElevatorSubsystem.L1_EXTENSION_METERS,
-                                      ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-                                      WristSubsystem.WRIST_SCORE_L1_POS);
-                                })),
+                            killVisionIK.getAsBoolean()
+                                ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+                                : ExtensionKinematics.getPoseCompensatedExtension(
+                                    pose.get(),
+                                    ExtensionKinematics.getExtensionForLevel(reefTarget.get()))),
                     // End L2-4
                     () ->
                         MathUtil.isNear(
