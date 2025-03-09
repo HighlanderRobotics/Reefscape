@@ -761,9 +761,11 @@ public class Superstructure {
 
   private Command extendWithClearance(Supplier<ExtensionState> extension) {
     return extendWithClearance(
-        () -> extension.get().elevatorHeightMeters(),
-        () -> extension.get().shoulderAngle(),
-        () -> extension.get().wristAngle());
+            () -> extension.get().elevatorHeightMeters(),
+            () -> extension.get().shoulderAngle(),
+            () -> extension.get().wristAngle())
+        .until(() -> elevator.isNearExtension(extension.get().elevatorHeightMeters()))
+        .andThen(ExtensionKinematics.holdStateCommand(elevator, shoulder, wrist, extension));
   }
 
   private Command extendWithClearance(

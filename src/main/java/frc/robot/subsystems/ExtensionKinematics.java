@@ -5,6 +5,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -13,11 +14,14 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.CoralTargets;
+import java.util.function.Supplier;
 
 public class ExtensionKinematics {
   // Not super accurate bc of whack
@@ -71,13 +75,16 @@ public class ExtensionKinematics {
                     ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle),
                     ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
             .getY();
-            
+
     if (elevatorHeight > ElevatorSubsystem.MAX_EXTENSION_METERS) {
-        elevatorHeight = ElevatorSubsystem.MAX_EXTENSION_METERS;
-        shoulderAngle = Math.asin((target.getY() - ElevatorSubsystem.MAX_EXTENSION_METERS) / ShoulderSubsystem.ARM_LENGTH_METERS);
-        if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
-            shoulderAngle = Units.degreesToRadians(85.0);
-        }
+      elevatorHeight = ElevatorSubsystem.MAX_EXTENSION_METERS;
+      shoulderAngle =
+          Math.asin(
+              (target.getY() - ElevatorSubsystem.MAX_EXTENSION_METERS)
+                  / ShoulderSubsystem.ARM_LENGTH_METERS);
+      if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
+        shoulderAngle = Units.degreesToRadians(85.0);
+      }
     }
 
     return new ExtensionState(
@@ -138,5 +145,33 @@ public class ExtensionKinematics {
                 new Rotation3d()))
         .getTranslation()
         .getDistance(getManipulatorPose(pose, state).getTranslation());
+  }
+
+  public static Command holdStateCommand(
+      ElevatorSubsystem elevator,
+      ShoulderSubsystem shoulder,
+      WristSubsystem wrist,
+      Supplier<ExtensionState> target) {
+    final LinearFilter elevatorFilter = LinearFilter.singlePoleIIR(0.1, 0.020);
+    final LinearFilter shoulderFilter = LinearFilter.singlePoleIIR(0.1, 0.020);
+    final LinearFilter wristFilter = LinearFilter.singlePoleIIR(0.1, 0.020);
+    return Commands.runOnce(
+            () -> {
+              elevatorFilter.reset();
+              shoulderFilter.reset();
+              wristFilter.reset();
+            })
+        .andThen(
+            Commands.parallel(
+                elevator.setExtension(
+                    () -> elevatorFilter.calculate(target.get().elevatorHeightMeters())),
+                shoulder.setTargetAngle(
+                    () ->
+                        Rotation2d.fromRotations(
+                            shoulderFilter.calculate(target.get().shoulderAngle().getRotations()))),
+                wrist.setTargetAngle(
+                    () ->
+                        Rotation2d.fromRotations(
+                            wristFilter.calculate(target.get().wristAngle().getRotations())))));
   }
 }
