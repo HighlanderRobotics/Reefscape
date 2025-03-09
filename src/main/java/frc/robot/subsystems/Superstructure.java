@@ -637,10 +637,6 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> stateTimer.hasElapsed(1))
-        .whileTrue(
-            this.extendWithClearance(
-                0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
-        .and(() -> elevator.isNearExtension(0))
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
