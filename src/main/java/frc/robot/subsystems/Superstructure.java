@@ -362,11 +362,6 @@ public class Superstructure {
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L2_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
-        .and(
-            () ->
-                ExtensionKinematics.getDistToBranch(
-                        pose.get(), getExtensionState(), reefTarget.get())
-                    < Units.inchesToMeters(1.5))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -385,11 +380,6 @@ public class Superstructure {
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L3_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
-        .and(
-            () ->
-                ExtensionKinematics.getDistToBranch(
-                        pose.get(), getExtensionState(), reefTarget.get())
-                    < Units.inchesToMeters(1.5))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -408,14 +398,6 @@ public class Superstructure {
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L4_EXTENSION)))
         .whileTrue(manipulator.jog(1.4))
-        .and(
-            () -> {
-              final var dist =
-                  ExtensionKinematics.getDistToBranch(
-                      pose.get(), getExtensionState(), reefTarget.get());
-              Logger.recordOutput("Superstructure/Placing Dist", dist);
-              return dist < Units.inchesToMeters(1.5);
-            })
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
