@@ -632,17 +632,23 @@ public class Robot extends LoggedRobot {
         .whileTrue(
             Commands.parallel(
                 Commands.sequence(
+                    Commands.runOnce(
+                        () -> {
+                          algaeIntakeTarget =
+                              AlgaeIntakeTargets.getClosestTarget(swerve.getPose()).height;
+                        }),
                     AutoAim.translateToPose(
                             swerve,
                             () ->
                                 AlgaeIntakeTargets.getOffsetLocation(
-                                    AlgaeIntakeTargets.getClosestTarget(swerve.getPose())))
+                                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())))
                         .until(
                             () ->
                                 AutoAim.isInTolerance(
                                         swerve.getPose(),
                                         AlgaeIntakeTargets.getOffsetLocation(
-                                            AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                                            AlgaeIntakeTargets.getClosestTargetPose(
+                                                swerve.getPose())),
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
@@ -653,7 +659,9 @@ public class Robot extends LoggedRobot {
                                     && shoulder.isNearAngle(
                                         ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)),
                     AutoAim.approachAlgae(
-                        swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
+                        swerve,
+                        () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                        0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
@@ -781,7 +789,7 @@ public class Robot extends LoggedRobot {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
+                                  .minus(AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()));
                           return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
