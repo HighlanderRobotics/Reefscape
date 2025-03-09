@@ -11,13 +11,13 @@ import java.util.Arrays;
 import java.util.List;
 
 public enum CageTargets {
-  BLUE_OUTSIDE(new Pose2d(8.760, 0.799, Rotation2d.fromDegrees(0)), Alliance.Blue),
-  BLUE_MIDDLE(new Pose2d(8.760, 1.889, Rotation2d.fromDegrees(0)), Alliance.Blue),
-  BLUE_INSIDE(new Pose2d(8.760, 2.980, Rotation2d.fromDegrees(0)), Alliance.Blue),
+  RED_OUTSIDE(new Pose2d(8.760, 0.799, Rotation2d.fromDegrees(0)), Alliance.Red),
+  RED_MIDDLE(new Pose2d(8.760, 1.889 + 0.15, Rotation2d.fromDegrees(0)), Alliance.Red),
+  RED_INSIDE(new Pose2d(8.760, 2.980, Rotation2d.fromDegrees(0)), Alliance.Red),
 
-  RED_OUTSIDE(ChoreoAllianceFlipUtil.flip(BLUE_OUTSIDE.getLocation()), Alliance.Red),
-  RED_MIDDLE(ChoreoAllianceFlipUtil.flip(BLUE_MIDDLE.getLocation()), Alliance.Red),
-  RED_INSIDE(ChoreoAllianceFlipUtil.flip(BLUE_INSIDE.getLocation()), Alliance.Red);
+  BLUE_OUTSIDE(ChoreoAllianceFlipUtil.flip(RED_OUTSIDE.getLocation()), Alliance.Blue),
+  BLUE_MIDDLE(ChoreoAllianceFlipUtil.flip(RED_MIDDLE.getLocation()), Alliance.Blue),
+  BLUE_INSIDE(ChoreoAllianceFlipUtil.flip(RED_INSIDE.getLocation()), Alliance.Blue);
 
   private static final List<Pose2d> poses =
       Arrays.stream(values()).map((CageTargets target) -> target.getLocation()).toList();
@@ -47,7 +47,7 @@ public enum CageTargets {
       nearestPose =
           robotPose.nearest(
               Arrays.stream(values())
-                  .filter(target -> target.getAlliance() != DriverStation.getAlliance().get())
+                  .filter(target -> target.getAlliance() == DriverStation.getAlliance().get())
                   .map(target -> target.getLocation())
                   .toList());
     } else {
