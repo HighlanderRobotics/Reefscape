@@ -431,7 +431,6 @@ public class VisionHelper {
   public static record VisionMeasurement(
       EstimatedRobotPose estimation, Matrix<N3, N1> confidence) {}
 
-  /*** 5026 - to be tuned if necessary*/
   public static Matrix<N3, N1> findVisionMeasurementStdDevs(EstimatedRobotPose estimation) {
     double sumDistance = 0;
     for (var target : estimation.targetsUsed) {
