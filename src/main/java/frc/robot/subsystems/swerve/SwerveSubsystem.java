@@ -354,14 +354,15 @@ public class SwerveSubsystem extends SubsystemBase {
                                 : 1.0)
                         // barge tags
                         .times(
-                            estPose.get().targetsUsed.stream()
-                                    .anyMatch(
-                                        t ->
-                                            t.getFiducialId() == 4
-                                                || t.getFiducialId() == 5
-                                                || t.getFiducialId() == 15
-                                                || t.getFiducialId() == 14)
-                                ? 1.5
+                            !camera.getName().equals("Front_Camera")
+                                    && estPose.get().targetsUsed.stream()
+                                        .anyMatch(
+                                            t ->
+                                                t.getFiducialId() == 4
+                                                    || t.getFiducialId() == 5
+                                                    || t.getFiducialId() == 15
+                                                    || t.getFiducialId() == 14)
+                                ? 1.2
                                 : 1.0));
                 // the sussifier
               });
