@@ -6,7 +6,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import frc.robot.Robot;
 import frc.robot.Robot.AlgaeIntakeTarget;
-
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
