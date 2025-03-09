@@ -555,7 +555,7 @@ public class Superstructure {
         .and(() -> manipulator.getStatorCurrentAmps() > 20.0 || Robot.ROBOT_TYPE == RobotType.SIM)
         .and(
             () ->
-                AlgaeIntakeTargets.getClosestTarget(pose.get())
+                AlgaeIntakeTargets.getClosestTargetPose(pose.get())
                             .getTranslation()
                             .minus(pose.get().getTranslation())
                             .getNorm()
