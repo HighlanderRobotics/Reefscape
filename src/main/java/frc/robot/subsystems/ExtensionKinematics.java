@@ -71,13 +71,16 @@ public class ExtensionKinematics {
                     ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle),
                     ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
             .getY();
-            
+
     if (elevatorHeight > ElevatorSubsystem.MAX_EXTENSION_METERS) {
-        elevatorHeight = ElevatorSubsystem.MAX_EXTENSION_METERS;
-        shoulderAngle = Math.asin((target.getY() - ElevatorSubsystem.MAX_EXTENSION_METERS) / ShoulderSubsystem.ARM_LENGTH_METERS);
-        if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
-            shoulderAngle = Units.degreesToRadians(85.0);
-        }
+      elevatorHeight = ElevatorSubsystem.MAX_EXTENSION_METERS;
+      shoulderAngle =
+          Math.asin(
+              (target.getY() - ElevatorSubsystem.MAX_EXTENSION_METERS)
+                  / ShoulderSubsystem.ARM_LENGTH_METERS);
+      if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
+        shoulderAngle = Units.degreesToRadians(85.0);
+      }
     }
 
     return new ExtensionState(
