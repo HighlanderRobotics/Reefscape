@@ -44,6 +44,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.ExtensionKinematics;
+import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
@@ -116,7 +118,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -179,6 +181,8 @@ public class Robot extends LoggedRobot {
   private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+
+  @AutoLogOutput private boolean killVisionIK = false;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
@@ -370,6 +374,19 @@ public class Robot extends LoggedRobot {
               .rightTrigger()
               .negate()
               .and(() -> DriverStation.isTeleop())
+              .or(
+                  () -> {
+                    final var dist =
+                        ExtensionKinematics.getDistToBranch(
+                            swerve.getPose(),
+                            new ExtensionState(
+                                elevator.getExtensionMeters(),
+                                shoulder.getAngle(),
+                                wrist.getAngle()),
+                            currentTarget);
+                    Logger.recordOutput("Superstructure/Placing Dist", dist);
+                    return dist < Units.inchesToMeters(1.5);
+                  })
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
@@ -387,7 +404,8 @@ public class Robot extends LoggedRobot {
           driver.a(),
           driver.start(),
           operator.rightBumper(),
-          operator.leftBumper());
+          operator.leftBumper(),
+          new Trigger(() -> killVisionIK));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -858,6 +876,11 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
+    operator
+        .back()
+        .and(operator.start())
+        .onTrue(Commands.runOnce(() -> killVisionIK = !killVisionIK));
+
     new Trigger(() -> superstructure.stateIsAlgaeAlike())
         .whileTrue(
             leds.setBlinkingSplitCmd(
@@ -1068,6 +1091,11 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Manipulator FK Pose",
+          ExtensionKinematics.getManipulatorPose(
+              swerve.getPose(), superstructure.getExtensionState()));
   }
 
   public static void setCurrentTarget(ReefTarget target) {
