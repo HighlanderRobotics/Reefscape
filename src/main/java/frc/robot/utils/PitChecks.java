@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import java.util.function.BooleanSupplier;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
@@ -66,10 +67,35 @@ public class PitChecks {
                           i++) { // assumes it's the same length
                         if (MathUtil.isNear(
                             expectedValues.get()[i], measuredValues.get()[i], tolerance.get()[i])) {
-                          pushResult(name, TestState.SUCCESS);
+                          pushResult(name + i, TestState.SUCCESS);
                         } else {
-                          pushResult(name, TestState.FAILURE);
+                          pushResult(name + i, TestState.FAILURE);
                         }
+                      }
+                    }));
+  }
+
+  public static Command runCheck(
+      DoubleSupplier expectedValues,
+      DoubleSupplier tolerance,
+      DoubleSupplier measuredValues,
+      Command cmd,
+      double time,
+      String name) {
+    return cmd.withTimeout(time * 2)
+        .beforeStarting(() -> pushResult(name, TestState.UNKNOWN))
+        .alongWith(
+            Commands.runOnce(() -> pushResult(name, TestState.IN_PROGRESS)),
+            Commands.waitSeconds(time)
+                .finallyDo(
+                    () -> {
+                      if (MathUtil.isNear(
+                          expectedValues.getAsDouble(),
+                          measuredValues.getAsDouble(),
+                          tolerance.getAsDouble())) {
+                        pushResult(name, TestState.SUCCESS);
+                      } else {
+                        pushResult(name, TestState.FAILURE);
                       }
                     }));
   }
@@ -91,6 +117,7 @@ public class PitChecks {
                     }));
   }
 
+  // When we don't want to trip a threshold
   public static Command runCheck(
       Supplier<double[]> thresholds,
       Supplier<double[]> measured,
@@ -114,8 +141,30 @@ public class PitChecks {
                     }));
   }
 
+   // When we don't want to trip a threshold
+   public static Command runCheck(
+    DoubleSupplier thresholds,
+    DoubleSupplier measured,
+    Command cmd,
+    double time,
+    String name) {
+  return cmd.withTimeout(time * 2)
+      .beforeStarting(() -> pushResult(name, TestState.UNKNOWN))
+      .alongWith(
+          Commands.runOnce(() -> pushResult(name, TestState.IN_PROGRESS)),
+          Commands.waitSeconds(time)
+              .finallyDo(
+                  () -> {
+                      if (measured.getAsDouble() < thresholds.getAsDouble()) {
+                        pushResult(name, TestState.SUCCESS);
+                      } else {
+                        pushResult(name, TestState.FAILURE);
+                      }
+                  }));
+}
   private static void pushResult(String name, TestState result) {
     SmartDashboard.putString("Pit Checks/" + name, result.color);
     Logger.recordOutput("Pit Checks/" + name, result.msg);
   }
+
 }

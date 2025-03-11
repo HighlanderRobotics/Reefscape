@@ -69,6 +69,7 @@ import frc.robot.subsystems.vision.VisionIOReal;
 import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.subsystems.wrist.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
+import frc.robot.utils.PitChecks;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
@@ -397,7 +398,7 @@ public class Robot extends LoggedRobot {
   // option isn't akit friendly
   // Main benefit to that is reducing startup time, which idt we care about too much
   private final LoggedDashboardChooser<Command> autoChooser = new LoggedDashboardChooser<>("Autos");
-  
+
   private LoggedDashboardChooser<Command> pitChecker = new LoggedDashboardChooser<>("Pit Checker");
 
   // Mechanisms
@@ -1124,6 +1125,42 @@ public class Robot extends LoggedRobot {
   public void testExit() {}
 
   public void addPitChecks() {
-    //TODO 
+    // Report all CAN statuses
+    // Swerve
+    pitChecker.addOption(
+        "Run Swerve Checks",
+        PitChecks.runCheck(
+            () -> new double[] {1, 1, 0},
+            () -> new double[] {0.2, 0.2, 0.2},
+            () ->
+                new double[] {
+                  swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                  swerve.getVelocityRobotRelative().vyMetersPerSecond,
+                  swerve.getVelocityRobotRelative().omegaRadiansPerSecond
+                },
+            swerve.driveVelocity(() -> new ChassisSpeeds(1, 1, 0)),
+            1,
+            "Swerve Velocity Check"));
+
+    // Elevator
+    pitChecker.addOption(
+        "Run Elevator Checks",
+        PitChecks.runCheck(
+            () -> ElevatorSubsystem.MAX_EXTENSION_METERS,
+            () -> 0.1,
+            () -> elevator.getExtensionMeters(),
+            elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS),
+            0.5,
+            "Elevator Extension").andThen( //TODO i have NO IDEA what these numbers are
+                PitChecks.runCheck(() -> 10.0, () -> elevator.getStatorCurrent(), Commands.runOnce(() -> elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS)), 0.5, "Elevator Current Draw")
+            ));
+
+    // End effector
+
+    // Funnel
+    //trapdoor
+
+    // Vision
+
   }
 }

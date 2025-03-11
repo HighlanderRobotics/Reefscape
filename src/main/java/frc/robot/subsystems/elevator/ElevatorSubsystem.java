@@ -168,4 +168,8 @@ public class ElevatorSubsystem extends SubsystemBase {
   public boolean isNearExtension(double expected, double toleranceMeters) {
     return MathUtil.isNear(expected, inputs.positionMeters, toleranceMeters);
   }
+
+  public double getStatorCurrent() {
+    return inputs.statorCurrentAmps;
+  }
 }
