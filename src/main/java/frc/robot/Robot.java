@@ -1130,36 +1130,83 @@ public class Robot extends LoggedRobot {
     pitChecker.addOption(
         "Run Swerve Checks",
         PitChecks.runCheck(
-            () -> new double[] {1, 1, 0},
-            () -> new double[] {0.2, 0.2, 0.2},
-            () ->
-                new double[] {
-                  swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                  swerve.getVelocityRobotRelative().vyMetersPerSecond,
-                  swerve.getVelocityRobotRelative().omegaRadiansPerSecond
-                },
-            swerve.driveVelocity(() -> new ChassisSpeeds(1, 1, 0)),
-            1,
-            "Swerve Velocity Check"));
+                () -> new double[] {1, 1, 0},
+                () -> new double[] {0.2, 0.2, 0.2},
+                () ->
+                    new double[] {
+                      swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                      swerve.getVelocityRobotRelative().vyMetersPerSecond,
+                      swerve.getVelocityRobotRelative().omegaRadiansPerSecond
+                    },
+                swerve.driveVelocity(() -> new ChassisSpeeds(1, 1, 0)),
+                1,
+                "Swerve Velocity Check")
+            .andThen(
+                PitChecks.runCheck(
+                    () -> new double[] {90, 90, 90, 90},
+                    () -> new double[] {10}, // TODO
+                    () -> swerve.getModuleRotations(),
+                    swerve.turnToPosition(Rotation2d.fromDegrees(90)),
+                    1,
+                    "Swerve Rotation Check"))
+            .andThen(
+                PitChecks.runCheck(
+                    () -> new double[] {125, 125, 125, 125}, // Do these make sense
+                    () -> swerve.getModuleTurnStatorCurrent(),
+                    swerve.driveVelocity(() -> new ChassisSpeeds(1, 1, 0)),
+                    1,
+                    "Swerve Turn Currents Check"))
+            .andThen(
+                PitChecks.runCheck(
+                    () -> new double[] {125, 125, 125, 125}, // Do these make sense
+                    () -> swerve.getModuleDriveStatorCurrent(),
+                    swerve.driveVelocity(() -> new ChassisSpeeds(1, 1, 0)),
+                    1,
+                    "Swerve Drive Currents Check")));
+    // track rotation?
 
     // Elevator
     pitChecker.addOption(
         "Run Elevator Checks",
         PitChecks.runCheck(
-            () -> ElevatorSubsystem.MAX_EXTENSION_METERS,
-            () -> 0.1,
-            () -> elevator.getExtensionMeters(),
-            elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS),
-            0.5,
-            "Elevator Extension").andThen( //TODO i have NO IDEA what these numbers are
-                PitChecks.runCheck(() -> 10.0, () -> elevator.getStatorCurrent(), Commands.runOnce(() -> elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS)), 0.5, "Elevator Current Draw")
-            ));
+                () -> ElevatorSubsystem.MAX_EXTENSION_METERS,
+                () -> 0.1,
+                () -> elevator.getExtensionMeters(),
+                elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS),
+                0.5,
+                "Elevator Extension")
+            .andThen( // TODO i have NO IDEA what these numbers are
+                PitChecks.runCheck(
+                    () -> 10.0,
+                    () -> elevator.getStatorCurrent(),
+                    Commands.runOnce(
+                        () -> elevator.setExtension(ElevatorSubsystem.MAX_EXTENSION_METERS)),
+                    0.5,
+                    "Elevator Current Draw"))); //ideally this checks for issues with chain tensioning or stuff skipping
 
     // End effector
 
     // Funnel
-    //trapdoor
-
+    pitChecker.addOption(
+        "Run Funnel Checks",
+        PitChecks.runCheck(
+            () -> 12.0,
+            () -> 0.1,
+            () -> funnel.getVoltage(),
+            funnel.setVoltage(12.0),
+            1.0,
+            "Funnel Voltage"
+        ));
+    // trapdoor
+    //no feedback because servos
+    //idk if this will show up as blank before doing it? i feel like it won't
+    pitChecker.addOption("Run Trapdoor Checks", 
+        Commands.runOnce(() -> funnel.unlatch()).andThen(
+            () -> {
+                SmartDashboard.putString("Pit Checks/Trapdoor Checked", "00ff00");
+                Logger.recordOutput("Pit Checks/Trapdoor Checked", "DONE");
+            }
+        ));
     // Vision
 
   }

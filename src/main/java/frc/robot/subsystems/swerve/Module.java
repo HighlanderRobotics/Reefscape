@@ -155,4 +155,12 @@ public class Module {
   public void setCurrentLimits(final CurrentLimitsConfigs configs) {
     io.setCurrentLimits(configs);
   }
+
+  public double getTurnStatorCurrent() {
+    return inputs.turnStatorCurrentAmps;
+  }
+
+  public double getDriveStatorCurrent() {
+    return inputs.driveStatorCurrentAmps;
+  }
 }

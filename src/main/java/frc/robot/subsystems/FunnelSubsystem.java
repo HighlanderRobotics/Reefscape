@@ -43,4 +43,8 @@ public class FunnelSubsystem extends RollerSubsystem {
           secondLatchIO.setPosition(SECOND_LATCH_OPEN_POSITION);
         });
   }
+
+  public double getVoltage() {
+    return inputs.appliedVolts;
+  }
 }

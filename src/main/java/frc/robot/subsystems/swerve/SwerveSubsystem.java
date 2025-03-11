@@ -694,4 +694,25 @@ public class SwerveSubsystem extends SubsystemBase {
       module.setCurrentLimits(configs);
     }
   }
+
+  public Command turnToPosition(Rotation2d rotation) {
+    return this.run(
+        () -> {
+          for (int i = 0; i < modules.length; i++) {
+            modules[i].runSetpoint(new SwerveModuleState(0.0, rotation));
+          }
+        });
+  }
+
+  public double[] getModuleRotations() {
+    return Arrays.stream(modules).mapToDouble(m -> m.getAngle().getDegrees()).toArray();
+  }
+
+  public double[] getModuleTurnStatorCurrent() {
+    return Arrays.stream(modules).mapToDouble(m -> m.getTurnStatorCurrent()).toArray();
+  }
+
+  public double[] getModuleDriveStatorCurrent() {
+    return Arrays.stream(modules).mapToDouble(m -> m.getDriveStatorCurrent()).toArray();
+  }
 }

@@ -141,30 +141,26 @@ public class PitChecks {
                     }));
   }
 
-   // When we don't want to trip a threshold
-   public static Command runCheck(
-    DoubleSupplier thresholds,
-    DoubleSupplier measured,
-    Command cmd,
-    double time,
-    String name) {
-  return cmd.withTimeout(time * 2)
-      .beforeStarting(() -> pushResult(name, TestState.UNKNOWN))
-      .alongWith(
-          Commands.runOnce(() -> pushResult(name, TestState.IN_PROGRESS)),
-          Commands.waitSeconds(time)
-              .finallyDo(
-                  () -> {
+  // When we don't want to trip a threshold
+  public static Command runCheck(
+      DoubleSupplier thresholds, DoubleSupplier measured, Command cmd, double time, String name) {
+    return cmd.withTimeout(time * 2)
+        .beforeStarting(() -> pushResult(name, TestState.UNKNOWN))
+        .alongWith(
+            Commands.runOnce(() -> pushResult(name, TestState.IN_PROGRESS)),
+            Commands.waitSeconds(time)
+                .finallyDo(
+                    () -> {
                       if (measured.getAsDouble() < thresholds.getAsDouble()) {
                         pushResult(name, TestState.SUCCESS);
                       } else {
                         pushResult(name, TestState.FAILURE);
                       }
-                  }));
-}
+                    }));
+  }
+
   private static void pushResult(String name, TestState result) {
     SmartDashboard.putString("Pit Checks/" + name, result.color);
     Logger.recordOutput("Pit Checks/" + name, result.msg);
   }
-
 }
