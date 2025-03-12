@@ -116,7 +116,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -176,7 +176,7 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private static ReefTarget currentTarget = ReefTarget.L4;
+  private static ReefTarget currentTarget = ReefTarget.L1;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
@@ -228,7 +228,7 @@ public class Robot extends LoggedRobot {
                   // Specify Configuration
                   driveTrainSimulationConfig.get(),
                   // Specify starting pose
-                  new Pose2d(3, 3, new Rotation2d())))
+                  new Pose2d(3.28, 3.81, new Rotation2d())))
           : Optional.empty();
 
   private final SwerveSubsystem swerve =
