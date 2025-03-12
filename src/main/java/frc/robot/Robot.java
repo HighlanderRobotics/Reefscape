@@ -382,19 +382,26 @@ public class Robot extends LoggedRobot {
                             elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
                     final var branch =
                         ExtensionKinematics.getBranchPose(swerve.getPose(), state, currentTarget);
-                    return branch
-                                .getTranslation()
-                                .getDistance(
-                                    ExtensionKinematics.getManipulatorPose(swerve.getPose(), state)
-                                        .getTranslation())
+                    final var manipulatorPose =
+                        ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
+                    Logger.recordOutput(
+                        "Extension Check",
+                        manipulatorPose,
+                        manipulatorPose.transformBy(
+                            new Transform3d(
+                                Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
+                    return branch.getTranslation().getDistance(manipulatorPose.getTranslation())
                             < Units.inchesToMeters(1.5)
                         || branch
-                                .transformBy(
-                                    new Transform3d(
-                                        Units.inchesToMeters(1.5), 0.0, 0.0, new Rotation3d()))
                                 .getTranslation()
                                 .getDistance(
-                                    ExtensionKinematics.getManipulatorPose(swerve.getPose(), state)
+                                    manipulatorPose
+                                        .transformBy(
+                                            new Transform3d(
+                                                Units.inchesToMeters(3.0),
+                                                0.0,
+                                                0.0,
+                                                new Rotation3d()))
                                         .getTranslation())
                             < Units.inchesToMeters(1.5);
                   })
