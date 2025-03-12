@@ -4,15 +4,21 @@
 
 package frc.robot.subsystems.elevator;
 
+import static edu.wpi.first.units.Units.Volts;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import java.util.function.DoubleSupplier;
@@ -56,6 +62,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private double setpoint = 0.0;
 
+  /** */
+  private SysIdRoutine sysid;
+
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
   private final LoggedMechanismRoot2d
@@ -68,6 +77,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
+    sysid =
+        new SysIdRoutine(
+            new Config(
+                null,
+                null,
+                null,
+                (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
+            new Mechanism((volts) -> io.setVoltage(volts.in(Volts)), null, this));
+    SmartDashboard.putData("Run Elevator Sysid", runSysid());
   }
 
   @Override
@@ -122,6 +140,26 @@ public class ElevatorSubsystem extends SubsystemBase {
                 hasZeroed = true;
               }
             });
+  }
+
+  public Command runSysid() {
+    return Commands.sequence(
+        runCurrentZeroing(),
+        sysid
+            .quasistatic(SysIdRoutine.Direction.kForward)
+            .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
+        Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
+        sysid
+            .quasistatic(SysIdRoutine.Direction.kReverse)
+            .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)),
+        Commands.waitUntil(() -> Math.abs(inputs.velocityMetersPerSec) < 0.1),
+        sysid
+            .dynamic(SysIdRoutine.Direction.kForward)
+            .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
+        Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
+        sysid
+            .dynamic(SysIdRoutine.Direction.kReverse)
+            .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)));
   }
 
   public Command setVoltage(double voltage) {

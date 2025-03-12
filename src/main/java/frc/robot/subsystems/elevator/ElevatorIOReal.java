@@ -9,7 +9,6 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoTorqueCurrentFOC;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -56,11 +55,17 @@ public class ElevatorIOReal implements ElevatorIO {
     // 16lbs counterspringing from stage 1 to carriage
     // (ie 16lbs of force pulling carriage up)
     config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-    config.Slot0.kG = (483.0 / 9.37) * config.Feedback.SensorToMechanismRatio * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0) - 16);
+    config.Slot0.kG =
+        (483.0 / 9.37)
+            * config.Feedback.SensorToMechanismRatio
+            * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0) - 16);
     config.Slot0.kS = 0.0;
     config.Slot0.kV = 0.0;
     // converts accel -> force, force -> motor torque, motor torque -> amperage
-    config.Slot0.kA = (483.0 / 9.37) * config.Feedback.SensorToMechanismRatio * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0));
+    config.Slot0.kA =
+        (483.0 / 9.37)
+            * config.Feedback.SensorToMechanismRatio
+            * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0));
     config.Slot0.kP = 0.0;
     config.Slot0.kD = 0.0;
 
@@ -76,9 +81,11 @@ public class ElevatorIOReal implements ElevatorIO {
 
     config.MotionMagic.MotionMagicAcceleration = 8.0;
     // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity = (5500.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
+    config.MotionMagic.MotionMagicCruiseVelocity =
+        (5500.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
 
-    config.MotionMagic.MotionMagicExpo_kV = (5800.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
+    config.MotionMagic.MotionMagicExpo_kV =
+        (5800.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
     config.MotionMagic.MotionMagicExpo_kA = 0.06; // from recalc
 
     motor.getConfigurator().apply(config);
