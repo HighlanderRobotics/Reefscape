@@ -13,7 +13,7 @@ During debugging we logged the `StatusCode` of the `yaw` status signal in `GyroI
 This would return a value of `CanMessageStale` when the issue occurred, and `Ok` otherwise.
 Once we saw a value of `RxTimeout`, but this did not reproduce and is likely another manifestation of the same issue.
 
-## Theories
+## Debugging
 
 Our initial theory for the cause of the issue was a bug in the pose estimation stack.
 Because of the rewrite this offseason, we weren't 100% confident in it.
@@ -61,3 +61,5 @@ In roughly chronological order, they are:
     It was easy to add a widget to elastic to display the gyro's status.
     We even did so for elims.
     We did not do so immediately after making the fix, which resulted in the issue going unnoticed during quals 77.
+ 4. Not recording the failure on slack, in the failures sheet, or otherwise properly communicating it before OCR.
+    If the failure had been properly recorded and reported, it would have had a greater chance of being given attention and solved before OCR.
