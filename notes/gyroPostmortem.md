@@ -65,4 +65,3 @@ In roughly chronological order, they are:
     If the failure had been properly recorded and reported, it would have had a greater chance of being given attention and solved before OCR.
     The sheet has been largely unused by the team, which contributed to it not being filled out for this issue.
     Building momentum behind it will help prevent similar failures in the future.
-
