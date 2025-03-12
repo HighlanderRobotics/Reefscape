@@ -85,18 +85,17 @@ public class ElevatorSubsystem extends SubsystemBase {
                 null,
                 null,
                 null,
-                (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
+                (state) -> Logger.recordOutput("Elevator/SysIdTestStateVolts", state.toString())),
             new Mechanism((volts) -> io.setVoltage(volts.in(Volts)), null, this));
 
     currentSysid =
         new SysIdRoutine(
             new Config(
-                Volts.of(20.0).per(Second),
-                Volts.of(40.0),
+                Volts.of(10.0).per(Second),
+                Volts.of(30.0),
                 null,
-                (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
+                (state) -> Logger.recordOutput("Elevator/SysIdTestStateCurrent", state.toString())),
             new Mechanism((volts) -> io.setCurrent(volts.in(Volts)), null, this));
-    SmartDashboard.putData("Run Elevator Sysid", runSysid());
   }
 
   @Override
