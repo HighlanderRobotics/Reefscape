@@ -24,6 +24,16 @@ import edu.wpi.first.units.measure.Mass;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class KelpieSwerveConstants extends SwerveConstants {
+  private static boolean instantiated = false;
+
+  public KelpieSwerveConstants() {
+    super();
+    if (instantiated) {
+      SwerveConstants.multipleInstancesAlert.set(true);
+    }
+    instantiated = true;
+  }
+
   @Override
   public double getMaxLinearSpeed() {
     // From https://www.swervedrivespecialties.com/products/mk4n-swerve-module, L2+ with KrakenX60

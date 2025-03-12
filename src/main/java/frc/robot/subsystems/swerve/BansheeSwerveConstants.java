@@ -25,6 +25,15 @@ import frc.robot.subsystems.swerve.Module.ModuleConstants;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class BansheeSwerveConstants extends SwerveConstants {
+  private static boolean instantiated = false;
+
+  public BansheeSwerveConstants() {
+    super();
+    if (instantiated) {
+      SwerveConstants.multipleInstancesAlert.set(true);
+    }
+    instantiated = true;
+  }
 
   @Override
   public double getMaxLinearSpeed() {
