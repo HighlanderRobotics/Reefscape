@@ -384,8 +384,10 @@ public class Robot extends LoggedRobot {
                         ExtensionKinematics.getBranchPose(swerve.getPose(), state, currentTarget);
                     final var manipulatorPose =
                         ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
-                    Logger.recordOutput(
-                        "Extension Check",
+                    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
+                    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("IK/Branch", branch);
+                    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput(
+                        "IK/Extension Check",
                         manipulatorPose,
                         manipulatorPose.transformBy(
                             new Transform3d(
