@@ -124,7 +124,7 @@ public class ExtensionKinematics {
                 new Rotation3d(0, -state.wristAngle().getRadians(), 0)));
   }
 
-  public static double getDistToBranch(Pose2d pose, ExtensionState state, ReefTarget level) {
+  public static Pose3d getBranchPose(Pose2d pose, ExtensionState state, ReefTarget level) {
     return new Pose3d(CoralTargets.getClosestTarget(pose))
         .transformBy(
             new Transform3d(
@@ -143,9 +143,7 @@ public class ExtensionKinematics {
                       case L3 -> L3_POSE.getY();
                       case L4 -> L4_POSE.getY();
                     },
-                new Rotation3d()))
-        .getTranslation()
-        .getDistance(getManipulatorPose(pose, state).getTranslation());
+                new Rotation3d()));
   }
 
   public static Command holdStateCommand(

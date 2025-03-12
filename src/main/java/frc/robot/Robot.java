@@ -27,6 +27,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -376,16 +377,26 @@ public class Robot extends LoggedRobot {
               .and(() -> DriverStation.isTeleop())
               .or(
                   () -> {
-                    final var dist =
-                        ExtensionKinematics.getDistToBranch(
-                            swerve.getPose(),
-                            new ExtensionState(
-                                elevator.getExtensionMeters(),
-                                shoulder.getAngle(),
-                                wrist.getAngle()),
-                            currentTarget);
-                    Logger.recordOutput("Superstructure/Placing Dist", dist);
-                    return dist < Units.inchesToMeters(1.5);
+                    final var state =
+                        new ExtensionState(
+                            elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
+                    final var branch =
+                        ExtensionKinematics.getBranchPose(swerve.getPose(), state, currentTarget);
+                    return branch
+                                .getTranslation()
+                                .getDistance(
+                                    ExtensionKinematics.getManipulatorPose(swerve.getPose(), state)
+                                        .getTranslation())
+                            < Units.inchesToMeters(1.5)
+                        || branch
+                                .transformBy(
+                                    new Transform3d(
+                                        Units.inchesToMeters(1.5), 0.0, 0.0, new Rotation3d()))
+                                .getTranslation()
+                                .getDistance(
+                                    ExtensionKinematics.getManipulatorPose(swerve.getPose(), state)
+                                        .getTranslation())
+                            < Units.inchesToMeters(1.5);
                   })
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore),
