@@ -203,7 +203,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
                     Units.inchesToMeters(9.052)),
                 new Rotation3d(
                     Units.degreesToRadians(0.0),
-                    Units.degreesToRadians(-28.125),
+                    Units.degreesToRadians(-(90.0 - 61.875)),
                     Units.degreesToRadians(150))),
             BACK_LEFT_CAMERA_MATRIX,
             BACK_LEFT_DIST_COEFFS);
@@ -215,7 +215,8 @@ public class KelpieSwerveConstants extends SwerveConstants {
                     Units.inchesToMeters(-11.600),
                     Units.inchesToMeters(-11.400488),
                     Units.inchesToMeters(9.052)),
-                new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
+                new Rotation3d(
+                    0, Units.degreesToRadians(-(90.0 - 61.875)), Units.degreesToRadians(210))),
             BACK_RIGHT_CAMERA_MATRIX,
             BACK_RIGHT_DIST_COEFFS);
     final VisionConstants frontRightCamConstants =
