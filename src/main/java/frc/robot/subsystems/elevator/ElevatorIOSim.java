@@ -63,6 +63,15 @@ public class ElevatorIOSim implements ElevatorIO {
   }
 
   @Override
+  public void setCurrent(double amps) {
+    setVoltage(
+        DCMotor.getKrakenX60Foc(2)
+            .getVoltage(
+                amps,
+                physicsSim.getVelocityMetersPerSecond() / ElevatorSubsystem.DRUM_RADIUS_METERS));
+  }
+
+  @Override
   public void resetEncoder(final double position) {
     // sim always has a perfectly accurate encoder
   }
