@@ -63,3 +63,6 @@ In roughly chronological order, they are:
     We did not do so immediately after making the fix, which resulted in the issue going unnoticed during quals 77.
  4. Not recording the failure on slack, in the failures sheet, or otherwise properly communicating it before OCR.
     If the failure had been properly recorded and reported, it would have had a greater chance of being given attention and solved before OCR.
+    The sheet has been largely unused by the team, which contributed to it not being filled out for this issue.
+    Building momentum behind it will help prevent similar failures in the future.
+
