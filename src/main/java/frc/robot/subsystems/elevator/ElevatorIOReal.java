@@ -9,6 +9,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.MotionMagicExpoTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -27,6 +28,7 @@ public class ElevatorIOReal implements ElevatorIO {
   private final TalonFX follower = new TalonFX(17, "*");
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
+  private final TorqueCurrentFOC torque = new TorqueCurrentFOC(0.0);
   private final MotionMagicExpoTorqueCurrentFOC positionTorque =
       new MotionMagicExpoTorqueCurrentFOC(0.0);
 
@@ -117,6 +119,11 @@ public class ElevatorIOReal implements ElevatorIO {
   @Override
   public void setVoltage(final double voltage) {
     motor.setControl(voltageOut.withOutput(voltage));
+  }
+
+  @Override
+  public void setCurrent(final double amps) {
+    motor.setControl(torque.withOutput(amps));
   }
 
   @Override

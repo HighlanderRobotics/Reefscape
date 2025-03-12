@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems.elevator;
 
+import static edu.wpi.first.units.Units.Second;
 import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
@@ -22,6 +23,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -62,8 +64,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private double setpoint = 0.0;
 
-  /** */
-  private SysIdRoutine sysid;
+  private final SysIdRoutine voltageSysid;
+  private final SysIdRoutine currentSysid;
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -77,7 +79,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
-    sysid =
+    voltageSysid =
         new SysIdRoutine(
             new Config(
                 null,
@@ -85,6 +87,15 @@ public class ElevatorSubsystem extends SubsystemBase {
                 null,
                 (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
             new Mechanism((volts) -> io.setVoltage(volts.in(Volts)), null, this));
+
+    currentSysid =
+        new SysIdRoutine(
+            new Config(
+                Volts.of(20.0).per(Second),
+                Volts.of(40.0),
+                null,
+                (state) -> Logger.recordOutput("SysIdTestState", state.toString())),
+            new Mechanism((volts) -> io.setCurrent(volts.in(Volts)), null, this));
     SmartDashboard.putData("Run Elevator Sysid", runSysid());
   }
 
@@ -143,23 +154,26 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command runSysid() {
+    final Function<SysIdRoutine, Command> runSysid =
+        (routine) ->
+            Commands.sequence(
+                routine
+                    .quasistatic(SysIdRoutine.Direction.kForward)
+                    .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
+                Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
+                routine
+                    .quasistatic(SysIdRoutine.Direction.kReverse)
+                    .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)),
+                Commands.waitUntil(() -> Math.abs(inputs.velocityMetersPerSec) < 0.1),
+                routine
+                    .dynamic(SysIdRoutine.Direction.kForward)
+                    .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
+                Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
+                routine
+                    .dynamic(SysIdRoutine.Direction.kReverse)
+                    .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)));
     return Commands.sequence(
-        runCurrentZeroing(),
-        sysid
-            .quasistatic(SysIdRoutine.Direction.kForward)
-            .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
-        Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
-        sysid
-            .quasistatic(SysIdRoutine.Direction.kReverse)
-            .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)),
-        Commands.waitUntil(() -> Math.abs(inputs.velocityMetersPerSec) < 0.1),
-        sysid
-            .dynamic(SysIdRoutine.Direction.kForward)
-            .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
-        Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
-        sysid
-            .dynamic(SysIdRoutine.Direction.kReverse)
-            .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)));
+        runCurrentZeroing(), runSysid.apply(voltageSysid), runSysid.apply(currentSysid));
   }
 
   public Command setVoltage(double voltage) {
