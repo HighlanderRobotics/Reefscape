@@ -686,9 +686,9 @@ public class Superstructure {
       Supplier<Rotation2d> wristAngle,
       BooleanSupplier clearanceNeeded) {
     return Commands.parallel(
-            // if target pos is on the other side do clearance stuff, if not go to target pos
-            Commands.either(
-                Commands.parallel(
+        // if target pos is on the other side do clearance stuff, if not go to target pos
+        Commands.either(
+            Commands.parallel(
                     shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                     elevator
@@ -696,25 +696,24 @@ public class Superstructure {
                         .until(
                             () ->
                                 shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
-                                    && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS))),
-                Commands.parallel(
-                    shoulder.setTargetAngle(shoulderAngle), wrist.setTargetAngle(wristAngle)),
-                clearanceNeeded),
-            //  if clearance is need wait then extend, if not extend elevator
-            Commands.either(
-                Commands.waitUntil(
-                    () ->
-                        shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
-                            && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)),
+                                    && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)))
+                .andThen(
+                    elevator
+                        .setExtension(elevatorExtension)
+                        .until(
+                            () -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05))
+                        .andThen(
+                            Commands.parallel(
+                                shoulder.setTargetAngle(shoulderAngle),
+                                wrist.setTargetAngle(wristAngle),
+                                elevator.setExtension(elevatorExtension)))),
+            Commands.parallel(
+                shoulder.setTargetAngle(shoulderAngle),
+                wrist.setTargetAngle(wristAngle),
                 elevator
                     .setExtension(elevatorExtension)
-                    .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05))
-                    .andThen(
-                        Commands.parallel(
-                            shoulder.setTargetAngle(shoulderAngle),
-                            wrist.setTargetAngle(wristAngle),
-                            elevator.setExtension(elevatorExtension))),
-                clearanceNeeded));
+                    .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05))),
+            clearanceNeeded));
   }
 
   public SuperState getState() {
