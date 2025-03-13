@@ -752,18 +752,18 @@ public class Superstructure {
     return ((shoulder.getSetpoint().getDegrees() <= 80
             && Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT - elevator.getSetpoint())
                 != Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT - elevator.getExtensionMeters()))
-        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0)
-        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0)
-        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0)
-        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0));
+        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 75.0)
+        || clearReef(ElevatorSubsystem.L2_EXTENSION_METERS, 75.0)
+        || clearReef(ElevatorSubsystem.L3_EXTENSION_METERS, 75.0)
+        || clearReef(ElevatorSubsystem.L4_EXTENSION_METERS, 75.0));
   }
 
-  public boolean clearReef(Double level, Double shoulderClearanceDegrees) {
+  public boolean clearReef(double height, double shoulderClearanceDegrees) {
     return ((Stream.of(CoralTargets.values())
             .map((t) -> t.location.minus(pose.get()).getTranslation().getNorm())
             .anyMatch(distance -> distance > Units.inchesToMeters(100.0)))
-        && (Math.signum(level - elevator.getSetpoint())
-            != Math.signum(level - elevator.getExtensionMeters()))
+        && (Math.signum(height - elevator.getSetpoint())
+            != Math.signum(height - elevator.getExtensionMeters()))
         && shoulder.getSetpoint().getDegrees() <= shoulderClearanceDegrees);
   }
 
