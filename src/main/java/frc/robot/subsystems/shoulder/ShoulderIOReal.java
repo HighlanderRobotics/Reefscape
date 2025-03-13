@@ -1,15 +1,17 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.shoulder;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.MotionMagicTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.GravityTypeValue;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.units.Units;
@@ -19,7 +21,7 @@ import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 
-public class ShoulderIOReal implements ArmIO {
+public class ShoulderIOReal implements ShoulderIO {
   private final TalonFX motor;
   private final CANcoder cancoder;
 
@@ -29,9 +31,10 @@ public class ShoulderIOReal implements ArmIO {
   private final StatusSignal<Current> statorCurrentAmps;
   private final StatusSignal<Voltage> appliedVoltage;
   private final StatusSignal<Angle> motorPositionRotations;
+  private final StatusSignal<Angle> cancoderPositionRotations;
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
-  private final MotionMagicVoltage motionMagic = new MotionMagicVoltage(0.0).withEnableFOC(true);
+  private final MotionMagicTorqueCurrentFOC motionMagic = new MotionMagicTorqueCurrentFOC(0.0);
 
   public ShoulderIOReal() {
     motor = new TalonFX(11, "*");
@@ -43,35 +46,45 @@ public class ShoulderIOReal implements ArmIO {
     statorCurrentAmps = motor.getStatorCurrent();
     motorPositionRotations = motor.getPosition();
     appliedVoltage = motor.getMotorVoltage();
+    cancoderPositionRotations = cancoder.getAbsolutePosition();
 
     final TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-    config.Slot0.kG = 0.0;
-    config.Slot0.kS = 0.0;
+    config.Slot0.kG = 8.6;
+    config.Slot0.kS = 2.5;
     config.Slot0.kV = 0.0;
     config.Slot0.kA = 0.0;
-    config.Slot0.kP = 0.0;
-    config.Slot0.kD = 0.0;
+    config.Slot0.kP = 8000.0;
+    config.Slot0.kD = 160.0;
+
+    config.CurrentLimits.StatorCurrentLimit = 40.0;
+    config.CurrentLimits.StatorCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLimit = 20.0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     // guesses
-    config.MotionMagic.MotionMagicCruiseVelocity = 2.0;
-    config.MotionMagic.MotionMagicAcceleration = 10.0;
+    config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
+    config.MotionMagic.MotionMagicAcceleration = 4.0;
+
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+    config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_GEAR_RATIO;
+
+    // config.Feedback.RotorToSensorRatio =
+    //     ShoulderSubsystem.SHOULDER_GEAR_RATIO / ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+    // config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+    // config.Feedback.FeedbackRemoteSensorID = cancoder.getDeviceID();
+    // config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
 
     final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    cancoderConfig.MagnetSensor.MagnetOffset = 0.0;
-
-    config.Feedback.FeedbackRemoteSensorID = ShoulderSubsystem.CANCODER_ID;
-    config.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-    config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
-    config.Feedback.RotorToSensorRatio =
-        ShoulderSubsystem.SHOULDER_GEAR_RATIO / ShoulderSubsystem.SHOULDER_FINAL_STAGE_RATIO;
+    cancoderConfig.MagnetSensor.MagnetOffset = 0.6323;
+    cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.9;
 
     cancoder.getConfigurator().apply(cancoderConfig);
     motor.getConfigurator().apply(config);
-    motor.optimizeBusUtilization();
-    cancoder.optimizeBusUtilization();
 
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
@@ -80,20 +93,26 @@ public class ShoulderIOReal implements ArmIO {
         appliedVoltage,
         supplyCurrentAmps,
         statorCurrentAmps,
+        cancoderPositionRotations,
         motorPositionRotations);
+
+    motor.optimizeBusUtilization();
+    cancoder.optimizeBusUtilization();
   }
 
   @Override
-  public void updateInputs(ArmIOInputs inputs) {
+  public void updateInputs(ShoulderIOInputs inputs) {
     BaseStatusSignal.refreshAll(
         angularVelocityRPS,
         temp,
         supplyCurrentAmps,
         statorCurrentAmps,
         motorPositionRotations,
+        cancoderPositionRotations,
         appliedVoltage);
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
+    inputs.cancoderPosition = cancoderPositionRotations.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
     inputs.supplyCurrentAmps = supplyCurrentAmps.getValueAsDouble();
@@ -109,5 +128,15 @@ public class ShoulderIOReal implements ArmIO {
   @Override
   public void setMotorPosition(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
+  }
+
+  @Override
+  public void resetEncoder(final Rotation2d rotation) {
+    motor.setPosition(rotation.getRotations());
+  }
+
+  @Override
+  public void setMotionMagicConfigs(final MotionMagicConfigs configs) {
+    motor.getConfigurator().apply(configs);
   }
 }

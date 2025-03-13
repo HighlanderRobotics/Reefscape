@@ -13,6 +13,7 @@
 package frc.robot.subsystems.swerve;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
@@ -55,12 +56,15 @@ public class ModuleIOReal implements ModuleIO {
   private final BaseStatusSignal driveAppliedVolts;
   private final BaseStatusSignal driveCurrent;
   private final BaseStatusSignal driveSupplyCurrent;
+  private final BaseStatusSignal driveTempC;
 
   private final BaseStatusSignal turnAbsolutePosition;
   private final BaseStatusSignal turnPosition;
   private final BaseStatusSignal turnVelocity;
   private final BaseStatusSignal turnAppliedVolts;
-  private final BaseStatusSignal turnCurrent;
+  private final BaseStatusSignal turnStatorCurrent;
+  private final BaseStatusSignal turnSupplyCurrent;
+  private final BaseStatusSignal turnTempC;
 
   // Control modes
   private final VoltageOut driveVoltage = new VoltageOut(0.0).withEnableFOC(true);
@@ -90,12 +94,15 @@ public class ModuleIOReal implements ModuleIO {
     driveAppliedVolts = driveTalon.getMotorVoltage();
     driveCurrent = driveTalon.getStatorCurrent();
     driveSupplyCurrent = driveTalon.getSupplyCurrent();
+    driveTempC = driveTalon.getDeviceTemp();
 
     turnAbsolutePosition = cancoder.getAbsolutePosition();
     turnPosition = turnTalon.getPosition();
     turnVelocity = turnTalon.getVelocity();
     turnAppliedVolts = turnTalon.getMotorVoltage();
-    turnCurrent = turnTalon.getStatorCurrent();
+    turnStatorCurrent = turnTalon.getStatorCurrent();
+    turnSupplyCurrent = turnTalon.getSupplyCurrent();
+    turnTempC = turnTalon.getDeviceTemp();
 
     PhoenixOdometryThread.getInstance()
         .registerSignals(
@@ -118,10 +125,13 @@ public class ModuleIOReal implements ModuleIO {
         driveAppliedVolts,
         driveCurrent,
         driveSupplyCurrent,
+        driveTempC,
         turnAbsolutePosition,
         turnVelocity,
         turnAppliedVolts,
-        turnCurrent);
+        turnStatorCurrent,
+        turnSupplyCurrent,
+        turnTempC);
     driveTalon.optimizeBusUtilization();
     turnTalon.optimizeBusUtilization();
     cancoder.optimizeBusUtilization();
@@ -135,25 +145,31 @@ public class ModuleIOReal implements ModuleIO {
         driveAppliedVolts,
         driveCurrent,
         driveSupplyCurrent,
+        driveTempC,
         turnAbsolutePosition,
         turnPosition,
         turnVelocity,
         turnAppliedVolts,
-        turnCurrent);
+        turnStatorCurrent,
+        turnSupplyCurrent,
+        turnTempC);
 
     inputs.prefix = constants.prefix();
 
     inputs.drivePositionMeters = drivePosition.getValueAsDouble();
     inputs.driveVelocityMetersPerSec = driveVelocity.getValueAsDouble();
     inputs.driveAppliedVolts = driveAppliedVolts.getValueAsDouble();
-    inputs.driveCurrentAmps = driveCurrent.getValueAsDouble();
+    inputs.driveStatorCurrentAmps = driveCurrent.getValueAsDouble();
     inputs.driveSupplyCurrentAmps = driveSupplyCurrent.getValueAsDouble();
+    inputs.driveTempC = driveTempC.getValueAsDouble();
 
     inputs.turnAbsolutePosition = Rotation2d.fromRotations(turnAbsolutePosition.getValueAsDouble());
     inputs.turnPosition = Rotation2d.fromRotations(turnPosition.getValueAsDouble());
     inputs.turnVelocityRadPerSec = Units.rotationsToRadians(turnVelocity.getValueAsDouble());
     inputs.turnAppliedVolts = turnAppliedVolts.getValueAsDouble();
-    inputs.turnCurrentAmps = turnCurrent.getValueAsDouble();
+    inputs.turnStatorCurrentAmps = turnStatorCurrent.getValueAsDouble();
+    inputs.turnSupplyCurrentAmps = turnSupplyCurrent.getValueAsDouble();
+    inputs.turnTempC = turnTempC.getValueAsDouble();
   }
 
   @Override
@@ -190,5 +206,10 @@ public class ModuleIOReal implements ModuleIO {
   @Override
   public void setCurrent(final double amps) {
     driveTalon.setControl(driveControlCurrent.withOutput(amps));
+  }
+
+  @Override
+  public void setCurrentLimits(CurrentLimitsConfigs configs) {
+    driveTalon.getConfigurator().apply(configs);
   }
 }

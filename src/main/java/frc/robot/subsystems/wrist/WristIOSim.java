@@ -1,4 +1,4 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.wrist;
 
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
@@ -12,7 +12,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-public class WristIOSim implements ArmIO {
+public class WristIOSim implements WristIO {
   // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
@@ -25,9 +25,9 @@ public class WristIOSim implements ArmIO {
           true,
           WristSubsystem.WRIST_RETRACTED_POS.getRadians());
 
-  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0);
+  private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 1.0, 0.0);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(30.0, 1.0, 2.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(30.0, 0.0, 0.1, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   private double appliedVoltage = 0.0;
 

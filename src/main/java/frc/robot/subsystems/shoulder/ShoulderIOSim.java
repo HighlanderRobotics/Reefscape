@@ -1,8 +1,9 @@
-package frc.robot.subsystems.arm;
+package frc.robot.subsystems.shoulder;
 
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,7 +13,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-public class ShoulderIOSim implements ArmIO {
+public class ShoulderIOSim implements ShoulderIO {
   // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
@@ -27,12 +28,12 @@ public class ShoulderIOSim implements ArmIO {
 
   private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0); // 1.31085, 0.278);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(30.0, 0.0, 0.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(100.0, 0.0, 6.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   private double appliedVoltage = 0.0;
 
   @Override
-  public void updateInputs(final ArmIOInputs inputs) {
+  public void updateInputs(final ShoulderIOInputs inputs) {
     if (DriverStation.isDisabled()) armSim.setInput(0);
     armSim.update(0.02);
 
@@ -56,5 +57,12 @@ public class ShoulderIOSim implements ArmIO {
     setMotorVoltage(
         pid.calculate(armSim.getAngleRads(), targetPosition.getRadians())
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));
+  }
+
+  @Override
+  public void setMotionMagicConfigs(MotionMagicConfigs configs) {
+    pid.setConstraints(
+        new TrapezoidProfile.Constraints(
+            configs.MotionMagicCruiseVelocity, configs.MotionMagicAcceleration));
   }
 }

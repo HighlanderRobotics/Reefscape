@@ -109,12 +109,14 @@ public class Tracer {
       }
       // log all new entries
       for (var traceTime : traceTimes.entrySet()) {
+
         Logger.recordOutput("Tracer/" + traceTime.getKey(), traceTime.getValue());
         entryArray.add(traceTime.getKey());
       }
 
       // log gc time
       if (gcs.size() > 0) Logger.recordOutput("Tracer/GCTime", gcTimeThisCycle);
+
       gcTimeThisCycle = 0.0;
 
       // clean up state

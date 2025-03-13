@@ -24,6 +24,16 @@ import edu.wpi.first.units.measure.Mass;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class AlphaSwerveConstants extends SwerveConstants {
+  private static boolean instantiated = false;
+
+  public AlphaSwerveConstants() {
+    super();
+    if (instantiated) {
+      SwerveConstants.multipleInstancesAlert.set(true);
+    }
+    instantiated = true;
+  }
+
   @Override
   public double getMaxLinearSpeed() {
     // motor speed (RPM) / gear ratio * pi * wheel diameter (inches) / 12 / 60
@@ -131,7 +141,7 @@ public class AlphaSwerveConstants extends SwerveConstants {
     // kT (stall torque / stall current) converted to linear wheel frame
     driveConfig.Slot0.kA = 0.0; // (9.37 / 483.0) / getDriveRotorToMeters(); // 3.07135116146;
     driveConfig.Slot0.kS = 8.5;
-    driveConfig.Slot0.kP = 100.0;
+    driveConfig.Slot0.kP = 300.0;
     driveConfig.Slot0.kD = 1.0;
 
     driveConfig.TorqueCurrent.TorqueNeutralDeadband = 10.0;
