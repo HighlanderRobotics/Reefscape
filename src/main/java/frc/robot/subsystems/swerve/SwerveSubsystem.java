@@ -717,7 +717,7 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   @SuppressWarnings("resource")
-  public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta, double maxLinearSpeed) {
+  public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
     return this.run(
       () -> {
         final PIDController yController = new PIDController(0.01, 0.0, 0.0); //TODO tune
