@@ -94,6 +94,10 @@ public class WristSubsystem extends SubsystemBase {
     return setpoint;
   }
 
+  public boolean isNearTarget() {
+    return isNearAngle(setpoint);
+  }
+
   public boolean isNearAngle(Rotation2d target) {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
   }

@@ -50,6 +50,20 @@ public class ExtensionKinematics {
           WristSubsystem.WRIST_SCORE_L4_POS);
   public static final Pose2d L4_POSE = solveFK(L4_EXTENSION);
 
+  public static final ExtensionState LOW_ALGAE_EXTENSION =
+      new ExtensionState(
+          ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
+          ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+          WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS);
+  public static final Pose2d LOW_ALGAE_POSE = solveFK(LOW_ALGAE_EXTENSION);
+
+  public static final ExtensionState HIGH_ALGAE_EXTENSION =
+      new ExtensionState(
+          ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
+          ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+          WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS);
+  public static final Pose2d HIGH_ALGAE_POSE = solveFK(HIGH_ALGAE_EXTENSION);
+
   public record ExtensionState(
       double elevatorHeightMeters, Rotation2d shoulderAngle, Rotation2d wristAngle) {}
 

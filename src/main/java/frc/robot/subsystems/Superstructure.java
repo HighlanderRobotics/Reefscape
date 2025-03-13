@@ -522,19 +522,23 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
         .whileTrue(
-            extendWithClearance(
-                ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
-                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
-                WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+            this.extendWithClearance(
+                () ->
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.LOW_ALGAE_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.LOW_ALGAE_EXTENSION)))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
         .whileTrue(
-            extendWithClearance(
-                ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
-                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
-                WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+            this.extendWithClearance(
+                () ->
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.HIGH_ALGAE_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.HIGH_ALGAE_EXTENSION)))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
 
     stateTriggers

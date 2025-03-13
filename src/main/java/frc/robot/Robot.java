@@ -384,14 +384,17 @@ public class Robot extends LoggedRobot {
                         ExtensionKinematics.getBranchPose(swerve.getPose(), state, currentTarget);
                     final var manipulatorPose =
                         ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
-                    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
-                    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("IK/Branch", branch);
-                    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput(
-                        "IK/Extension Check",
-                        manipulatorPose,
-                        manipulatorPose.transformBy(
-                            new Transform3d(
-                                Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
+                    if (Robot.ROBOT_TYPE != RobotType.REAL)
+                      Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
+                    if (Robot.ROBOT_TYPE != RobotType.REAL)
+                      Logger.recordOutput("IK/Branch", branch);
+                    if (Robot.ROBOT_TYPE != RobotType.REAL)
+                      Logger.recordOutput(
+                          "IK/Extension Check",
+                          manipulatorPose,
+                          manipulatorPose.transformBy(
+                              new Transform3d(
+                                  Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
                     return branch.getTranslation().getDistance(manipulatorPose.getTranslation())
                             < Units.inchesToMeters(1.5)
                         || branch
@@ -681,12 +684,8 @@ public class Robot extends LoggedRobot {
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
-                                    && elevator.isNearExtension(
-                                        algaeIntakeTarget == AlgaeIntakeTarget.HIGH
-                                            ? ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION
-                                            : ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION)
-                                    && shoulder.isNearAngle(
-                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)),
+                                    && elevator.isNearTarget()
+                                    && shoulder.isNearTarget()),
                     AutoAim.approachAlgae(
                         swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))

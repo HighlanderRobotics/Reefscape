@@ -164,6 +164,10 @@ public class ElevatorSubsystem extends SubsystemBase {
     return setpoint;
   }
 
+  public boolean isNearTarget() {
+    return isNearExtension(setpoint);
+  }
+
   public boolean isNearExtension(double expected) {
     return MathUtil.isNear(expected, inputs.positionMeters, 0.05);
   }
