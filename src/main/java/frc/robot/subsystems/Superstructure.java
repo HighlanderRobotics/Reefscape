@@ -20,9 +20,9 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
+import frc.robot.utils.autoaim.CoralTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
-
-import java.lang.annotation.Target;
+// import frc.robot.subsystems.swerve.SwerveSubsystem;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.BooleanSupplier;
@@ -116,6 +116,7 @@ public class Superstructure {
       WristSubsystem wrist,
       FunnelSubsystem funnel,
       ClimberSubsystem climber,
+      // SwerveSubsystem swerve,
       Supplier<Pose2d> pose,
       Supplier<ChassisSpeeds> chassisVel,
       Supplier<ReefTarget> reefTarget,
@@ -685,35 +686,35 @@ public class Superstructure {
       Supplier<Rotation2d> wristAngle,
       BooleanSupplier clearanceNeeded) {
     return Commands.parallel(
-        // if target pos is on the other side do clearance stuff, if not go to target pos
-        Commands.either(
-            Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+            // if target pos is on the other side do clearance stuff, if not go to target pos
+            Commands.either(
+                Commands.parallel(
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                    elevator
+                        .hold()
+                        .until(
+                            () ->
+                                shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
+                                    && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS))),
+                Commands.parallel(
+                    shoulder.setTargetAngle(shoulderAngle), wrist.setTargetAngle(wristAngle)),
+                clearanceNeeded),
+            //  if clearance is need wait then extend, if not extend elevator
+            Commands.either(
+                Commands.waitUntil(
+                    () ->
+                        shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
+                            && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)),
                 elevator
-                    .hold()
-                    .until(
-                        () ->
-                            shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
-                                && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS))),
-            Commands.parallel(
-                shoulder.setTargetAngle(shoulderAngle), wrist.setTargetAngle(wristAngle)),
-            clearanceNeeded),
-               //  if clearance is need wait then extend, if not extend elevator
-        Commands.either(
-            Commands.waitUntil(
-                () ->
-                    shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
-                        && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)),
-            elevator
-                .setExtension(elevatorExtension)
-                .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05))
-                .andThen(
-                    Commands.parallel(
-                        shoulder.setTargetAngle(shoulderAngle),
-                        wrist.setTargetAngle(wristAngle),
-                        elevator.setExtension(elevatorExtension))),
-            clearanceNeeded));
+                    .setExtension(elevatorExtension)
+                    .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05))
+                    .andThen(
+                        Commands.parallel(
+                            shoulder.setTargetAngle(shoulderAngle),
+                            wrist.setTargetAngle(wristAngle),
+                            elevator.setExtension(elevatorExtension))),
+                clearanceNeeded));
   }
 
   public SuperState getState() {
@@ -748,9 +749,22 @@ public class Superstructure {
   }
 
   public boolean clearanceNeeded() {
-    return (shoulder.getSetpoint().getDegrees() >= 80
-        && Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT-elevator.getSetpoint()) 
-        != Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT-elevator.getExtensionMeters()));
+    return ((shoulder.getSetpoint().getDegrees() <= 80
+            && Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT - elevator.getSetpoint())
+                != Math.signum(ElevatorSubsystem.CLEARANCE_HEIGHT - elevator.getExtensionMeters()))
+        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0)
+        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0)
+        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0)
+        || clearReef(ElevatorSubsystem.L1_EXTENSION_METERS, 80.0));
+  }
+
+  public boolean clearReef(Double level, Double shoulderClearanceDegrees) {
+    return ((Stream.of(CoralTargets.values())
+            .map((t) -> t.location.minus(pose.get()).getTranslation().getNorm())
+            .anyMatch(distance -> distance > Units.inchesToMeters(100.0)))
+        && (Math.signum(level - elevator.getSetpoint())
+            != Math.signum(level - elevator.getExtensionMeters()))
+        && shoulder.getSetpoint().getDegrees() <= shoulderClearanceDegrees);
   }
 
   private Command forceState(SuperState nextState) {
