@@ -175,16 +175,16 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.IDLE)
         .whileTrue(
-            extendWithClearance(
-                    Units.inchesToMeters(5.0),
-                    ShoulderSubsystem.SHOULDER_HP_POS,
-                    WristSubsystem.WRIST_HP_POS)
-                .until(() -> elevator.isNearExtension(Units.inchesToMeters(5.0)))
-                .andThen(
+            // extendWithClearance(
+            //         Units.inchesToMeters(5.0),
+            //         ShoulderSubsystem.SHOULDER_HP_POS,
+            //         WristSubsystem.WRIST_HP_POS)
+            //     .until(() -> elevator.isNearExtension(Units.inchesToMeters(5.0)))
+            //     .andThen(
                     extendWithClearance(
                         ElevatorSubsystem.HP_EXTENSION_METERS,
                         ShoulderSubsystem.SHOULDER_HP_POS,
-                        WristSubsystem.WRIST_HP_POS)))
+                        WristSubsystem.WRIST_HP_POS))//)
         .whileTrue(manipulator.index())
         .whileTrue(
             funnel.setVoltage(
