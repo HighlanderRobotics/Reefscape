@@ -37,7 +37,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
-  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(4.0);
+  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(7.0);
   public static final double L1_WHACK_CORAL_EXTENSION_METERS = Units.inchesToMeters(24.0);
   public static final double L2_EXTENSION_METERS = Units.inchesToMeters(16.0);
   public static final double L3_EXTENSION_METERS = Units.inchesToMeters(31.5);
