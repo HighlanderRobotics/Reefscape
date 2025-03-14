@@ -41,6 +41,7 @@ public class AutoAim {
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
   public static final double VELOCITY_TOLERANCE_METERSPERSECOND = 0.5;
+  public static final double INITIAL_REEF_KEEPOFF_DISTANCE_METERS = -0.05;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     return translateToPose(swerve, target, () -> new ChassisSpeeds());
