@@ -64,7 +64,7 @@ public class ElevatorIOReal implements ElevatorIO {
     config.Slot0.kV = 1.9542;
     // converts accel -> force, force -> motor torque, motor torque -> amperage
     config.Slot0.kA = 0.26245;
-    // (483.0 / 9.37)
+    // (483.0 / 9.37)$
     //     * config.Feedback.SensorToMechanismRatio
     //     * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0));
     config.Slot0.kP = 69.925;
@@ -75,8 +75,8 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.StatorCurrentLimit = 80.0;
     // Fuck it we ball
     config.CurrentLimits.StatorCurrentLimitEnable = false;
-    config.CurrentLimits.SupplyCurrentLimit = 60.0;
-    config.CurrentLimits.SupplyCurrentLimitEnable = false;
+    config.CurrentLimits.SupplyCurrentLimit = 70.0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
     config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
     config.CurrentLimits.SupplyCurrentLowerTime = 0.0;
 

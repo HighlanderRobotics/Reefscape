@@ -136,12 +136,12 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command runCurrentZeroing() {
     return this.run(
             () -> {
-              io.setVoltage(-0.5);
+              io.setVoltage(-2.0);
               setpoint = 0.0;
               if (Robot.ROBOT_TYPE != RobotType.REAL)
                 Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> Math.abs(currentFilterValue) > 19.0)
+        .until(() -> Math.abs(currentFilterValue) > 50.0)
         .finallyDo(
             (interrupted) -> {
               if (!interrupted) {

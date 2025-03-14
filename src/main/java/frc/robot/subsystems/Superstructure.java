@@ -253,8 +253,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(
             Commands.parallel(
-                    elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs()))
-                .andThen(Commands.waitUntil(homeReq.negate()), this.forceState(SuperState.IDLE)))
+                elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs())))
         .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
         .onTrue(this.forceState(prevState));
 
