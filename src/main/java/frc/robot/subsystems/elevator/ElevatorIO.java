@@ -23,6 +23,8 @@ public interface ElevatorIO {
 
   public void setVoltage(final double voltage);
 
+  public void setCurrent(final double amps);
+
   public default void stop() {
     setVoltage(0);
   }

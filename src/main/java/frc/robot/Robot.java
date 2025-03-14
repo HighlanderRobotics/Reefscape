@@ -483,6 +483,18 @@ public class Robot extends LoggedRobot {
     autos = new Autos(swerve, manipulator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
 
+    SmartDashboard.putData(
+        "Run Elevator Sysid",
+        elevator
+            .runSysid()
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
+
+    SmartDashboard.putData(
+        "Step Elevator Current",
+        elevator
+            .setCurrent(60.0)
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
