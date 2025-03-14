@@ -246,7 +246,7 @@ public class AutoAim {
   }
 
   public static boolean isInToleranceAlgaeIntake(Pose2d pose) {
-    final var diff = pose.minus(AlgaeIntakeTargets.getClosestTarget(pose));
+    final var diff = pose.minus(AlgaeIntakeTargets.getClosestTargetPose(pose));
     return MathUtil.isNear(
             0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
         && MathUtil.isNear(

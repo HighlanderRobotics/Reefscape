@@ -115,7 +115,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -482,6 +482,18 @@ public class Robot extends LoggedRobot {
     autos = new Autos(swerve, manipulator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
 
+    SmartDashboard.putData(
+        "Run Elevator Sysid",
+        elevator
+            .runSysid()
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
+
+    SmartDashboard.putData(
+        "Step Elevator Current",
+        elevator
+            .setCurrent(60.0)
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
@@ -631,17 +643,23 @@ public class Robot extends LoggedRobot {
         .whileTrue(
             Commands.parallel(
                 Commands.sequence(
+                    Commands.runOnce(
+                        () -> {
+                          algaeIntakeTarget =
+                              AlgaeIntakeTargets.getClosestTarget(swerve.getPose()).height;
+                        }),
                     AutoAim.translateToPose(
                             swerve,
                             () ->
                                 AlgaeIntakeTargets.getOffsetLocation(
-                                    AlgaeIntakeTargets.getClosestTarget(swerve.getPose())))
+                                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())))
                         .until(
                             () ->
                                 AutoAim.isInTolerance(
                                         swerve.getPose(),
                                         AlgaeIntakeTargets.getOffsetLocation(
-                                            AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                                            AlgaeIntakeTargets.getClosestTargetPose(
+                                                swerve.getPose())),
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
@@ -652,7 +670,9 @@ public class Robot extends LoggedRobot {
                                     && shoulder.isNearAngle(
                                         ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)),
                     AutoAim.approachAlgae(
-                        swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
+                        swerve,
+                        () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                        0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
@@ -737,7 +757,7 @@ public class Robot extends LoggedRobot {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
+                                  .minus(AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()));
                           return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
