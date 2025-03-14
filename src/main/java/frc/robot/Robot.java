@@ -351,7 +351,9 @@ public class Robot extends LoggedRobot {
           new ServoIOReal(1));
 
   private final ClimberSubsystem climber =
-      new ClimberSubsystem(ROBOT_TYPE != RobotType.SIM ? new ClimberIOReal() : new ClimberIOSim());
+      new ClimberSubsystem(
+          ROBOT_TYPE != RobotType.SIM ? new ClimberIOReal() : new ClimberIOSim(),
+          new ServoIOReal(2));
 
   private final Superstructure superstructure =
       new Superstructure(
