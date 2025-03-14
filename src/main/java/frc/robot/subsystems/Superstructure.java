@@ -427,10 +427,6 @@ public class Superstructure {
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
         // .debounce(0.15)
-        .whileTrue(
-            this.extendWithClearance(
-                0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
-        .and(() -> elevator.isNearExtension(0))
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
