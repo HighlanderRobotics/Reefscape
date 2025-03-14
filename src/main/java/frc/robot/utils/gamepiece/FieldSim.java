@@ -34,10 +34,10 @@ public class FieldSim {
     updateLogging();
   }
 
-  public static void updateLogging(){
+  public static void updateLogging() {
     for (int i = 0; i < gamePieces.size(); i++) {
       GamePiece gamePiece = gamePieces.get(i);
-      
+
       Pose3d pose = gamePiece.getPose();
       System.out.println(pose);
       Logger.recordOutput("FieldSim/GamePiece" + i + "/Pose", pose);
@@ -47,17 +47,16 @@ public class FieldSim {
       Logger.recordOutput("FieldSim/Held Piece", gamePieces.get(heldPiece).getPose());
       Logger.recordOutput("FieldSim/Type", gamePieces.get(heldPiece).getType());
     }
-
   }
 
   public static void updateLogging(Pose3d manipulatorPose) {
     for (int i = 0; i < gamePieces.size(); i++) {
       GamePiece gamePiece = gamePieces.get(i);
-      if(gamePiece.isHeld()){
+      if (gamePiece.isHeld()) {
         gamePiece.setPose(manipulatorPose);
       }
       Pose3d pose = gamePiece.getPose();
-      System.out.println(pose);
+      // System.out.println(pose);
       Logger.recordOutput("FieldSim/GamePiece" + i + "/Pose", pose);
     }
     Logger.recordOutput("FieldSim/Held Piece", heldPiece);

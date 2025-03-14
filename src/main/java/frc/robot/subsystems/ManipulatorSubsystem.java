@@ -4,16 +4,14 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.filter.LinearFilter;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import frc.robot.subsystems.shoulder.ShoulderSubsystem;
-import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.beambreak.BeambreakIO;
@@ -21,6 +19,8 @@ import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.Tracer;
 import org.littletonrobotics.junction.Logger;
 
@@ -107,7 +107,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
             this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
-
   public Pose3d getPose(
       ShoulderSubsystem shoulder,
       ElevatorSubsystem elevator,
@@ -124,7 +123,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
                 + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
         new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI));
   }
-
 
   public double getStatorCurrentAmps() {
     return currentFilterValue;

@@ -16,11 +16,11 @@ import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
-import frc.robot.utils.gamepiece.FieldSim;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
+import frc.robot.utils.gamepiece.FieldSim;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.DoubleSupplier;
@@ -447,7 +447,6 @@ public class Superstructure {
                 () ->
                     FieldSim.drop(
                         manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)))
-
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
@@ -460,7 +459,6 @@ public class Superstructure {
                 () ->
                     FieldSim.drop(
                         manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)))
-  
         .onTrue(
             forceState(
                 algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH
@@ -479,8 +477,6 @@ public class Superstructure {
                 () ->
                     FieldSim.drop(
                         manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)));
-
-        
 
     stateTriggers
         .get(SuperState.CHECK_ALGAE)
@@ -520,7 +516,7 @@ public class Superstructure {
         .onTrue(
             Commands.runOnce(
                 () ->
-                    FieldSim.drop(
+                    FieldSim.pickup(
                         manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)));
 
     stateTriggers
@@ -538,8 +534,7 @@ public class Superstructure {
             Commands.runOnce(
                 () ->
                     FieldSim.pickup(
-                        manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)))
-      ;
+                        manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
@@ -556,8 +551,7 @@ public class Superstructure {
             Commands.runOnce(
                 () ->
                     FieldSim.pickup(
-                        manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)))
-      ;
+                        manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_STACK)
@@ -586,12 +580,6 @@ public class Superstructure {
         .or(stateTriggers.get(SuperState.INTAKE_ALGAE_HIGH))
         .or(stateTriggers.get(SuperState.INTAKE_ALGAE_STACK))
         .and(intakeAlgaeReq.negate())
-        .onTrue(
-            Commands.runOnce(
-                () ->
-                    FieldSim.pickup(
-                        manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)))
-      
         .onTrue(this.forceState(SuperState.CHECK_ALGAE));
 
     stateTriggers
@@ -623,8 +611,20 @@ public class Superstructure {
                         > 0.3
                     || (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
                         || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK))
-        
-        .onTrue(this.forceState(SuperState.READY_ALGAE));
+        .onTrue(
+            Commands.run(
+                () -> {
+                  if (Robot.ROBOT_TYPE == RobotType.REAL) {
+                    System.out.println("real");
+                    this.forceState(SuperState.READY_ALGAE);
+                  } else if (manipulator.hasAlgae()) {
+                    System.out.println("sim");
+                    this.forceState(SuperState.READY_ALGAE);
+                  } else {
+                    System.out.println("none");
+                    this.forceState(SuperState.IDLE);
+                  }
+                }));
 
     // READY_ALGAE logic
     stateTriggers
@@ -713,7 +713,6 @@ public class Superstructure {
                 () ->
                     FieldSim.drop(
                         manipulator.getPose(shoulder, elevator, wrist, pose.get()), manipulator)))
- 
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
