@@ -186,3 +186,5 @@ compile_commands.json
 
 # Generated
 BuildConstants.java
+
+.factorypath

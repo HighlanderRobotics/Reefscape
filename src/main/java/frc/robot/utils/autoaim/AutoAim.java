@@ -32,6 +32,9 @@ public class AutoAim {
   public static double BLUE_NET_X = 8.08;
   public static double RED_NET_X = ChoreoAllianceFlipUtil.flipX(BLUE_NET_X);
 
+  public static Pose2d BLUE_PROCESSOR_POS = new Pose2d(5.973, 0, Rotation2d.fromDegrees(270));
+  public static Pose2d RED_PROCESSOR_POS = ChoreoAllianceFlipUtil.flip(BLUE_PROCESSOR_POS);
+
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
   public static final double VELOCITY_TOLERANCE_METERSPERSECOND = 0.5;
@@ -225,7 +228,7 @@ public class AutoAim {
   }
 
   public static boolean isInToleranceAlgaeIntake(Pose2d pose) {
-    final var diff = pose.minus(AlgaeIntakeTargets.getClosestTarget(pose));
+    final var diff = pose.minus(AlgaeIntakeTargets.getClosestTargetPose(pose));
     return MathUtil.isNear(
             0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
         && MathUtil.isNear(

@@ -25,19 +25,13 @@ import java.io.File;
  * same gear ratios Subclass this to make constants for a specific robot.
  */
 public abstract class SwerveConstants {
-  private static boolean instantiated = false;
-  private static final Alert multipleInstancesAlert =
+  protected static final Alert multipleInstancesAlert =
       new Alert("Multiple Swerve Constants Files", AlertType.kError);
   private static final Alert tagLoadFailureAlert =
       new Alert("Failed to load custom tag map", AlertType.kWarning);
   protected AprilTagFieldLayout fieldTags;
 
   public SwerveConstants() {
-    if (instantiated) {
-      multipleInstancesAlert.set(true);
-    }
-    instantiated = true;
-
     try {
       fieldTags =
           new AprilTagFieldLayout(

@@ -24,6 +24,16 @@ import edu.wpi.first.units.measure.Mass;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class KelpieSwerveConstants extends SwerveConstants {
+  private static boolean instantiated = false;
+
+  public KelpieSwerveConstants() {
+    super();
+    if (instantiated) {
+      SwerveConstants.multipleInstancesAlert.set(true);
+    }
+    instantiated = true;
+  }
+
   @Override
   public double getMaxLinearSpeed() {
     // From https://www.swervedrivespecialties.com/products/mk4n-swerve-module, L2+ with KrakenX60
@@ -181,10 +191,16 @@ public class KelpieSwerveConstants extends SwerveConstants {
     final Matrix<N8, N1> BACK_RIGHT_DIST_COEFFS =
         MatBuilder.fill(
             Nat.N8(), Nat.N1(), 0.058, -0.09, 0.006, -0.003, 0.022, -0.002, 0.004, -0.001);
-    final Matrix<N3, N3> FRONT_CAMERA_MATRIX =
+    final Matrix<N3, N3> FRONT_RIGHT_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(), Nat.N3(), 911.67, 0.0, 663.03, 0.0, 909.82, 408.72, 0.0, 0.0, 1.0);
-    final Matrix<N8, N1> FRONT_DIST_COEFFS =
+    final Matrix<N8, N1> FRONT_RIGHT_DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(), Nat.N1(), 0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
+    final Matrix<N3, N3> FRONT_LEFT_CAMERA_MATRIX =
+        MatBuilder.fill(
+            Nat.N3(), Nat.N3(), 911.67, 0.0, 663.03, 0.0, 909.82, 408.72, 0.0, 0.0, 1.0);
+    final Matrix<N8, N1> FRONT_LEFT_DIST_COEFFS =
         MatBuilder.fill(
             Nat.N8(), Nat.N1(), 0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
     final VisionConstants backLeftCamConstants =
@@ -197,7 +213,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
                     Units.inchesToMeters(9.052)),
                 new Rotation3d(
                     Units.degreesToRadians(0.0),
-                    Units.degreesToRadians(-28.125),
+                    Units.degreesToRadians(-(90.0 - 61.875)),
                     Units.degreesToRadians(150))),
             BACK_LEFT_CAMERA_MATRIX,
             BACK_LEFT_DIST_COEFFS);
@@ -209,21 +225,35 @@ public class KelpieSwerveConstants extends SwerveConstants {
                     Units.inchesToMeters(-11.600),
                     Units.inchesToMeters(-11.400488),
                     Units.inchesToMeters(9.052)),
-                new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
+                new Rotation3d(
+                    0, Units.degreesToRadians(-(90.0 - 61.875)), Units.degreesToRadians(210))),
             BACK_RIGHT_CAMERA_MATRIX,
             BACK_RIGHT_DIST_COEFFS);
-    final VisionConstants frontCamConstants =
+    final VisionConstants frontRightCamConstants =
         new VisionConstants(
-            "Front_Camera",
+            "Front_Right_Camera",
             new Transform3d(
                 new Translation3d(
                     Units.inchesToMeters(6.664129),
                     Units.inchesToMeters(-12.320709),
                     Units.inchesToMeters(8.885504)),
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(30))),
-            FRONT_CAMERA_MATRIX,
-            FRONT_DIST_COEFFS);
-    return new VisionConstants[] {frontCamConstants};
+            FRONT_RIGHT_CAMERA_MATRIX,
+            FRONT_RIGHT_DIST_COEFFS);
+    final VisionConstants frontLeftCamConstants =
+        new VisionConstants(
+            "Front_Left_Camera",
+            new Transform3d(
+                new Translation3d(
+                    Units.inchesToMeters(6.664129),
+                    Units.inchesToMeters(12.320709),
+                    Units.inchesToMeters(8.885504)),
+                new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(-30))),
+            FRONT_LEFT_CAMERA_MATRIX,
+            FRONT_LEFT_DIST_COEFFS);
+    return new VisionConstants[] {
+      backLeftCamConstants, backRightCamConstants, frontRightCamConstants, frontLeftCamConstants
+    };
   }
 
   @Override

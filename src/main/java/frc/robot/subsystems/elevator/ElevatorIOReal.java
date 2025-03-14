@@ -8,7 +8,8 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.MotionMagicExpoTorqueCurrentFOC;
+import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -27,8 +28,9 @@ public class ElevatorIOReal implements ElevatorIO {
   private final TalonFX follower = new TalonFX(17, "*");
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
-  private final MotionMagicVoltage positionVoltage =
-      new MotionMagicVoltage(0.0).withEnableFOC(true);
+  private final TorqueCurrentFOC torque = new TorqueCurrentFOC(0.0);
+  private final MotionMagicExpoTorqueCurrentFOC positionTorque =
+      new MotionMagicExpoTorqueCurrentFOC(0.0);
 
   // misusing type system here - these correspond to linear meters, NOT rotations
   private final StatusSignal<Angle> position = motor.getPosition();
@@ -45,32 +47,50 @@ public class ElevatorIOReal implements ElevatorIO {
 
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-    config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-    config.Slot0.kG = 0.4;
-    config.Slot0.kS = 0.15;
-    config.Slot0.kV = 4.2;
-    config.Slot0.kA = 0.0;
-    config.Slot0.kP = 100.0;
-    config.Slot0.kD = 10.0;
-
-    config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.1;
-
-    // TODO increase once validated
-    config.CurrentLimits.StatorCurrentLimit = 80.0;
-    config.CurrentLimits.StatorCurrentLimitEnable = true;
-    config.CurrentLimits.SupplyCurrentLimit = 40.0;
-    config.CurrentLimits.SupplyCurrentLimitEnable = true;
-
-    config.MotionMagic.MotionMagicAcceleration = 8.0;
-    // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity = 4.0;
-
     // Carriage position meters in direction of elevator
     config.Feedback.SensorToMechanismRatio =
         ElevatorSubsystem.GEAR_RATIO / (2 * Math.PI * ElevatorSubsystem.DRUM_RADIUS_METERS);
 
+    // Carriage mass is 12lbs
+    // Manipulator is 5lbs
+    // First stage is ~4lbs
+    // 16lbs counterspringing from stage 1 to carriage
+    // (ie 16lbs of force pulling carriage up)
+    config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
+    config.Slot0.kG =
+        (483.0 / 9.37)
+            * config.Feedback.SensorToMechanismRatio
+            * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0) - 16);
+    config.Slot0.kS = 0.0;
+    config.Slot0.kV = 0.0;
+    // converts accel -> force, force -> motor torque, motor torque -> amperage
+    config.Slot0.kA =
+        (483.0 / 9.37)
+            * config.Feedback.SensorToMechanismRatio
+            * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0));
+    config.Slot0.kP = 0.0;
+    config.Slot0.kD = 0.0;
+
+    config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.1;
+
+    config.CurrentLimits.StatorCurrentLimit = 80.0;
+    // Fuck it we ball
+    config.CurrentLimits.StatorCurrentLimitEnable = false;
+    config.CurrentLimits.SupplyCurrentLimit = 60.0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
+    config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
+    config.CurrentLimits.SupplyCurrentLowerTime = 0.0;
+
+    config.MotionMagic.MotionMagicAcceleration = 8.0;
+    // Estimated from slightly less than motor free speed
+    config.MotionMagic.MotionMagicCruiseVelocity =
+        (5500.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
+
+    config.MotionMagic.MotionMagicExpo_kV =
+        (5800.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
+    config.MotionMagic.MotionMagicExpo_kA = 0.06; // from recalc
+
     motor.getConfigurator().apply(config);
-    motor.setPosition(Units.inchesToMeters(0.0)); // Assume we boot nearly 0ed
     follower.getConfigurator().apply(config);
     follower.setControl(new Follower(motor.getDeviceID(), true));
 
@@ -93,12 +113,17 @@ public class ElevatorIOReal implements ElevatorIO {
 
   @Override
   public void setTarget(final double meters) {
-    motor.setControl(positionVoltage.withPosition(meters));
+    motor.setControl(positionTorque.withPosition(meters));
   }
 
   @Override
   public void setVoltage(final double voltage) {
     motor.setControl(voltageOut.withOutput(voltage));
+  }
+
+  @Override
+  public void setCurrent(final double amps) {
+    motor.setControl(torque.withOutput(amps));
   }
 
   @Override

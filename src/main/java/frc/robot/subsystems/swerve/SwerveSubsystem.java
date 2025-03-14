@@ -331,7 +331,11 @@ public class SwerveSubsystem extends SubsystemBase {
                     camera.inputs.captureTimestampMicros / 1.0e6,
                     deviations
                         .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
-                        .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5));
+                        .times(
+                            camera.getName().equals("Front_Left_Camera")
+                                    || camera.getName().equals("Front_Right_Camera")
+                                ? 1.0
+                                : 1.5));
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
