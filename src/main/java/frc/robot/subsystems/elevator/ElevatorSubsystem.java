@@ -90,8 +90,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     currentSysid =
         new SysIdRoutine(
             new Config(
-                Volts.of(10.0).per(Second),
-                Volts.of(30.0),
+                Volts.of(30.0).per(Second),
+                Volts.of(120.0),
                 null,
                 (state) -> Logger.recordOutput("Elevator/SysIdTestStateCurrent", state.toString())),
             new Mechanism((volts) -> io.setCurrent(volts.in(Volts)), null, this));
@@ -136,12 +136,12 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command runCurrentZeroing() {
     return this.run(
             () -> {
-              io.setVoltage(-0.5);
+              io.setVoltage(-2.0);
               setpoint = 0.0;
               if (Robot.ROBOT_TYPE != RobotType.REAL)
                 Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> Math.abs(currentFilterValue) > 19.0)
+        .until(() -> Math.abs(currentFilterValue) > 50.0)
         .finallyDo(
             (interrupted) -> {
               if (!interrupted) {
@@ -161,7 +161,7 @@ public class ElevatorSubsystem extends SubsystemBase {
                 Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
                 routine
                     .quasistatic(SysIdRoutine.Direction.kReverse)
-                    .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)),
+                    .until(() -> inputs.positionMeters < Units.inchesToMeters(10.0)),
                 Commands.waitUntil(() -> Math.abs(inputs.velocityMetersPerSec) < 0.1),
                 routine
                     .dynamic(SysIdRoutine.Direction.kForward)
@@ -169,7 +169,7 @@ public class ElevatorSubsystem extends SubsystemBase {
                 Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
                 routine
                     .dynamic(SysIdRoutine.Direction.kReverse)
-                    .until(() -> inputs.positionMeters < Units.inchesToMeters(5.0)));
+                    .until(() -> inputs.positionMeters < Units.inchesToMeters(10.0)));
     return Commands.sequence(
         runCurrentZeroing(), runSysid.apply(voltageSysid), runSysid.apply(currentSysid));
   }
@@ -183,6 +183,13 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command setVoltage(DoubleSupplier voltage) {
     return this.setVoltage(voltage.getAsDouble());
+  }
+
+  public Command setCurrent(double amps) {
+    return this.run(
+        () -> {
+          io.setCurrent(amps);
+        });
   }
 
   public Pose3d getCarriagePose() {

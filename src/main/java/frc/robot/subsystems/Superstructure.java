@@ -195,7 +195,7 @@ public class Superstructure {
                                         .min(Double::compare)
                                         .get()
                                     < 1.0)
-                            ? 12.0
+                            ? 4.0
                             : 0.0)))
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
@@ -253,8 +253,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(
             Commands.parallel(
-                    elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs()))
-                .andThen(Commands.waitUntil(homeReq.negate()), this.forceState(SuperState.IDLE)))
+                elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs())))
         .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
         .onTrue(this.forceState(prevState));
 
