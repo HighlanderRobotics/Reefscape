@@ -176,7 +176,7 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private static ReefTarget currentTarget = ReefTarget.L1;
+  private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
