@@ -31,7 +31,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 /** Cascading elevator */
 public class ElevatorSubsystem extends SubsystemBase {
   // Constants
-  public static final double GEAR_RATIO = 2.0 / 1.0;
+  public static final double GEAR_RATIO = 2.5 / 1.0;
   public static final double DRUM_RADIUS_METERS = Units.inchesToMeters(1.751 / 2.0);
   public static final Rotation2d ELEVATOR_ANGLE = Rotation2d.fromDegrees(90.0);
 
@@ -90,8 +90,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     currentSysid =
         new SysIdRoutine(
             new Config(
-                Volts.of(20.0).per(Second),
-                Volts.of(60.0),
+                Volts.of(30.0).per(Second),
+                Volts.of(120.0),
                 null,
                 (state) -> Logger.recordOutput("Elevator/SysIdTestStateCurrent", state.toString())),
             new Mechanism((volts) -> io.setCurrent(volts.in(Volts)), null, this));

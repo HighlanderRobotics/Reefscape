@@ -8,7 +8,7 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.MotionMagicExpoVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -28,7 +28,8 @@ public class ElevatorIOReal implements ElevatorIO {
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
   private final TorqueCurrentFOC torque = new TorqueCurrentFOC(0.0);
-  private final MotionMagicVoltage positionTorque = new MotionMagicVoltage(0.0).withEnableFOC(true);
+  private final MotionMagicExpoVoltage positionTorque =
+      new MotionMagicExpoVoltage(0.0).withEnableFOC(true);
 
   // misusing type system here - these correspond to linear meters, NOT rotations
   private final StatusSignal<Angle> position = motor.getPosition();
@@ -55,19 +56,19 @@ public class ElevatorIOReal implements ElevatorIO {
     // 16lbs counterspringing from stage 1 to carriage
     // (ie 16lbs of force pulling carriage up)
     config.Slot0.GravityType = GravityTypeValue.Elevator_Static;
-    config.Slot0.kG = 0.6;
+    config.Slot0.kG = 0.43832;
     // (483.0 / 9.37)
     //     * config.Feedback.SensorToMechanismRatio
     //     * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0) - 16);
-    config.Slot0.kS = 1.25;
-    config.Slot0.kV = 2.5;
+    config.Slot0.kS = 1.1062;
+    config.Slot0.kV = 1.9542;
     // converts accel -> force, force -> motor torque, motor torque -> amperage
-    config.Slot0.kA = 0;
+    config.Slot0.kA = 0.26245;
     // (483.0 / 9.37)
     //     * config.Feedback.SensorToMechanismRatio
     //     * Units.lbsToKilograms(12 + 5 + (4.0 / 2.0));
-    config.Slot0.kP = 100.0;
-    config.Slot0.kD = 0.0;
+    config.Slot0.kP = 69.925;
+    config.Slot0.kD = 5.5908;
 
     config.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 0.1;
 
@@ -79,14 +80,13 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
     config.CurrentLimits.SupplyCurrentLowerTime = 0.0;
 
-    config.MotionMagic.MotionMagicAcceleration = 24.0;
+    config.MotionMagic.MotionMagicAcceleration = 8.0;
     // Estimated from slightly less than motor free speed
     config.MotionMagic.MotionMagicCruiseVelocity =
         (5500.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
 
-    config.MotionMagic.MotionMagicExpo_kV =
-        (5800.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
-    config.MotionMagic.MotionMagicExpo_kA = 0.06; // from recalc
+    config.MotionMagic.MotionMagicExpo_kV = 1.9542;
+    config.MotionMagic.MotionMagicExpo_kA = 0.26245;
 
     motor.getConfigurator().apply(config);
     follower.getConfigurator().apply(config);
