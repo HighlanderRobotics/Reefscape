@@ -252,7 +252,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
             FRONT_LEFT_CAMERA_MATRIX,
             FRONT_LEFT_DIST_COEFFS);
     return new VisionConstants[] {
-      backLeftCamConstants, backRightCamConstants, frontRightCamConstants, frontLeftCamConstants
+      backLeftCamConstants, frontRightCamConstants, frontLeftCamConstants
     };
   }
 

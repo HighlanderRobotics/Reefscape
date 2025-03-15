@@ -330,12 +330,15 @@ public class SwerveSubsystem extends SubsystemBase {
                     camera.inputs.captureTimestampMicros / 1.0e6,
                     deviations
                         .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
-                        .times(camera.getName().equals("Front_Left_Camera")
-                        || camera.getName().equals("Front_Right_Camera") ? 1.0 : 1.5)
+                        .times(
+                            camera.getName().equals("Front_Left_Camera")
+                                    || camera.getName().equals("Front_Right_Camera")
+                                ? 1.0
+                                : 1.5)
                         // reef positions
-                        .times((
-                          camera.getName().equals("Front_Left_Camera")
-                          || camera.getName().equals("Front_Right_Camera"))
+                        .times(
+                            (camera.getName().equals("Front_Left_Camera")
+                                        || camera.getName().equals("Front_Right_Camera"))
                                     && (Robot.state.get().toString().startsWith("PRE_L")
                                         || Robot.state.get() == SuperState.SCORE_CORAL
                                         || Robot.state.get() == SuperState.INTAKE_ALGAE_HIGH

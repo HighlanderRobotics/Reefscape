@@ -373,16 +373,23 @@ public class Robot extends LoggedRobot {
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore)
               .or(
-                  () ->
-                      AutoAim.isInToleranceCoral(swerve.getPose())
-                          && MathUtil.isNear(
-                              0,
-                              Math.hypot(
-                                  swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                                  swerve.getVelocityRobotRelative().vyMetersPerSecond),
-                              AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-                          && MathUtil.isNear(
-                              0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0)),
+                  new Trigger(
+                          () ->
+                              AutoAim.isInToleranceCoral(
+                                      swerve.getPose(),
+                                      Units.inchesToMeters(1.0),
+                                      Units.degreesToRadians(1.0))
+                                  && MathUtil.isNear(
+                                      0,
+                                      Math.hypot(
+                                          swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                          swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                      AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                                  && MathUtil.isNear(
+                                      0.0,
+                                      swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+                                      3.0))
+                      .debounce(0.08)),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver

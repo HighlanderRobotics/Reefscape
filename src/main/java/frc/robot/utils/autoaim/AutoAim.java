@@ -245,6 +245,12 @@ public class AutoAim {
             0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
   }
 
+  public static boolean isInToleranceCoral(Pose2d pose, double translationTol, double rotationTol) {
+    final var diff = pose.minus(CoralTargets.getClosestTarget(pose));
+    return MathUtil.isNear(0.0, Math.hypot(diff.getX(), diff.getY()), translationTol)
+        && MathUtil.isNear(0.0, diff.getRotation().getRadians(), rotationTol);
+  }
+
   public static boolean isInToleranceAlgaeIntake(Pose2d pose) {
     final var diff = pose.minus(AlgaeIntakeTargets.getClosestTargetPose(pose));
     return MathUtil.isNear(
