@@ -3,6 +3,7 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -173,9 +174,11 @@ public class Superstructure {
   private void configureStateTransitionCommands() {
     stateTriggers
         .get(SuperState.IDLE)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_HP_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_HP_POS))
+        .whileTrue(
+            extendWithClearance(
+                ElevatorSubsystem.HP_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_HP_POS,
+                WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.index())
         .whileTrue(
             funnel.setVoltage(
@@ -193,7 +196,7 @@ public class Superstructure {
                                         .min(Double::compare)
                                         .get()
                                     < 1.0)
-                            ? 12.0
+                            ? 4.0
                             : 0.0)))
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
@@ -251,8 +254,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(
             Commands.parallel(
-                    elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs()))
-                .andThen(Commands.waitUntil(homeReq.negate()), this.forceState(SuperState.IDLE)))
+                elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs())))
         .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
         .onTrue(this.forceState(prevState));
 
@@ -423,18 +425,20 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
         // .debounce(0.15)
-        .whileTrue(
-            this.extendWithClearance(
-                0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
-        .and(() -> elevator.isNearExtension(0))
-        .onTrue(this.forceState(SuperState.IDLE));
+        .onTrue(forceState(SuperState.IDLE));
 
-    antiJamReq
-        .and(stateTriggers.get(SuperState.CLIMB).negate())
-        .and(stateTriggers.get(SuperState.PRE_CLIMB).negate())
-        .onTrue(forceState(SuperState.ANTI_JAM))
-        .onFalse(forceState(SuperState.IDLE));
+    stateTriggers
+        .get(SuperState.SCORE_CORAL)
+        .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .and(intakeAlgaeReq)
+        .and(() -> intakeTargetOnReef())
+        .onTrue(
+            forceState(
+                algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH
+                    ? SuperState.INTAKE_ALGAE_HIGH
+                    : SuperState.INTAKE_ALGAE_LOW));
 
     // ANTI_JAM logic
     stateTriggers
@@ -446,7 +450,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.CHECK_ALGAE)
         .and(() -> stateTimer.hasElapsed(1.0))
-        .and(() -> manipulator.getStatorCurrentAmps() <= 20.0)
+        .and(() -> manipulator.getStatorCurrentAmps() <= 20.0 && Robot.ROBOT_TYPE != RobotType.SIM)
         .onTrue(this.forceState(SuperState.IDLE));
 
     // change intake target
@@ -474,9 +478,13 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(
             Commands.waitUntil(
+                    () -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
+                .andThen(
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS)))
+        .whileTrue(
+            Commands.waitUntil(
                     () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
-                .andThen(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE)))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS));
+                .andThen(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE)));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
@@ -544,10 +552,10 @@ public class Superstructure {
                         ? WristSubsystem.WRIST_RETRACTED_POS
                         : WristSubsystem.WRIST_INTAKE_ALGAE_REEF_RETRACT_POS))
         .and(() -> stateTimer.hasElapsed(1.0))
-        .and(() -> manipulator.getStatorCurrentAmps() > 20.0)
+        .and(() -> manipulator.getStatorCurrentAmps() > 20.0 || Robot.ROBOT_TYPE == RobotType.SIM)
         .and(
             () ->
-                AlgaeIntakeTargets.getClosestTarget(pose.get())
+                AlgaeIntakeTargets.getClosestTargetPose(pose.get())
                             .getTranslation()
                             .minus(pose.get().getTranslation())
                             .getNorm()
@@ -584,7 +592,7 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.READY_ALGAE)
-        .and(() -> manipulator.getStatorCurrentAmps() < 20.0)
+        .and(() -> manipulator.getStatorCurrentAmps() < 20.0 && Robot.ROBOT_TYPE != RobotType.SIM)
         .onTrue(forceState(SuperState.CHECK_ALGAE));
     // SPIT_ALGAE -> PRE_CLIMB
     stateTriggers
@@ -612,9 +620,11 @@ public class Superstructure {
         .whileTrue(manipulator.setVoltage(2 * ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
         .whileTrue(
             Commands.parallel(
-                elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION),
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
-                wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
+                elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
+                Commands.waitUntil(() -> elevator.getExtensionMeters() > Units.inchesToMeters(12.0))
+                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS)),
+                Commands.waitUntil(() -> elevator.getExtensionMeters() > Units.inchesToMeters(12.0))
+                    .andThen(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
@@ -629,10 +639,6 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> stateTimer.hasElapsed(1))
-        .whileTrue(
-            this.extendWithClearance(
-                0.0, ShoulderSubsystem.SHOULDER_HP_POS, WristSubsystem.WRIST_HP_POS))
-        .and(() -> elevator.isNearExtension(0))
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
@@ -719,6 +725,11 @@ public class Superstructure {
         || this.state == SuperState.PRE_PROCESSOR
         || this.state == SuperState.SCORE_ALGAE_NET
         || this.state == SuperState.SCORE_ALGAE_PROCESSOR;
+  }
+
+  public boolean intakeTargetOnReef() {
+    return this.algaeIntakeTarget.get() == AlgaeIntakeTarget.HIGH
+        || this.algaeIntakeTarget.get() == AlgaeIntakeTarget.LOW;
   }
 
   private Command forceState(SuperState nextState) {

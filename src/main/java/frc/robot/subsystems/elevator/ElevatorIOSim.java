@@ -57,9 +57,24 @@ public class ElevatorIOSim implements ElevatorIO {
   }
 
   @Override
+  public void setTarget(double meters, double maxAccel) {
+    pid.setConstraints(new Constraints(5.0, maxAccel));
+    setTarget(meters);
+  }
+
+  @Override
   public void setVoltage(final double voltage) {
     volts = voltage;
     physicsSim.setInputVoltage(MathUtil.clamp(voltage, -12.0, 12.0));
+  }
+
+  @Override
+  public void setCurrent(double amps) {
+    setVoltage(
+        DCMotor.getKrakenX60Foc(2)
+            .getVoltage(
+                amps,
+                physicsSim.getVelocityMetersPerSecond() / ElevatorSubsystem.DRUM_RADIUS_METERS));
   }
 
   @Override

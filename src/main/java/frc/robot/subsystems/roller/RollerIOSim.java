@@ -66,8 +66,7 @@ public class RollerIOSim implements RollerIO {
 
   @Override
   public void setPosition(Rotation2d rot) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'setPosition'");
+    // TODO Actually simulate
   }
 
   @Override

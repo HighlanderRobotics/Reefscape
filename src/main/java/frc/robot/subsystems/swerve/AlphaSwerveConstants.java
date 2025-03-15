@@ -24,6 +24,16 @@ import edu.wpi.first.units.measure.Mass;
 import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class AlphaSwerveConstants extends SwerveConstants {
+  private static boolean instantiated = false;
+
+  public AlphaSwerveConstants() {
+    super();
+    if (instantiated) {
+      SwerveConstants.multipleInstancesAlert.set(true);
+    }
+    instantiated = true;
+  }
+
   @Override
   public double getMaxLinearSpeed() {
     // motor speed (RPM) / gear ratio * pi * wheel diameter (inches) / 12 / 60

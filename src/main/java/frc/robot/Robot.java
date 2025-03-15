@@ -10,6 +10,8 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.CANBus.CANBusStatus;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.FeedbackConfigs;
@@ -70,6 +72,7 @@ import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
+import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
@@ -154,7 +157,7 @@ public class Robot extends LoggedRobot {
 
     private ReefTarget(double elevatorHeight, Rotation2d wristAngle, Rotation2d shoulderAngle) {
       this.elevatorHeight = elevatorHeight;
-      this.outtakeSpeed = 100.0;
+      this.outtakeSpeed = 15.0;
       this.wristAngle = wristAngle;
       this.shoulderAngle = shoulderAngle;
     }
@@ -177,6 +180,10 @@ public class Robot extends LoggedRobot {
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
+
+  private static CANBus canivore = new CANBus("*");
+
+  private static CANBusStatus canivoreStatus = canivore.getStatus();
 
   private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
   private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
@@ -457,6 +464,7 @@ public class Robot extends LoggedRobot {
     // be added.
     swerve.startOdoThread();
     SignalLogger.setPath("/media/sda1/");
+    Logger.recordOutput("Canivore Status", canivoreStatus.Status);
 
     if (ROBOT_TYPE == RobotType.SIM) {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
@@ -474,6 +482,18 @@ public class Robot extends LoggedRobot {
 
     autos = new Autos(swerve, manipulator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
+
+    SmartDashboard.putData(
+        "Run Elevator Sysid",
+        elevator
+            .runSysid()
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
+
+    SmartDashboard.putData(
+        "Step Elevator Current",
+        elevator
+            .setCurrent(60.0)
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
@@ -596,7 +616,7 @@ public class Robot extends LoggedRobot {
         .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
-                AutoAim.translateToPose(
+                AutoAim.autoAimWithIntermediatePose(
                     swerve,
                     () -> {
                       var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
@@ -607,7 +627,10 @@ public class Robot extends LoggedRobot {
                                   new Transform2d(
                                       twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
                           driver.leftBumper().getAsBoolean());
-                    }),
+                    },
+                    // Keeps the robot off the reef wall until it's aligned side-side
+                    new Transform2d(
+                        AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
@@ -617,21 +640,28 @@ public class Robot extends LoggedRobot {
             () ->
                 superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
                     || superstructure.getState() == SuperState.INTAKE_ALGAE_LOW
+                    || superstructure.getState() == SuperState.INTAKE_ALGAE_STACK
                     || superstructure.getState() == SuperState.IDLE)
         .whileTrue(
             Commands.parallel(
                 Commands.sequence(
+                    Commands.runOnce(
+                        () -> {
+                          algaeIntakeTarget =
+                              AlgaeIntakeTargets.getClosestTarget(swerve.getPose()).height;
+                        }),
                     AutoAim.translateToPose(
                             swerve,
                             () ->
                                 AlgaeIntakeTargets.getOffsetLocation(
-                                    AlgaeIntakeTargets.getClosestTarget(swerve.getPose())))
+                                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())))
                         .until(
                             () ->
                                 AutoAim.isInTolerance(
                                         swerve.getPose(),
                                         AlgaeIntakeTargets.getOffsetLocation(
-                                            AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                                            AlgaeIntakeTargets.getClosestTargetPose(
+                                                swerve.getPose())),
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
@@ -642,7 +672,9 @@ public class Robot extends LoggedRobot {
                                     && shoulder.isNearAngle(
                                         ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)),
                     AutoAim.approachAlgae(
-                        swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
+                        swerve,
+                        () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                        0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
@@ -667,11 +699,62 @@ public class Robot extends LoggedRobot {
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
+                    || superstructure.getState() == SuperState.PRE_PROCESSOR)
+        .and(() -> algaeScoreTarget == AlgaeScoreTarget.PROCESSOR)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.autoAimWithIntermediatePose(
+                    swerve,
+                    () -> swerve.getPose().nearest(AutoAim.PROCESSOR_POSES),
+                    new Transform2d(
+                        -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2) - 0.5,
+                        0.0,
+                        Rotation2d.kZero)),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve
+                                    .getPose()
+                                    .nearest(AutoAim.PROCESSOR_POSES)
+                                    // Moves the target pose inside the field, with the bumpers
+                                    // aligned with the wall
+                                    .transformBy(
+                                        new Transform2d(
+                                            -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
+                                            0.0,
+                                            Rotation2d.kZero)),
+                                swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.PRE_CLIMB
+                    || superstructure.getState() == SuperState.CLIMB)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve, () -> CageTargets.getOffsetClosestTarget(swerve.getPose())),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                CageTargets.getOffsetClosestTarget(swerve.getPose()),
+                                swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(
+            () ->
+                superstructure.getState() == SuperState.READY_ALGAE
                     || superstructure.getState() == SuperState.PRE_NET)
+        .and(() -> algaeScoreTarget == AlgaeScoreTarget.NET)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToXCoord(
-                    // TODO: PUT ACUAL NET POSE
                     swerve,
                     () ->
                         Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
@@ -691,7 +774,7 @@ public class Robot extends LoggedRobot {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
+                                  .minus(AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()));
                           return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
@@ -701,12 +784,11 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(
-            Commands.runOnce(() -> manipulator.setSecondBeambreak(false)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
@@ -795,6 +877,12 @@ public class Robot extends LoggedRobot {
     // Log locations of all autoaim targets
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
+          "AutoAim/Targets/Cage",
+          Stream.of(CageTargets.values())
+              .map((target) -> target.getLocation())
+              .toArray(Pose2d[]::new));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
           "AutoAim/Targets/Algae",
           Stream.of(AlgaeIntakeTargets.values())
               .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
@@ -864,31 +952,30 @@ public class Robot extends LoggedRobot {
       Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Targets/Algae Score Target", algaeScoreTarget);
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "Mechanism Poses",
-          new Pose3d[] {
-            new Pose3d( // first stage
-                new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
-            // carriage
-            new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
-            new Pose3d( // arm
-                new Translation3d(
-                    ShoulderSubsystem.X_OFFSET_METERS,
-                    0,
-                    ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
-                new Rotation3d(
-                    0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
-            new Pose3d( // Manipulator
-                new Translation3d(
-                    ShoulderSubsystem.X_OFFSET_METERS
-                        + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                    0,
-                    elevator.getExtensionMeters()
-                        + ShoulderSubsystem.Z_OFFSET_METERS
-                        + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
-                new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
-          });
+    Logger.recordOutput(
+        "Mechanism Poses",
+        new Pose3d[] {
+          new Pose3d( // first stage
+              new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
+          // carriage
+          new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
+          new Pose3d( // arm
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS,
+                  0,
+                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
+              new Rotation3d(
+                  0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
+          new Pose3d( // Manipulator
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS
+                      + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                  0,
+                  elevator.getExtensionMeters()
+                      + ShoulderSubsystem.Z_OFFSET_METERS
+                      + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+              new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
+        });
 
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(

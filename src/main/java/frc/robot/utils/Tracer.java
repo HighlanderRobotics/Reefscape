@@ -2,8 +2,6 @@ package frc.robot.utils;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
-import frc.robot.Robot;
-import frc.robot.Robot.RobotType;
 import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
@@ -107,19 +105,18 @@ public class Tracer {
         // if the entry isn't found, time will null-cast to 0.0
         Double time = traceTimes.remove(entry);
         if (time == null) time = 0.0;
-        if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Tracer/" + entry, time);
+        Logger.recordOutput("Tracer/" + entry, time);
       }
       // log all new entries
       for (var traceTime : traceTimes.entrySet()) {
-        if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput("Tracer/" + traceTime.getKey(), traceTime.getValue());
+
+        Logger.recordOutput("Tracer/" + traceTime.getKey(), traceTime.getValue());
         entryArray.add(traceTime.getKey());
       }
 
       // log gc time
-      if (gcs.size() > 0)
-        if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput("Tracer/GCTime", gcTimeThisCycle);
+      if (gcs.size() > 0) Logger.recordOutput("Tracer/GCTime", gcTimeThisCycle);
+
       gcTimeThisCycle = 0.0;
 
       // clean up state
