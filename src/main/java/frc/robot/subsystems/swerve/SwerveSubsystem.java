@@ -342,26 +342,28 @@ public class SwerveSubsystem extends SubsystemBase {
                                 : 1.5) // TODO tune these sorts of numbers
                         // hp tags
                         .times(
-                            !camera.getName().equals("Front_Camera")
-                                    && estPose.get().targetsUsed.stream()
-                                        .anyMatch(
-                                            t ->
-                                                t.getFiducialId() == 12
-                                                    || t.getFiducialId() == 13
-                                                    || t.getFiducialId() == 2
-                                                    || t.getFiducialId() == 1)
+                            // !camera.getName().equals("Front_Camera")
+                            // &&
+                            estPose.get().targetsUsed.stream()
+                                    .anyMatch(
+                                        t ->
+                                            t.getFiducialId() == 12
+                                                || t.getFiducialId() == 13
+                                                || t.getFiducialId() == 2
+                                                || t.getFiducialId() == 1)
                                 ? 1.5
                                 : 1.0)
                         // barge tags
                         .times(
-                            !camera.getName().equals("Front_Camera")
-                                    && estPose.get().targetsUsed.stream()
-                                        .anyMatch(
-                                            t ->
-                                                t.getFiducialId() == 4
-                                                    || t.getFiducialId() == 5
-                                                    || t.getFiducialId() == 15
-                                                    || t.getFiducialId() == 14)
+                            // !camera.getName().equals("Front_Right_Camera")
+                            // &&
+                            estPose.get().targetsUsed.stream()
+                                    .anyMatch(
+                                        t ->
+                                            t.getFiducialId() == 4
+                                                || t.getFiducialId() == 5
+                                                || t.getFiducialId() == 15
+                                                || t.getFiducialId() == 14)
                                 ? 1.2
                                 : 1.0));
                 // the sussifier
