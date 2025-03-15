@@ -90,8 +90,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     currentSysid =
         new SysIdRoutine(
             new Config(
-                Volts.of(30.0).per(Second),
-                Volts.of(120.0),
+                Volts.of(10.0).per(Second),
+                Volts.of(60.0),
                 null,
                 (state) -> Logger.recordOutput("Elevator/SysIdTestStateCurrent", state.toString())),
             new Mechanism((volts) -> io.setCurrent(volts.in(Volts)), null, this));
