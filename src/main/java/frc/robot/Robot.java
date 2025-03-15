@@ -157,7 +157,7 @@ public class Robot extends LoggedRobot {
 
     private ReefTarget(double elevatorHeight, Rotation2d wristAngle, Rotation2d shoulderAngle) {
       this.elevatorHeight = elevatorHeight;
-      this.outtakeSpeed = 100.0;
+      this.outtakeSpeed = 15.0;
       this.wristAngle = wristAngle;
       this.shoulderAngle = shoulderAngle;
     }
