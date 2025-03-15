@@ -191,6 +191,8 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   private void updateAlgaeVision() {
+    try {
+      if (!algaeCamera.inputs.stale) {
     Logger.recordOutput(
         "Vision/Algae Result",
         new PhotonPipelineResult(
@@ -199,7 +201,13 @@ public class SwerveSubsystem extends SubsystemBase {
             algaeCamera.inputs.publishTimestampMicros,
             algaeCamera.inputs.timeSinceLastPong,
             algaeCamera.inputs.targets));
-    // TODO maybe add estimating pose of algae?
+      } else {
+        Logger.recordOutput("Vision/Algae Camera/Invalid Result", "Stale");
+      }
+    } catch (NullPointerException e) {
+      if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Vision/Algae Camera/Invalid Result", "No Targets");
+    }
   }
 
   private void updateOdometry() {
@@ -745,8 +753,6 @@ public class SwerveSubsystem extends SubsystemBase {
                   new double[4],
                   new double[4]);
           } catch (NoSuchElementException e) {
-            if (Robot.ROBOT_TYPE != RobotType.REAL)
-              Logger.recordOutput("Vision/Algae Camera", "No Targets");
           }
         });
   }
