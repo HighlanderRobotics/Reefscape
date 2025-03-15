@@ -370,7 +370,8 @@ public class Robot extends LoggedRobot {
               .negate()
               .and(() -> DriverStation.isTeleop())
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore),
+              .or(() -> Autos.autoScore)
+              .or(() -> AutoAim.isInToleranceCoral(swerve.getPose())),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver
