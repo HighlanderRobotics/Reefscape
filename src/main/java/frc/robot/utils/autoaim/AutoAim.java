@@ -6,6 +6,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -15,6 +16,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -34,13 +36,29 @@ public class AutoAim {
 
   public static Pose2d BLUE_PROCESSOR_POS = new Pose2d(5.973, 0, Rotation2d.fromDegrees(270));
   public static Pose2d RED_PROCESSOR_POS = ChoreoAllianceFlipUtil.flip(BLUE_PROCESSOR_POS);
+  public static List<Pose2d> PROCESSOR_POSES = List.of(BLUE_PROCESSOR_POS, RED_PROCESSOR_POS);
 
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
   public static final double VELOCITY_TOLERANCE_METERSPERSECOND = 0.5;
+  public static final double INITIAL_REEF_KEEPOFF_DISTANCE_METERS = -0.05;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     return translateToPose(swerve, target, () -> new ChassisSpeeds());
+  }
+
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve, Supplier<Pose2d> intermediate, Supplier<Pose2d> end) {
+    return translateToPose(swerve, intermediate)
+        .until(() -> isInTolerance(swerve.getPose(), intermediate.get()))
+        .andThen(translateToPose(swerve, end));
+  }
+
+  /** Transforms the end pose by translationToIntermediate to get the intermediate pose */
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve, Supplier<Pose2d> end, Transform2d translationToIntermediate) {
+    return autoAimWithIntermediatePose(
+        swerve, () -> end.get().transformBy(translationToIntermediate), end);
   }
 
   public static Command translateToPose(
@@ -72,8 +90,8 @@ public class AutoAim {
             () -> {
               cachedTarget[0] = target.get();
               final var diff = swerve.getPose().minus(cachedTarget[0]);
-              // if (Robot.ROBOT_TYPE != RobotType.REAL)%
-              Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
               headingController.reset(
                   swerve.getPose().getRotation().getRadians(),
                   swerve.getVelocityFieldRelative().omegaRadiansPerSecond);
@@ -228,7 +246,7 @@ public class AutoAim {
   }
 
   public static boolean isInToleranceAlgaeIntake(Pose2d pose) {
-    final var diff = pose.minus(AlgaeIntakeTargets.getClosestTarget(pose));
+    final var diff = pose.minus(AlgaeIntakeTargets.getClosestTargetPose(pose));
     return MathUtil.isNear(
             0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
         && MathUtil.isNear(

@@ -86,6 +86,11 @@ public class WristSubsystem extends SubsystemBase {
     return this.setSlowTargetAngle(() -> target);
   }
 
+  public Command hold() {
+    return Commands.sequence(
+        setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
+  }
+
   public Rotation2d getAngle() {
     return inputs.position;
   }

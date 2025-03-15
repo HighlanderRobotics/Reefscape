@@ -4,6 +4,9 @@
 
 package frc.robot.subsystems.elevator;
 
+import static edu.wpi.first.units.Units.Second;
+import static edu.wpi.first.units.Units.Volts;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -13,9 +16,13 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import java.util.function.DoubleSupplier;
+import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
 import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
@@ -24,7 +31,7 @@ import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
 /** Cascading elevator */
 public class ElevatorSubsystem extends SubsystemBase {
   // Constants
-  public static final double GEAR_RATIO = 4.5 / 1.0;
+  public static final double GEAR_RATIO = 2.5 / 1.0;
   public static final double DRUM_RADIUS_METERS = Units.inchesToMeters(1.751 / 2.0);
   public static final Rotation2d ELEVATOR_ANGLE = Rotation2d.fromDegrees(90.0);
   public static final double X_OFFSET_METERS = Units.inchesToMeters(4.0);
@@ -59,6 +66,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   private double setpoint = 0.0;
 
+  private final SysIdRoutine voltageSysid;
+  private final SysIdRoutine currentSysid;
+
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
   private final LoggedMechanismRoot2d
@@ -71,6 +81,23 @@ public class ElevatorSubsystem extends SubsystemBase {
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
+    voltageSysid =
+        new SysIdRoutine(
+            new Config(
+                null,
+                null,
+                null,
+                (state) -> Logger.recordOutput("Elevator/SysIdTestStateVolts", state.toString())),
+            new Mechanism((volts) -> io.setVoltage(volts.in(Volts)), null, this));
+
+    currentSysid =
+        new SysIdRoutine(
+            new Config(
+                Volts.of(10.0).per(Second),
+                Volts.of(60.0),
+                null,
+                (state) -> Logger.recordOutput("Elevator/SysIdTestStateCurrent", state.toString())),
+            new Mechanism((volts) -> io.setCurrent(volts.in(Volts)), null, this));
   }
 
   @Override
@@ -112,12 +139,12 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command runCurrentZeroing() {
     return this.run(
             () -> {
-              io.setVoltage(-0.5);
+              io.setVoltage(-2.0);
               setpoint = 0.0;
               if (Robot.ROBOT_TYPE != RobotType.REAL)
                 Logger.recordOutput("Elevator/Setpoint", Double.NaN);
             })
-        .until(() -> Math.abs(currentFilterValue) > 19.0)
+        .until(() -> Math.abs(currentFilterValue) > 50.0)
         .finallyDo(
             (interrupted) -> {
               if (!interrupted) {
@@ -125,6 +152,29 @@ public class ElevatorSubsystem extends SubsystemBase {
                 hasZeroed = true;
               }
             });
+  }
+
+  public Command runSysid() {
+    final Function<SysIdRoutine, Command> runSysid =
+        (routine) ->
+            Commands.sequence(
+                routine
+                    .quasistatic(SysIdRoutine.Direction.kForward)
+                    .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
+                Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
+                routine
+                    .quasistatic(SysIdRoutine.Direction.kReverse)
+                    .until(() -> inputs.positionMeters < Units.inchesToMeters(10.0)),
+                Commands.waitUntil(() -> Math.abs(inputs.velocityMetersPerSec) < 0.1),
+                routine
+                    .dynamic(SysIdRoutine.Direction.kForward)
+                    .until(() -> inputs.positionMeters > Units.inchesToMeters(50.0)),
+                Commands.waitUntil(() -> inputs.velocityMetersPerSec < 0.1),
+                routine
+                    .dynamic(SysIdRoutine.Direction.kReverse)
+                    .until(() -> inputs.positionMeters < Units.inchesToMeters(10.0)));
+    return Commands.sequence(
+        runCurrentZeroing(), runSysid.apply(voltageSysid), runSysid.apply(currentSysid));
   }
 
   public Command setVoltage(double voltage) {
@@ -136,6 +186,13 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command setVoltage(DoubleSupplier voltage) {
     return this.setVoltage(voltage.getAsDouble());
+  }
+
+  public Command setCurrent(double amps) {
+    return this.run(
+        () -> {
+          io.setCurrent(amps);
+        });
   }
 
   public Pose3d getCarriagePose() {

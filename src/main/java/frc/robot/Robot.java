@@ -78,7 +78,6 @@ import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
@@ -524,6 +523,18 @@ public class Robot extends LoggedRobot {
     autos = new Autos(swerve, manipulator);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
 
+    SmartDashboard.putData(
+        "Run Elevator Sysid",
+        elevator
+            .runSysid()
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
+
+    SmartDashboard.putData(
+        "Step Elevator Current",
+        elevator
+            .setCurrent(60.0)
+            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
@@ -645,7 +656,7 @@ public class Robot extends LoggedRobot {
         .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
-                AutoAim.translateToPose(
+                AutoAim.autoAimWithIntermediatePose(
                     swerve,
                     () -> {
                       var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
@@ -656,7 +667,10 @@ public class Robot extends LoggedRobot {
                                   new Transform2d(
                                       twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
                           driver.leftBumper().getAsBoolean());
-                    }),
+                    },
+                    // Keeps the robot off the reef wall until it's aligned side-side
+                    new Transform2d(
+                        AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
@@ -670,24 +684,32 @@ public class Robot extends LoggedRobot {
         .whileTrue(
             Commands.parallel(
                 Commands.sequence(
+                    Commands.runOnce(
+                        () -> {
+                          algaeIntakeTarget =
+                              AlgaeIntakeTargets.getClosestTarget(swerve.getPose()).height;
+                        }),
                     AutoAim.translateToPose(
                             swerve,
                             () ->
                                 AlgaeIntakeTargets.getOffsetLocation(
-                                    AlgaeIntakeTargets.getClosestTarget(swerve.getPose())))
+                                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())))
                         .until(
                             () ->
                                 AutoAim.isInTolerance(
                                         swerve.getPose(),
                                         AlgaeIntakeTargets.getOffsetLocation(
-                                            AlgaeIntakeTargets.getClosestTarget(swerve.getPose())),
+                                            AlgaeIntakeTargets.getClosestTargetPose(
+                                                swerve.getPose())),
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
                                     && elevator.isNearTarget()
                                     && shoulder.isNearTarget()),
                     AutoAim.approachAlgae(
-                        swerve, () -> AlgaeIntakeTargets.getClosestTarget(swerve.getPose()), 0.75)),
+                        swerve,
+                        () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                        0.75)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
@@ -701,62 +723,19 @@ public class Robot extends LoggedRobot {
         .and(() -> algaeScoreTarget == AlgaeScoreTarget.PROCESSOR)
         .whileTrue(
             Commands.parallel(
-                AutoAim.translateToPose(
-                        swerve,
-                        () ->
-                            swerve
-                                .getPose()
-                                .nearest(
-                                    List.of(AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
-                                // Moves the target pose inside the field, with the bumpers aligned
-                                // with
-                                // the wall
-                                .transformBy(
-                                    new Transform2d(
-                                        -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2)
-                                            - 0.5,
-                                        0.0,
-                                        Rotation2d.kZero)))
-                    .until(
-                        () ->
-                            AutoAim.isInTolerance(
-                                swerve.getPose(),
-                                swerve
-                                    .getPose()
-                                    .nearest(
-                                        List.of(
-                                            AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
-                                    .transformBy(
-                                        new Transform2d(
-                                            -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2)
-                                                - 0.5,
-                                            0.0,
-                                            Rotation2d.kZero))))
-                    .andThen(
-                        AutoAim.translateToPose(
-                            swerve,
-                            () ->
-                                swerve
-                                    .getPose()
-                                    .nearest(
-                                        List.of(
-                                            AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
-                                    // Moves the target pose inside the field, with the bumpers
-                                    // aligned with
-                                    // the wall
-                                    .transformBy(
-                                        new Transform2d(
-                                            -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2),
-                                            0.0,
-                                            Rotation2d.kZero)))),
+                AutoAim.autoAimWithIntermediatePose(
+                    swerve,
+                    () -> swerve.getPose().nearest(AutoAim.PROCESSOR_POSES),
+                    new Transform2d(
+                        -(ROBOT_HARDWARE.swerveConstants.getBumperLength() / 2) - 0.5,
+                        0.0,
+                        Rotation2d.kZero)),
                 Commands.waitUntil(
                         () ->
                             AutoAim.isInTolerance(
                                 swerve
                                     .getPose()
-                                    .nearest(
-                                        List.of(
-                                            AutoAim.BLUE_PROCESSOR_POS, AutoAim.RED_PROCESSOR_POS))
+                                    .nearest(AutoAim.PROCESSOR_POSES)
                                     // Moves the target pose inside the field, with the bumpers
                                     // aligned with the wall
                                     .transformBy(
@@ -815,7 +794,7 @@ public class Robot extends LoggedRobot {
                           final var diff =
                               swerve
                                   .getPose()
-                                  .minus(AlgaeIntakeTargets.getClosestTarget(swerve.getPose()));
+                                  .minus(AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()));
                           return MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(1.0))
                               && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 2.0);
