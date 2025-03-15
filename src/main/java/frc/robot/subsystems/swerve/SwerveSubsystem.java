@@ -12,24 +12,8 @@
 
 package frc.robot.subsystems.swerve;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.OptionalDouble;
-import java.util.function.Consumer;
-import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
-
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
-import org.photonvision.targeting.PhotonPipelineResult;
-
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-
 import choreo.trajectory.SwerveSample;
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -58,6 +42,19 @@ import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionHelper;
 import frc.robot.subsystems.vision.VisionIO;
 import frc.robot.utils.Tracer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Optional;
+import java.util.OptionalDouble;
+import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
+import org.photonvision.targeting.PhotonPipelineResult;
 
 public class SwerveSubsystem extends SubsystemBase {
   private final SwerveConstants constants;
@@ -194,16 +191,17 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   private void updateAlgaeVision() {
-    Logger.recordOutput("Vision/Algae Result",
-    new PhotonPipelineResult(
-      algaeCamera.inputs.sequenceID,
-      algaeCamera.inputs.captureTimestampMicros,
-      algaeCamera.inputs.publishTimestampMicros,
-      algaeCamera.inputs.timeSinceLastPong,
-      algaeCamera.inputs.targets));
-      //TODO maybe add estimating pose of algae?
+    Logger.recordOutput(
+        "Vision/Algae Result",
+        new PhotonPipelineResult(
+            algaeCamera.inputs.sequenceID,
+            algaeCamera.inputs.captureTimestampMicros,
+            algaeCamera.inputs.publishTimestampMicros,
+            algaeCamera.inputs.timeSinceLastPong,
+            algaeCamera.inputs.targets));
+    // TODO maybe add estimating pose of algae?
   }
-  
+
   private void updateOdometry() {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Swerve/Updates Since Last", odoThreadInputs.sampledStates.size());
@@ -328,57 +326,57 @@ public class SwerveSubsystem extends SubsystemBase {
               camera.inputs.publishTimestampMicros,
               camera.inputs.timeSinceLastPong,
               camera.inputs.targets);
-        try {
-          if (!camera.inputs.stale) {
-            var estPose = Tracer.trace("Update Camera", () -> camera.update(result));
-            var visionPose = estPose.get().estimatedPose;
-            // Sets the pose on the sim field
-            camera.setSimPose(estPose, camera, !camera.inputs.stale);
-            // if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
-            // if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput(
-                "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
-            final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
-            // if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
-            Tracer.trace(
-                "Add Measurement From " + camera.getName(),
-                () -> {
-                  estimator.addVisionMeasurement(
-                      visionPose.toPose2d(),
-                      camera.inputs.captureTimestampMicros / 1.0e6,
-                      deviations
-                          .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
-                          .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5));
-                });
-            lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
-            // if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
-            cameraPoses[i] = visionPose;
-            Tracer.trace(
-                "Log Tag Poses",
-                () -> {
-                  Pose3d[] targetPose3ds = new Pose3d[result.targets.size()];
-                  for (int j = 0; j < result.targets.size(); j++) {
-                    targetPose3ds[j] =
-                        Robot.ROBOT_HARDWARE
-                            .swerveConstants
-                            .getFieldTagLayout()
-                            .getTagPose(result.targets.get(j).getFiducialId())
-                            .get();
-                  }
-                  // if (Robot.ROBOT_TYPE != RobotType.REAL)
-                  Logger.recordOutput("Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
-                });
-  
-          } else {
-            // if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
-          }
-        } catch (NoSuchElementException e) {
+      try {
+        if (!camera.inputs.stale) {
+          var estPose = Tracer.trace("Update Camera", () -> camera.update(result));
+          var visionPose = estPose.get().estimatedPose;
+          // Sets the pose on the sim field
+          camera.setSimPose(estPose, camera, !camera.inputs.stale);
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
-          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
+          Logger.recordOutput("Vision/Vision Pose From " + camera.getName(), visionPose);
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
+          Logger.recordOutput(
+              "Vision/Vision Pose2d From " + camera.getName(), visionPose.toPose2d());
+          final var deviations = VisionHelper.findVisionMeasurementStdDevs(estPose.get());
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
+          Logger.recordOutput("Vision/" + camera.getName() + "/Deviations", deviations.getData());
+          Tracer.trace(
+              "Add Measurement From " + camera.getName(),
+              () -> {
+                estimator.addVisionMeasurement(
+                    visionPose.toPose2d(),
+                    camera.inputs.captureTimestampMicros / 1.0e6,
+                    deviations
+                        .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
+                        .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5));
+              });
+          lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
+          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
+          cameraPoses[i] = visionPose;
+          Tracer.trace(
+              "Log Tag Poses",
+              () -> {
+                Pose3d[] targetPose3ds = new Pose3d[result.targets.size()];
+                for (int j = 0; j < result.targets.size(); j++) {
+                  targetPose3ds[j] =
+                      Robot.ROBOT_HARDWARE
+                          .swerveConstants
+                          .getFieldTagLayout()
+                          .getTagPose(result.targets.get(j).getFiducialId())
+                          .get();
+                }
+                // if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("Vision/" + camera.getName() + "/Target Poses", targetPose3ds);
+              });
+
+        } else {
+          // if (Robot.ROBOT_TYPE != RobotType.REAL)
+          Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Stale");
+        }
+      } catch (NoSuchElementException e) {
+        // if (Robot.ROBOT_TYPE != RobotType.REAL)
+        Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Bad Estimate");
       }
       i++;
     }
@@ -718,22 +716,38 @@ public class SwerveSubsystem extends SubsystemBase {
 
   @SuppressWarnings("resource")
   public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
+    final PIDController yController = new PIDController(0.01, 0.0, 0.0); // TODO tune
     return this.run(
-      () -> {
-        final PIDController yController = new PIDController(0.01, 0.0, 0.0); //TODO tune
-            OptionalDouble tx = new PhotonPipelineResult(
-                  algaeCamera.inputs.sequenceID,
-                  algaeCamera.inputs.captureTimestampMicros,
-                  algaeCamera.inputs.publishTimestampMicros,
-                  algaeCamera.inputs.timeSinceLastPong,
-                  algaeCamera.inputs.targets).getBestTarget().getMinAreaRectCorners().stream().mapToDouble(c -> c.x).average(); //should never be optional?
-            drive(ChassisSpeeds.fromFieldRelativeSpeeds(
-                  new ChassisSpeeds(
-                    xVel.getAsDouble(),
-                      yVel.getAsDouble(),
-                      theta.getAsDouble()),
-                  getRotation()).plus(new ChassisSpeeds(xVel.getAsDouble(), yController.calculate(tx.getAsDouble(), 0.0), theta.getAsDouble())), false, new double[4], new double[4]);
-      }
-    );
+        () -> {
+          try {
+            OptionalDouble tx =
+                new PhotonPipelineResult(
+                        algaeCamera.inputs.sequenceID,
+                        algaeCamera.inputs.captureTimestampMicros,
+                        algaeCamera.inputs.publishTimestampMicros,
+                        algaeCamera.inputs.timeSinceLastPong,
+                        algaeCamera.inputs.targets)
+                    .getBestTarget().getMinAreaRectCorners().stream()
+                        .mapToDouble(c -> c.x)
+                        .average();
+            if (tx.isPresent())
+              drive(
+                  ChassisSpeeds.fromFieldRelativeSpeeds(
+                          new ChassisSpeeds(
+                              xVel.getAsDouble(), yVel.getAsDouble(), theta.getAsDouble()),
+                          getRotation())
+                      .plus(
+                          new ChassisSpeeds(
+                              xVel.getAsDouble(),
+                              yController.calculate(tx.getAsDouble(), 0.0),
+                              theta.getAsDouble())),
+                  false,
+                  new double[4],
+                  new double[4]);
+          } catch (NoSuchElementException e) {
+            if (Robot.ROBOT_TYPE != RobotType.REAL)
+              Logger.recordOutput("Vision/Algae Camera", "No Targets");
+          }
+        });
   }
 }

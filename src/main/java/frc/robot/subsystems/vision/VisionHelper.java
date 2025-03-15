@@ -466,5 +466,4 @@ public class VisionHelper {
     if (!Robot.isSimulation()) return null;
     return visionSim.getDebugField();
   }
-
 }

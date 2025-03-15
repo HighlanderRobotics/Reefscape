@@ -8,7 +8,6 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.MatBuilder;
 import edu.wpi.first.math.Matrix;
@@ -228,13 +227,13 @@ public class KelpieSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public VisionConstants getAlgaeVisionConstants() { //TODO calibrate
+  public VisionConstants getAlgaeVisionConstants() { // TODO calibrate
     final Matrix<N3, N3> ALGAE_CAMERA_MATRIX =
-    MatBuilder.fill(
-        Nat.N3(), Nat.N3(), 906.46, 0.0, 675.30, 0.0, 907.49, 394.45, 0.0, 0.0, 1.0);
-final Matrix<N8, N1> ALGAE_DIST_COEFFS =
-    MatBuilder.fill(
-        Nat.N8(), Nat.N1(), 0.039, -0.057, -0.005, 0.001, -0.004, -0.001, 0.003, 0.001);
+        MatBuilder.fill(
+            Nat.N3(), Nat.N3(), 906.46, 0.0, 675.30, 0.0, 907.49, 394.45, 0.0, 0.0, 1.0);
+    final Matrix<N8, N1> ALGAE_DIST_COEFFS =
+        MatBuilder.fill(
+            Nat.N8(), Nat.N1(), 0.039, -0.057, -0.005, 0.001, -0.004, -0.001, 0.003, 0.001);
     return new VisionConstants(
         "Algae_Camera",
         new Transform3d(
