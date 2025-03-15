@@ -193,20 +193,20 @@ public class SwerveSubsystem extends SubsystemBase {
   private void updateAlgaeVision() {
     try {
       if (!algaeCamera.inputs.stale) {
-    Logger.recordOutput(
-        "Vision/Algae Result",
-        new PhotonPipelineResult(
-            algaeCamera.inputs.sequenceID,
-            algaeCamera.inputs.captureTimestampMicros,
-            algaeCamera.inputs.publishTimestampMicros,
-            algaeCamera.inputs.timeSinceLastPong,
-            algaeCamera.inputs.targets));
+        Logger.recordOutput(
+            "Vision/Algae Result",
+            new PhotonPipelineResult(
+                algaeCamera.inputs.sequenceID,
+                algaeCamera.inputs.captureTimestampMicros,
+                algaeCamera.inputs.publishTimestampMicros,
+                algaeCamera.inputs.timeSinceLastPong,
+                algaeCamera.inputs.targets));
       } else {
         Logger.recordOutput("Vision/Algae Camera/Invalid Result", "Stale");
       }
     } catch (NullPointerException e) {
       if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput("Vision/Algae Camera/Invalid Result", "No Targets");
+        Logger.recordOutput("Vision/Algae Camera/Invalid Result", "No Targets");
     }
   }
 
@@ -727,32 +727,38 @@ public class SwerveSubsystem extends SubsystemBase {
     final PIDController yController = new PIDController(0.01, 0.0, 0.0); // TODO tune
     return this.run(
         () -> {
-          try {
+          var target =
+              new PhotonPipelineResult(
+                      algaeCamera.inputs.sequenceID,
+                      algaeCamera.inputs.captureTimestampMicros,
+                      algaeCamera.inputs.publishTimestampMicros,
+                      algaeCamera.inputs.timeSinceLastPong,
+                      algaeCamera.inputs.targets)
+                  .getBestTarget();
+          if (target != null) {
             OptionalDouble tx =
-                new PhotonPipelineResult(
-                        algaeCamera.inputs.sequenceID,
-                        algaeCamera.inputs.captureTimestampMicros,
-                        algaeCamera.inputs.publishTimestampMicros,
-                        algaeCamera.inputs.timeSinceLastPong,
-                        algaeCamera.inputs.targets)
-                    .getBestTarget().getMinAreaRectCorners().stream()
-                        .mapToDouble(c -> c.x)
-                        .average();
-            if (tx.isPresent())
-              drive(
-                  ChassisSpeeds.fromFieldRelativeSpeeds(
-                          new ChassisSpeeds(
-                              xVel.getAsDouble(), yVel.getAsDouble(), theta.getAsDouble()),
-                          getRotation())
-                      .plus(
-                          new ChassisSpeeds(
-                              xVel.getAsDouble(),
-                              yController.calculate(tx.getAsDouble(), 0.0),
-                              theta.getAsDouble())),
-                  false,
-                  new double[4],
-                  new double[4]);
-          } catch (NoSuchElementException e) {
+                target.getMinAreaRectCorners().stream().mapToDouble(c -> c.x).average();
+            drive(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                        new ChassisSpeeds(
+                            xVel.getAsDouble(), yVel.getAsDouble(), theta.getAsDouble()),
+                        getRotation())
+                    .plus(
+                        new ChassisSpeeds(
+                            xVel.getAsDouble(),
+                            yController.calculate(tx.getAsDouble(), 0.0),
+                            theta.getAsDouble())),
+                false,
+                new double[4],
+                new double[4]);
+          } else {
+            drive(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    new ChassisSpeeds(xVel.getAsDouble(), yVel.getAsDouble(), theta.getAsDouble()),
+                    getRotation()),
+                false,
+                new double[4],
+                new double[4]);
           }
         });
   }
