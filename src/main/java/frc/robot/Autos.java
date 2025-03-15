@@ -344,7 +344,7 @@ public class Autos {
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 2.5); // TODO tune
+    bindElevatorExtension(routine, 2.75); // TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {

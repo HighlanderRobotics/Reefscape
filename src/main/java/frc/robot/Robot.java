@@ -639,6 +639,7 @@ public class Robot extends LoggedRobot {
             () ->
                 superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
                     || superstructure.getState() == SuperState.INTAKE_ALGAE_LOW
+                    || superstructure.getState() == SuperState.INTAKE_ALGAE_STACK
                     || superstructure.getState() == SuperState.IDLE)
         .whileTrue(
             Commands.parallel(
