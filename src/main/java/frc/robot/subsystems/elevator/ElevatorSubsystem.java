@@ -34,6 +34,9 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double GEAR_RATIO = 2.5 / 1.0;
   public static final double DRUM_RADIUS_METERS = Units.inchesToMeters(1.751 / 2.0);
   public static final Rotation2d ELEVATOR_ANGLE = Rotation2d.fromDegrees(90.0);
+  public static final double X_OFFSET_METERS = Units.inchesToMeters(4.0);
+  /** Offset from origin to center of pivot */
+  public static final double Z_OFFSET_METERS = Units.inchesToMeters(8.175000);
 
   public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
@@ -216,6 +219,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public double getSetpoint() {
     return setpoint;
+  }
+
+  public boolean isNearTarget() {
+    return isNearExtension(setpoint);
   }
 
   public boolean isNearExtension(double expected) {

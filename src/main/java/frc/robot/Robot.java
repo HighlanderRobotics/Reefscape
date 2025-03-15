@@ -27,6 +27,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -44,6 +45,8 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.subsystems.ExtensionKinematics;
+import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
@@ -178,6 +181,8 @@ public class Robot extends LoggedRobot {
   private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+
+  @AutoLogOutput private boolean killVisionIK = false;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
@@ -369,6 +374,41 @@ public class Robot extends LoggedRobot {
               .rightTrigger()
               .negate()
               .and(() -> DriverStation.isTeleop())
+              .or(
+                  () -> {
+                    final var state =
+                        new ExtensionState(
+                            elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
+                    final var branch =
+                        ExtensionKinematics.getBranchPose(swerve.getPose(), state, currentTarget);
+                    final var manipulatorPose =
+                        ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
+                    if (Robot.ROBOT_TYPE != RobotType.REAL)
+                      Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
+                    if (Robot.ROBOT_TYPE != RobotType.REAL)
+                      Logger.recordOutput("IK/Branch", branch);
+                    if (Robot.ROBOT_TYPE != RobotType.REAL)
+                      Logger.recordOutput(
+                          "IK/Extension Check",
+                          manipulatorPose,
+                          manipulatorPose.transformBy(
+                              new Transform3d(
+                                  Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
+                    return branch.getTranslation().getDistance(manipulatorPose.getTranslation())
+                            < Units.inchesToMeters(1.5)
+                        || branch
+                                .getTranslation()
+                                .getDistance(
+                                    manipulatorPose
+                                        .transformBy(
+                                            new Transform3d(
+                                                Units.inchesToMeters(3.0),
+                                                0.0,
+                                                0.0,
+                                                new Rotation3d()))
+                                        .getTranslation())
+                            < Units.inchesToMeters(1.5);
+                  })
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
@@ -386,7 +426,8 @@ public class Robot extends LoggedRobot {
           driver.a(),
           driver.start(),
           operator.rightBumper(),
-          operator.leftBumper());
+          operator.leftBumper(),
+          new Trigger(() -> killVisionIK));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -663,12 +704,8 @@ public class Robot extends LoggedRobot {
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
-                                    && elevator.isNearExtension(
-                                        algaeIntakeTarget == AlgaeIntakeTarget.HIGH
-                                            ? ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION
-                                            : ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION)
-                                    && shoulder.isNearAngle(
-                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)),
+                                    && elevator.isNearTarget()
+                                    && shoulder.isNearTarget()),
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
@@ -828,6 +865,11 @@ public class Robot extends LoggedRobot {
     operator
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
+
+    operator
+        .back()
+        .and(operator.start())
+        .onTrue(Commands.runOnce(() -> killVisionIK = !killVisionIK));
 
     new Trigger(() -> superstructure.stateIsAlgaeAlike())
         .whileTrue(
@@ -1039,6 +1081,11 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "Manipulator FK Pose",
+          ExtensionKinematics.getManipulatorPose(
+              swerve.getPose(), superstructure.getExtensionState()));
   }
 
   public static void setCurrentTarget(ReefTarget target) {
