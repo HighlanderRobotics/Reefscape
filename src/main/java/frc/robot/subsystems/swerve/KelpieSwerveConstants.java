@@ -199,10 +199,10 @@ public class KelpieSwerveConstants extends SwerveConstants {
             Nat.N8(), Nat.N1(), 0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
     final Matrix<N3, N3> FRONT_LEFT_CAMERA_MATRIX =
         MatBuilder.fill(
-            Nat.N3(), Nat.N3(), 911.67, 0.0, 663.03, 0.0, 909.82, 408.72, 0.0, 0.0, 1.0);
+            Nat.N3(), Nat.N3(), 920.37, 0.0, 657.16, 0.0, 921.82, 412.98, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> FRONT_LEFT_DIST_COEFFS =
         MatBuilder.fill(
-            Nat.N8(), Nat.N1(), 0.044, -0.069, 0.001, 0.001, 0.013, -0.002, 0.004, 0.001);
+            Nat.N8(), Nat.N1(), 0.057, -0.09, -0.001, 0.002, 0.043, -0.002, 0.004, -0.002);
     final VisionConstants backLeftCamConstants =
         new VisionConstants(
             "Back_Left",
@@ -252,7 +252,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
             FRONT_LEFT_CAMERA_MATRIX,
             FRONT_LEFT_DIST_COEFFS);
     return new VisionConstants[] {
-      backLeftCamConstants, backRightCamConstants, frontRightCamConstants
+      backLeftCamConstants, backRightCamConstants, frontRightCamConstants, frontLeftCamConstants
     };
   }
 
