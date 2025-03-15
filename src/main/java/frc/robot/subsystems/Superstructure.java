@@ -696,7 +696,7 @@ public class Superstructure {
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                 wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.setExtension(elevatorExtension))
-            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05)),
+            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
         // re-extend joints
         Commands.parallel(
             shoulder.setTargetAngle(shoulderAngle),
