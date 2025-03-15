@@ -3,7 +3,6 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -621,10 +620,8 @@ public class Superstructure {
         .whileTrue(
             Commands.parallel(
                 elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
-                Commands.waitUntil(() -> elevator.getExtensionMeters() > Units.inchesToMeters(12.0))
-                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS)),
-                Commands.waitUntil(() -> elevator.getExtensionMeters() > Units.inchesToMeters(12.0))
-                    .andThen(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))))
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
+                wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
