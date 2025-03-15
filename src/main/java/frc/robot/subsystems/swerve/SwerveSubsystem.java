@@ -34,6 +34,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Samples;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalID;
@@ -329,11 +330,45 @@ public class SwerveSubsystem extends SubsystemBase {
                     camera.inputs.captureTimestampMicros / 1.0e6,
                     deviations
                         .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
+                        .times(camera.getName().equals("Front_Left_Camera")
+                        || camera.getName().equals("Front_Right_Camera") ? 1.0 : 1.5)
+                        // reef positions
+                        .times((
+                          camera.getName().equals("Front_Left_Camera")
+                          || camera.getName().equals("Front_Right_Camera"))
+                                    && (Robot.state.get().toString().startsWith("PRE_L")
+                                        || Robot.state.get() == SuperState.SCORE_CORAL
+                                        || Robot.state.get() == SuperState.INTAKE_ALGAE_HIGH
+                                        || Robot.state.get() == SuperState.INTAKE_ALGAE_LOW)
+                                ? 0.8
+                                : 1.5) // TODO tune these sorts of numbers
+                        // hp tags
                         .times(
-                            camera.getName().equals("Front_Left_Camera")
-                                    || camera.getName().equals("Front_Right_Camera")
-                                ? 1.0
-                                : 1.5));
+                            // !camera.getName().equals("Front_Camera")
+                            // &&
+                            estPose.get().targetsUsed.stream()
+                                    .anyMatch(
+                                        t ->
+                                            t.getFiducialId() == 12
+                                                || t.getFiducialId() == 13
+                                                || t.getFiducialId() == 2
+                                                || t.getFiducialId() == 1)
+                                ? 1.5
+                                : 1.0)
+                        // barge tags
+                        .times(
+                            // !camera.getName().equals("Front_Right_Camera")
+                            // &&
+                            estPose.get().targetsUsed.stream()
+                                    .anyMatch(
+                                        t ->
+                                            t.getFiducialId() == 4
+                                                || t.getFiducialId() == 5
+                                                || t.getFiducialId() == 15
+                                                || t.getFiducialId() == 14)
+                                ? 1.2
+                                : 1.0));
+                // the sussifier
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           // if (Robot.ROBOT_TYPE != RobotType.REAL)

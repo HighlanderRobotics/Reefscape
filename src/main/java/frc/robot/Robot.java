@@ -78,6 +78,7 @@ import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
@@ -422,6 +423,9 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismLigament2d wristLigament =
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
+
+  public static Supplier<SuperState> state =
+      () -> SuperState.IDLE; // TODO i feel like im breaking a rule
 
   @SuppressWarnings("resource")
   public Robot() {
@@ -1050,6 +1054,7 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
+    state = superstructure::getState;
   }
 
   public static void setCurrentTarget(ReefTarget target) {
