@@ -28,7 +28,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double X_OFFSET_METERS = 0.1016254;
   public static final double Z_OFFSET_METERS = 0.207645;
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
-  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(95.0);
+  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(90.0);
 
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(0.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(30.0);
@@ -36,10 +36,10 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS =
       Rotation2d.fromDegrees(60.0);
   public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(60);
-  public static final Rotation2d SHOULDER_WHACK_L1_POS = Rotation2d.fromDegrees(65);
-  public static final Rotation2d SHOULDER_SCORE_L1_POS = Rotation2d.fromDegrees(65);
+  public static final Rotation2d SHOULDER_WHACK_L1_POS = Rotation2d.fromDegrees(45);
+  public static final Rotation2d SHOULDER_SCORE_L1_POS = Rotation2d.fromDegrees(45);
   public static final Rotation2d SHOULDER_SCORE_L4_POS = Rotation2d.fromDegrees(55);
-  public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(30);
+  public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(40);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(75.0);
   public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);

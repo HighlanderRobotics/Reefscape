@@ -309,9 +309,7 @@ public class Autos {
                 () -> {
                   autoScore = false;
                   autoPreScore = false;
-                }),
-            // Retract some
-            Commands.waitSeconds(0.3))
+                }))
         .raceWith(
             AutoAim.translateToPose(
                 swerve, () -> CoralTargets.getClosestTarget(trajEndPose.get())));
@@ -344,7 +342,7 @@ public class Autos {
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 4.0); // TODO tune
+    bindElevatorExtension(routine, 3.25); // TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {

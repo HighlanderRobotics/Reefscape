@@ -174,10 +174,16 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.IDLE)
         .whileTrue(
+            // extendWithClearance(
+            //         Units.inchesToMeters(5.0),
+            //         ShoulderSubsystem.SHOULDER_HP_POS,
+            //         WristSubsystem.WRIST_HP_POS)
+            //     .until(() -> elevator.isNearExtension(Units.inchesToMeters(5.0)))
+            //     .andThen(
             extendWithClearance(
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
-                WristSubsystem.WRIST_HP_POS))
+                WristSubsystem.WRIST_HP_POS)) // )
         .whileTrue(manipulator.index())
         .whileTrue(
             funnel.setVoltage(
@@ -477,9 +483,13 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(
             Commands.waitUntil(
+                    () -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
+                .andThen(
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS)))
+        .whileTrue(
+            Commands.waitUntil(
                     () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
-                .andThen(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE)))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS));
+                .andThen(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE)));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
@@ -615,7 +625,7 @@ public class Superstructure {
         .whileTrue(manipulator.setVoltage(2 * ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
         .whileTrue(
             Commands.parallel(
-                elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION),
+                elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
                 wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
@@ -686,7 +696,7 @@ public class Superstructure {
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                 wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.setExtension(elevatorExtension))
-            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.05)),
+            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
         // re-extend joints
         Commands.parallel(
             shoulder.setTargetAngle(shoulderAngle),

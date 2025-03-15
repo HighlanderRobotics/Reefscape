@@ -116,7 +116,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -158,7 +158,7 @@ public class Robot extends LoggedRobot {
 
     private ReefTarget(double elevatorHeight, Rotation2d wristAngle, Rotation2d shoulderAngle) {
       this.elevatorHeight = elevatorHeight;
-      this.outtakeSpeed = 100.0;
+      this.outtakeSpeed = 15.0;
       this.wristAngle = wristAngle;
       this.shoulderAngle = shoulderAngle;
     }
@@ -228,7 +228,7 @@ public class Robot extends LoggedRobot {
                   // Specify Configuration
                   driveTrainSimulationConfig.get(),
                   // Specify starting pose
-                  new Pose2d(3, 3, new Rotation2d())))
+                  new Pose2d(3.28, 3.81, new Rotation2d())))
           : Optional.empty();
 
   private final SwerveSubsystem swerve =
@@ -371,7 +371,18 @@ public class Robot extends LoggedRobot {
               .negate()
               .and(() -> DriverStation.isTeleop())
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore),
+              .or(() -> Autos.autoScore)
+              .or(
+                  () ->
+                      AutoAim.isInToleranceCoral(swerve.getPose())
+                          && MathUtil.isNear(
+                              0,
+                              Math.hypot(
+                                  swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                  swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                              AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                          && MathUtil.isNear(
+                              0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0)),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver
@@ -643,6 +654,7 @@ public class Robot extends LoggedRobot {
             () ->
                 superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
                     || superstructure.getState() == SuperState.INTAKE_ALGAE_LOW
+                    || superstructure.getState() == SuperState.INTAKE_ALGAE_STACK
                     || superstructure.getState() == SuperState.IDLE)
         .whileTrue(
             Commands.parallel(
@@ -939,31 +951,30 @@ public class Robot extends LoggedRobot {
       Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Targets/Algae Score Target", algaeScoreTarget);
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "Mechanism Poses",
-          new Pose3d[] {
-            new Pose3d( // first stage
-                new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
-            // carriage
-            new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
-            new Pose3d( // arm
-                new Translation3d(
-                    ShoulderSubsystem.X_OFFSET_METERS,
-                    0,
-                    ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
-                new Rotation3d(
-                    0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
-            new Pose3d( // Manipulator
-                new Translation3d(
-                    ShoulderSubsystem.X_OFFSET_METERS
-                        + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                    0,
-                    elevator.getExtensionMeters()
-                        + ShoulderSubsystem.Z_OFFSET_METERS
-                        + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
-                new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
-          });
+    Logger.recordOutput(
+        "Mechanism Poses",
+        new Pose3d[] {
+          new Pose3d( // first stage
+              new Translation3d(0, 0, elevator.getExtensionMeters() / 2.0), new Rotation3d()),
+          // carriage
+          new Pose3d(new Translation3d(0, 0, elevator.getExtensionMeters()), new Rotation3d()),
+          new Pose3d( // arm
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS,
+                  0,
+                  ShoulderSubsystem.Z_OFFSET_METERS + elevator.getExtensionMeters()),
+              new Rotation3d(
+                  0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
+          new Pose3d( // Manipulator
+              new Translation3d(
+                  ShoulderSubsystem.X_OFFSET_METERS
+                      + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                  0,
+                  elevator.getExtensionMeters()
+                      + ShoulderSubsystem.Z_OFFSET_METERS
+                      + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+              new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
+        });
 
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
