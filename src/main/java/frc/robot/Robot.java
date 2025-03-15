@@ -227,7 +227,7 @@ public class Robot extends LoggedRobot {
                   // Specify Configuration
                   driveTrainSimulationConfig.get(),
                   // Specify starting pose
-                  new Pose2d(3, 3, new Rotation2d())))
+                  new Pose2d(3.28, 3.81, new Rotation2d())))
           : Optional.empty();
 
   private final SwerveSubsystem swerve =
