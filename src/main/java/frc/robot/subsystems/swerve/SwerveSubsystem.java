@@ -47,7 +47,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
-import java.util.OptionalDouble;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
@@ -145,7 +144,8 @@ public class SwerveSubsystem extends SubsystemBase {
             Tracer.trace("Update cam inputs", camera::updateInputs);
             Tracer.trace("Process cam inputs", camera::processInputs);
           }
-          algaeCamera.updateInputs();
+          Tracer.trace("Update algae cam inputs", algaeCamera::updateInputs);
+          Tracer.trace("Process algae cam inputs", algaeCamera::processInputs);
           Tracer.trace(
               "Update odo inputs",
               () -> odoThread.updateInputs(odoThreadInputs, lastOdometryUpdateTimestamp));
@@ -191,22 +191,21 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   private void updateAlgaeVision() {
+    final PhotonPipelineResult result =
+        new PhotonPipelineResult(
+            algaeCamera.inputs.sequenceID,
+            algaeCamera.inputs.captureTimestampMicros,
+            algaeCamera.inputs.publishTimestampMicros,
+            algaeCamera.inputs.timeSinceLastPong,
+            algaeCamera.inputs.targets);
     try {
       if (!algaeCamera.inputs.stale) {
-        Logger.recordOutput(
-            "Vision/Algae Result",
-            new PhotonPipelineResult(
-                algaeCamera.inputs.sequenceID,
-                algaeCamera.inputs.captureTimestampMicros,
-                algaeCamera.inputs.publishTimestampMicros,
-                algaeCamera.inputs.timeSinceLastPong,
-                algaeCamera.inputs.targets));
+        Logger.recordOutput("Vision/Algae Result", result);
       } else {
         Logger.recordOutput("Vision/Algae Camera/Invalid Result", "Stale");
       }
     } catch (NullPointerException e) {
-      if (Robot.ROBOT_TYPE != RobotType.REAL)
-        Logger.recordOutput("Vision/Algae Camera/Invalid Result", "No Targets");
+      Logger.recordOutput("Vision/Algae Camera/Invalid Result", "No Targets");
     }
   }
 
@@ -728,7 +727,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   @SuppressWarnings("resource")
   public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
-    final PIDController yController = new PIDController(0.01, 0.0, 0.0); // TODO tune
+    final PIDController yController = new PIDController(.1, 0.0, 0.0); // TODO tune
     return this.run(
         () -> {
           var target =
@@ -740,8 +739,7 @@ public class SwerveSubsystem extends SubsystemBase {
                       algaeCamera.inputs.targets)
                   .getBestTarget();
           if (target != null) {
-            OptionalDouble tx =
-                target.getMinAreaRectCorners().stream().mapToDouble(c -> c.x).average();
+            double yaw = target.getYaw();
             drive(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         new ChassisSpeeds(
@@ -749,9 +747,7 @@ public class SwerveSubsystem extends SubsystemBase {
                         getRotation())
                     .plus(
                         new ChassisSpeeds(
-                            xVel.getAsDouble(),
-                            yController.calculate(tx.getAsDouble(), 0.0),
-                            theta.getAsDouble())),
+                            Math.abs(yaw) < 3 ? 2 : 0, yController.calculate(yaw, 0.0), 0.0)),
                 false,
                 new double[4],
                 new double[4]);

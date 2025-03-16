@@ -54,7 +54,8 @@ public class Vision {
   }
 
   public void processInputs() {
-    Logger.processInputs("Apriltag Vision/" + inputs.constants.cameraName, inputs);
+    Logger.processInputs(
+        "Apriltag Vision/" + inputs.constants.cameraName, inputs); // TODO fix naming
   }
 
   public Optional<EstimatedRobotPose> update(PhotonPipelineResult result) {

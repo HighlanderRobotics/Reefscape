@@ -54,9 +54,10 @@ public class VisionHelper {
   public class Logging {
     public static void logPhotonTrackedTarget(
         PhotonTrackedTarget target, LogTable table, String name) {
+      // System.out.println(target);
       logTransform3d(target.getBestCameraToTarget(), table, name);
       logTransform3d(target.getAlternateCameraToTarget(), table, "Alt " + name);
-      logCorners(target, table, name);
+      logCorners(target, table, name, target.getFiducialId());
 
       table.put("Tags/Yaw " + name, target.getYaw());
       table.put("Tags/Pitch " + name, target.getPitch());
@@ -66,15 +67,19 @@ public class VisionHelper {
       table.put("Tags/Pose Ambiguity " + name, target.getPoseAmbiguity());
     }
 
-    public static void logCorners(PhotonTrackedTarget target, LogTable table, String name) {
+    public static void logCorners(PhotonTrackedTarget target, LogTable table, String name, int id) {
       double[] detectedCornersX = new double[4];
       double[] detectedCornersY = new double[4];
       double[] minAreaRectCornersX = new double[4];
       double[] minAreaRectCornersY = new double[4];
-
       for (int i = 0; i < 4; i++) {
-        detectedCornersX[i] = target.getDetectedCorners().get(i).x;
-        detectedCornersY[i] = target.getDetectedCorners().get(i).y;
+        if (id > -1) {
+          detectedCornersX[i] = target.getDetectedCorners().get(i).x;
+          detectedCornersY[i] = target.getDetectedCorners().get(i).y;
+        } else {
+          detectedCornersX[i] = 0;
+          detectedCornersY[i] = 0;
+        }
         minAreaRectCornersX[i] = target.getMinAreaRectCorners().get(i).x;
         minAreaRectCornersY[i] = target.getMinAreaRectCorners().get(i).y;
       }
