@@ -281,7 +281,7 @@ public class SwerveSubsystem extends SubsystemBase {
         if (skiddingModules[i]) {
           double averageDeltaPosition = ( Arrays.stream(moduleDeltas).map(delta -> delta.distanceMeters).reduce(0.0, (Double a, Double b) -> a + b) - moduleDeltas[i].distanceMeters ) / 3;
           double averageDeltaRotationRads = ( Arrays.stream(moduleDeltas).map(delta -> delta.angle.getRadians()).reduce(0.0, (Double a, Double b) -> a + b) - moduleDeltas[i].angle.getRadians() ) / 3;
-          moduleDeltas[i] = new SwerveModulePosition(averageDeltaPosition, Rotation2d.fromRadians(averageDeltaRotationRads))
+          moduleDeltas[i] = new SwerveModulePosition(averageDeltaPosition, Rotation2d.fromRadians(averageDeltaRotationRads));
         }
       }
 
