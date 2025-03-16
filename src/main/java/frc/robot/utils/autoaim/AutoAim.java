@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -61,8 +62,40 @@ public class AutoAim {
         swerve, () -> end.get().transformBy(translationToIntermediate), end);
   }
 
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve,
+      Supplier<Pose2d> intermediate,
+      Supplier<Pose2d> end,
+      Constraints constraints) {
+    return translateToPose(swerve, intermediate, ChassisSpeeds::new, constraints)
+        .until(() -> isInTolerance(swerve.getPose(), intermediate.get()))
+        .andThen(translateToPose(swerve, end, ChassisSpeeds::new, constraints));
+  }
+
+  /** Transforms the end pose by translationToIntermediate to get the intermediate pose */
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve,
+      Supplier<Pose2d> end,
+      Transform2d translationToIntermediate,
+      Constraints constraints) {
+    return autoAimWithIntermediatePose(
+        swerve, () -> end.get().transformBy(translationToIntermediate), end, constraints);
+  }
+
   public static Command translateToPose(
       SwerveSubsystem swerve, Supplier<Pose2d> target, Supplier<ChassisSpeeds> speedsModifier) {
+    return translateToPose(
+        swerve,
+        target,
+        speedsModifier,
+        new Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+  }
+
+  public static Command translateToPose(
+      SwerveSubsystem swerve,
+      Supplier<Pose2d> target,
+      Supplier<ChassisSpeeds> speedsModifier,
+      Constraints constraints) {
     // This feels like a horrible way of getting around lambda final requirements
     // Is there a cleaner way of doing this?
     final Pose2d cachedTarget[] = {new Pose2d()};

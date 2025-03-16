@@ -19,7 +19,7 @@ public class FunnelSubsystem extends RollerSubsystem {
   private final ServoIOInputsAutoLogged firstLatchInputs = new ServoIOInputsAutoLogged(),
       secondLatchInputs = new ServoIOInputsAutoLogged();
 
-  private final LinearFilter currentFilter = LinearFilter.singlePoleIIR(0.2, 0.020);
+  private final LinearFilter currentFilter = LinearFilter.singlePoleIIR(0.15, 0.020);
   private double currentFilterValue = 0;
 
   public FunnelSubsystem(RollerIO io, ServoIO firstLatchIO, ServoIO secondLatchIO) {

@@ -388,13 +388,7 @@ public class Robot extends LoggedRobot {
                                   && MathUtil.isNear(
                                       0.0,
                                       swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-                                      3.0)
-                                  && MathUtil.isNear(
-                                      0, swerve.getRotation3d().getX(), Units.degreesToRadians(3.0))
-                                  && MathUtil.isNear(
-                                      0,
-                                      swerve.getRotation3d().getY(),
-                                      Units.degreesToRadians(3.0)))
+                                      3.0))
                       .debounce(0.08)),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),

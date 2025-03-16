@@ -7,8 +7,12 @@ package frc.robot;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -291,12 +295,22 @@ public class Autos {
                 new Trigger(
                         () ->
                             AutoAim.isInTolerance(
-                                swerve.getPose(),
-                                CoralTargets.getClosestTarget(trajEndPose.get()),
-                                swerve.getVelocityFieldRelative(),
-                                Units.inchesToMeters(3.0),
-                                Units.degreesToRadians(1.0)))
-                    .debounce(0.25)),
+                                    swerve.getPose(),
+                                    CoralTargets.getClosestTarget(trajEndPose.get()),
+                                    swerve.getVelocityFieldRelative(),
+                                    Units.inchesToMeters(2.0),
+                                    Units.degreesToRadians(1.0))
+                                && MathUtil.isNear(
+                                    0,
+                                    Math.hypot(
+                                        swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                        swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                    AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                                && MathUtil.isNear(
+                                    0.0,
+                                    swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+                                    3.0))
+                    .debounce(0.06)),
             Commands.print("Scoring!"),
             Commands.runOnce(
                 () -> {
@@ -314,8 +328,13 @@ public class Autos {
                   autoPreScore = false;
                 }))
         .raceWith(
-            AutoAim.translateToPose(
-                swerve, () -> CoralTargets.getClosestTarget(trajEndPose.get())));
+            AutoAim.autoAimWithIntermediatePose(
+                swerve,
+                () -> CoralTargets.getClosestTarget(trajEndPose.get()),
+                // Keeps the robot off the reef wall until it's aligned side-side
+                new Transform2d(
+                    AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero),
+                new Constraints(1.5, 1.0)));
   }
 
   // TODO: REMOVE THIS OVERLOAD
