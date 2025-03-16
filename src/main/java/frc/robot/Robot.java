@@ -501,7 +501,7 @@ public class Robot extends LoggedRobot {
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
 
-    autos = new Autos(swerve, manipulator);
+    autos = new Autos(swerve, manipulator, funnel);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
 
     SmartDashboard.putData(

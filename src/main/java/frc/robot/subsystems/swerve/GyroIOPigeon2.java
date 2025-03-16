@@ -32,17 +32,22 @@ import org.littletonrobotics.junction.Logger;
 public class GyroIOPigeon2 implements GyroIO {
   private final Pigeon2 pigeon;
   private final StatusSignal<Angle> yaw;
+  private final StatusSignal<Angle> pitch;
+  private final StatusSignal<Angle> roll;
   private final StatusSignal<AngularVelocity> yawVelocity;
 
   public GyroIOPigeon2(int id) {
     pigeon = new Pigeon2(id, "*");
     yaw = pigeon.getYaw();
+    pitch = pigeon.getPitch();
+    roll = pigeon.getRoll();
     yawVelocity = pigeon.getAngularVelocityZWorld();
     pigeon.getConfigurator().apply(new Pigeon2Configuration());
     pigeon.getConfigurator().setYaw(0.0);
     yaw.setUpdateFrequency(PhoenixOdometryThread.ODOMETRY_FREQUENCY_HZ);
     // yawVelocity.setUpdateFrequency(100.0);
     yawVelocity.setUpdateFrequency(PhoenixOdometryThread.ODOMETRY_FREQUENCY_HZ);
+    BaseStatusSignal.setUpdateFrequencyForAll(50.0, pitch, roll);
     pigeon.optimizeBusUtilization();
     PhoenixOdometryThread.getInstance()
         .registerSignals(
@@ -51,11 +56,13 @@ public class GyroIOPigeon2 implements GyroIO {
 
   @Override
   public void updateInputs(GyroIOInputs inputs) {
-    inputs.isConnected = BaseStatusSignal.refreshAll(yaw, yawVelocity).equals(StatusCode.OK);
+    inputs.isConnected = BaseStatusSignal.refreshAll(yaw, yawVelocity, pitch, roll).equals(StatusCode.OK);
     Logger.recordOutput("Odometry/Gyro Status", yaw.getStatus());
     Logger.recordOutput("Odometry/Gyro timestamp", yaw.getTimestamp().getLatency());
     inputs.yawPosition = new Rotation2d(yaw.getValue());
     inputs.yawVelocityRadPerSec = yawVelocity.getValue().in(RadiansPerSecond);
+    inputs.pitch = new Rotation2d(pitch.getValue());
+    inputs.roll = new Rotation2d(roll.getValue());
   }
 
   @Override
