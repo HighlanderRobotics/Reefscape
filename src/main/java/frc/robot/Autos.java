@@ -334,7 +334,7 @@ public class Autos {
                 // Keeps the robot off the reef wall until it's aligned side-side
                 new Transform2d(
                     AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero),
-                new Constraints(1.5, 1.0)));
+                new Constraints(1.5, 2.0)));
   }
 
   // TODO: REMOVE THIS OVERLOAD
