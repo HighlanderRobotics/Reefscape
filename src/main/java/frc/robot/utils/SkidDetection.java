@@ -1,6 +1,5 @@
 package frc.robot.utils;
 
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -18,7 +17,7 @@ public class SkidDetection {
    * Detects modules that are skidding
    *
    * @param moduleStates [Front left, front right, back left, back right]
-   * @param heading
+   * @param yawVelocityRadPerSec From gyro
    * @return the skidding modules [Front left, front right, back left, back right] true if skidding
    */
   public boolean[] detectSkiddingModules(SwerveModuleState[] moduleStates, double yawVelocityRadPerSec) {
