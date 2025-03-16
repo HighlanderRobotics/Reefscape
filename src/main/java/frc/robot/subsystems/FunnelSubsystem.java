@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.roller.RollerIO;
@@ -18,6 +19,9 @@ public class FunnelSubsystem extends RollerSubsystem {
   private final ServoIOInputsAutoLogged firstLatchInputs = new ServoIOInputsAutoLogged(),
       secondLatchInputs = new ServoIOInputsAutoLogged();
 
+  private final LinearFilter currentFilter = LinearFilter.singlePoleIIR(0.2, 0.020);
+  private double currentFilterValue = 0;
+
   public FunnelSubsystem(RollerIO io, ServoIO firstLatchIO, ServoIO secondLatchIO) {
     super(io, "Funnel");
     this.firstLatchIO = firstLatchIO;
@@ -30,9 +34,14 @@ public class FunnelSubsystem extends RollerSubsystem {
   @Override
   public void periodic() {
     super.periodic();
+    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
     // no updating latch inputs bc blank inputs
     Logger.processInputs("Funnel/First Latch", firstLatchInputs);
     Logger.processInputs("Funnel/Second Latch", secondLatchInputs);
+  }
+
+  public double getFilteredCurrent() {
+    return currentFilterValue;
   }
 
   /** DO NOT RUN IF YOU WANT TO SCORE MORE CORAL */

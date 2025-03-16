@@ -17,6 +17,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
@@ -29,14 +30,16 @@ import org.littletonrobotics.junction.Logger;
 public class Autos {
   private final SwerveSubsystem swerve;
   private final ManipulatorSubsystem manipulator;
+  private final FunnelSubsystem funnel;
   private final AutoFactory factory;
 
   public static boolean autoPreScore = false;
   public static boolean autoScore = false; // TODO perhaps this should not be static
 
-  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
+  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
     this.swerve = swerve;
     this.manipulator = manipulator;
+    this.funnel = funnel;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -337,7 +340,7 @@ public class Autos {
           //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
           swerve
               .driveVoltage(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
-              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
+              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak() || funnel.getFilteredCurrent() > 20.0));
     }
   }
 
