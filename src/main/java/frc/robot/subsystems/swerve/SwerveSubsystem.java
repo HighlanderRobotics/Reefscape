@@ -20,6 +20,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -447,6 +448,13 @@ public class SwerveSubsystem extends SubsystemBase {
   /** Returns the current odometry rotation as returned by {@link #getPose()}. */
   public Rotation2d getRotation() {
     return getPose().getRotation();
+  }
+
+  public Rotation3d getRotation3d() {
+    return new Rotation3d(
+        gyroInputs.roll.getRadians(),
+        gyroInputs.pitch.getRadians(),
+        gyroInputs.yawPosition.getRadians());
   }
 
   public void resetPose(Pose2d pose) {

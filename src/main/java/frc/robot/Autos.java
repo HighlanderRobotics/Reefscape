@@ -340,7 +340,11 @@ public class Autos {
           //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
           swerve
               .driveVoltage(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
-              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak() || funnel.getFilteredCurrent() > 20.0));
+              .until(
+                  () ->
+                      manipulator.getSecondBeambreak()
+                          || manipulator.getFirstBeambreak()
+                          || funnel.getFilteredCurrent() > 20.0));
     }
   }
 
