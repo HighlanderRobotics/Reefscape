@@ -10,9 +10,6 @@ public class SkidDetection {
 
   private SwerveDriveKinematics kinematics;
 
-  // TODO: TUNE
-  private static final double MAX_DEVIATION = 0.0;
-
   public SkidDetection(SwerveDriveKinematics kinematics) {
     this.kinematics = kinematics;
   }
@@ -45,14 +42,17 @@ public class SkidDetection {
                   * rotationalComponentState.angle.getSin());
     }
     double xTransComponentAverage = Arrays.stream(xTransComponents).average().getAsDouble();
+    // Check that this is the correct calc
+    double xTransComponentStdDev = Math.sqrt(Arrays.stream(xTransComponents).map(value -> Math.pow(value - xTransComponentAverage, 2)).sum() / 4);
             
     double yTransComponentAverage = Arrays.stream(yTransComponents).average().getAsDouble();
+    double yTransComponentStdDev = Math.sqrt(Arrays.stream(yTransComponents).map(value -> Math.pow(value - yTransComponentAverage, 2)).sum() / 4);
 
     boolean[] result = new boolean[4];
     for (int i = 0; i <= moduleStates.length; i++) {
-      // If the measurement deviates too much from the mean, assume it's skidding
-      if (Math.abs(xTransComponents[i] - xTransComponentAverage) > MAX_DEVIATION
-          || Math.abs(yTransComponents[i] - yTransComponentAverage) > MAX_DEVIATION) {
+      // If the measurement deviates by more than 2 standard deviations assume it's skidding (TODO: TUNE)
+      if (Math.abs(xTransComponents[i] - xTransComponentAverage) >= xTransComponentStdDev * 2
+          || Math.abs(yTransComponents[i] - yTransComponentAverage) >= yTransComponentStdDev * 2) {
         result[i] = true;
       } else {
         result[i] = false;
