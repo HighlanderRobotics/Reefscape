@@ -96,6 +96,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private boolean useModuleForceFF = !Robot.isSimulation();
 
+  public boolean hasFrontTags = false;
+
   public SwerveSubsystem(
       SwerveConstants constants,
       GyroIO gyroIO,
@@ -328,6 +330,7 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private void updateVision() {
     var i = 0;
+    hasFrontTags = false;
     for (var camera : cameras) {
       final PhotonPipelineResult result =
           new PhotonPipelineResult(
@@ -338,6 +341,11 @@ public class SwerveSubsystem extends SubsystemBase {
               camera.inputs.targets);
       try {
         if (!camera.inputs.stale) {
+          if ((camera.getName().equals("Front_Left_Camera")
+                  || camera.getName().equals("Front_Right_Camera"))
+              && camera.inputs.numTags > 0) {
+            hasFrontTags = true;
+          }
           var estPose = Tracer.trace("Update Camera", () -> camera.update(result));
           var visionPose = estPose.get().estimatedPose;
           // Sets the pose on the sim field

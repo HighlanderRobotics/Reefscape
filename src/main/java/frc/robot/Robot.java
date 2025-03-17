@@ -376,7 +376,8 @@ public class Robot extends LoggedRobot {
               .or(
                   new Trigger(
                           () ->
-                              AutoAim.isInToleranceCoral(
+                              swerve.hasFrontTags
+                                  && AutoAim.isInToleranceCoral(
                                       swerve.getPose(),
                                       Units.inchesToMeters(1.0),
                                       Units.degreesToRadians(1.0))
@@ -697,23 +698,26 @@ public class Robot extends LoggedRobot {
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
                         0.75)),
-                Commands.waitUntil(new Trigger(
-                    () ->
-                        AutoAim.isInToleranceCoral(
-                                swerve.getPose(),
-                                Units.inchesToMeters(1.0),
-                                Units.degreesToRadians(1.0))
-                            && MathUtil.isNear(
-                                0,
-                                Math.hypot(
-                                    swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                                    swerve.getVelocityRobotRelative().vyMetersPerSecond),
-                                AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-                            && MathUtil.isNear(
-                                0.0,
-                                swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-                                3.0))
-                .debounce(0.08))
+                Commands.waitUntil(
+                        new Trigger(
+                                () ->
+                                    swerve.hasFrontTags
+                                        && AutoAim.isInToleranceCoral(
+                                            swerve.getPose(),
+                                            Units.inchesToMeters(1.0),
+                                            Units.degreesToRadians(1.0))
+                                        && MathUtil.isNear(
+                                            0,
+                                            Math.hypot(
+                                                swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                                swerve.getVelocityRobotRelative()
+                                                    .vyMetersPerSecond),
+                                            AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                                        && MathUtil.isNear(
+                                            0.0,
+                                            swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+                                            3.0))
+                            .debounce(0.08))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
