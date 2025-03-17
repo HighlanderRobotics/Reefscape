@@ -278,7 +278,8 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().getModules()[3])
               },
           PhoenixOdometryThread.getInstance(),
-          swerveDriveSimulation);
+          swerveDriveSimulation,
+          new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
 
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
@@ -699,6 +700,21 @@ public class Robot extends LoggedRobot {
                 Commands.waitUntil(() -> AutoAim.isInToleranceAlgaeIntake(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
+        .whileTrue(
+            swerve.driveToAlgae(
+                () ->
+                    modifyJoystick(driver.getLeftY())
+                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                () ->
+                    modifyJoystick(driver.getLeftX())
+                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                () ->
+                    modifyJoystick(driver.getRightX())
+                        * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
     driver
         .rightBumper()
         .or(driver.leftBumper())
