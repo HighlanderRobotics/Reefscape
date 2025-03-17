@@ -192,7 +192,7 @@ public class Autos {
       runPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PROtoB").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PRMtoB").done()).onTrue(scoreInAuto());
     return routine.cmd();
   }
 
