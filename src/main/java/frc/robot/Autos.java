@@ -114,7 +114,7 @@ public class Autos {
                 .get(startPos + "to" + endPos)
                 .atTime(
                     steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
-                        - (endPos.length() == 1 ? 0.5 : 0.0)))
+                        - (endPos.length() == 1 ? 0.1 : 0.0)))
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
@@ -187,6 +187,7 @@ public class Autos {
     routine
         // run first path
         .active()
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("ROtoE").resetOdometry(), steps.get("ROtoE").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -196,8 +197,11 @@ public class Autos {
       String nextPos = stops[i + 2];
       runPath(routine, startPos, endPos, nextPos, steps);
     }
-    // final path
-    routine.observe(steps.get("PRMtoB").done()).onTrue(scoreInAuto());
+
+    routine
+        .observe(steps.get("CtoPRM").done())
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+
     return routine.cmd();
   }
 
@@ -301,7 +305,7 @@ public class Autos {
                                     swerve.getPose(),
                                     CoralTargets.getClosestTarget(trajEndPose.get()),
                                     swerve.getVelocityFieldRelative(),
-                                    Units.inchesToMeters(1.5),
+                                    Units.inchesToMeters(1.0),
                                     Units.degreesToRadians(1.0))
                                 && MathUtil.isNear(
                                     0,
