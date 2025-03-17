@@ -9,8 +9,6 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
@@ -328,12 +326,12 @@ public class Autos {
                   autoPreScore = false;
                 }))
         .raceWith(
-            AutoAim.autoAimWithIntermediatePose(
+            AutoAim.translateToPose(
                 swerve,
                 () -> CoralTargets.getClosestTarget(trajEndPose.get()),
+                ChassisSpeeds::new,
                 // Keeps the robot off the reef wall until it's aligned side-side
-                new Transform2d(
-                    AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero),
+                // new Transform2d(-0.1, 0.0, Rotation2d.kZero),
                 new Constraints(1.5, 2.0)));
   }
 
@@ -358,7 +356,7 @@ public class Autos {
           //             ChassisSpeeds.fromRobotRelativeSpeeds(
           //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
           swerve
-              .driveVoltage(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
+              .driveVoltage(() -> new ChassisSpeeds(-0.0, 0.0, 0.0))
               .until(
                   () ->
                       manipulator.getSecondBeambreak()
