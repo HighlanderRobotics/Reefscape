@@ -153,6 +153,7 @@ public class Autos {
     routine
         // run first path
         .active()
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("LOtoJ").resetOdometry(), steps.get("LOtoJ").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -162,6 +163,10 @@ public class Autos {
       String nextPos = stops[i + 2];
       runPath(routine, startPos, endPos, nextPos, steps);
     }
+
+    routine
+        .observe(steps.get("LtoPLM").done())
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
 
     return routine.cmd();
   }
@@ -313,7 +318,7 @@ public class Autos {
             Commands.runOnce(
                 () -> {
                   autoScore = true;
-                  Robot.setCurrentTarget(ReefTarget.L4);
+                  // Robot.setCurrentTarget(ReefTarget.L4);
                 }),
             Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
                 .alongWith(
