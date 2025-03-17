@@ -184,12 +184,12 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.index())
+        .whileTrue(manipulator.index().withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
         .whileTrue(
             funnel.setVoltage(
                 () ->
                     revFunnelReq.getAsBoolean()
-                        ? -5.0
+                        ? -2.0
                         : (forceFunnelReq.getAsBoolean()
                                 || (Stream.of(HumanPlayerTargets.values())
                                         .map(

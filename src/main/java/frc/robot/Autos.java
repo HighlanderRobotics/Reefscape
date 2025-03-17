@@ -301,7 +301,7 @@ public class Autos {
                                     swerve.getPose(),
                                     CoralTargets.getClosestTarget(trajEndPose.get()),
                                     swerve.getVelocityFieldRelative(),
-                                    Units.inchesToMeters(2.0),
+                                    Units.inchesToMeters(1.5),
                                     Units.degreesToRadians(1.0))
                                 && MathUtil.isNear(
                                     0,
