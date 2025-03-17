@@ -25,6 +25,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -727,7 +728,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
   @SuppressWarnings("resource")
   public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
-    final PIDController yController = new PIDController(.1, 0.0, 0.0); // TODO tune
+    final PIDController xController = new PIDController(1, 0.0, 0.0); // TODO tune
+    final PIDController yController = new PIDController(9, 0.0, 0.8); // TODO tune
     return this.run(
         () -> {
           var target =
@@ -739,7 +741,16 @@ public class SwerveSubsystem extends SubsystemBase {
                       algaeCamera.inputs.targets)
                   .getBestTarget();
           if (target != null) {
-            double yaw = target.getYaw();
+            double yaw = -target.getYaw();
+            double pitch = target.getPitch();
+            double r = Units.inchesToMeters(36.990 - 8.125) / Math.tan(Math.toRadians(pitch - 35));
+            double yOffset = r * Math.sin(Math.toRadians(yaw));
+            double xOffset = r * Math.cos(Math.toRadians(yaw));
+            Logger.recordOutput("AutoAim/Algae Detection/X Offset", xOffset);
+            Logger.recordOutput("AutoAim/Algae Detection/Y Offset", yOffset);
+            Logger.recordOutput("AutoAim/Algae Detection/R", r);
+            Logger.recordOutput("AutoAim/Algae Detection/Yaw", yaw);
+            Logger.recordOutput("AutoAim/Algae Detection/Pitch", pitch);
             drive(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         new ChassisSpeeds(
@@ -747,7 +758,9 @@ public class SwerveSubsystem extends SubsystemBase {
                         getRotation())
                     .plus(
                         new ChassisSpeeds(
-                            Math.abs(yaw) < 3 ? 2 : 0, yController.calculate(yaw, 0.0), 0.0)),
+                            (1 / (1 + Math.abs(yOffset))) * xController.calculate(xOffset, 0.0),
+                            yController.calculate(yOffset, 0.0),
+                            0.0)),
                 false,
                 new double[4],
                 new double[4]);
