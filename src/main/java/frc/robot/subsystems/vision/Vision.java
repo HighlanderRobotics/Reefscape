@@ -54,13 +54,11 @@ public class Vision {
   }
 
   public void processApriltagInputs() {
-    Logger.processInputs(
-        "Apriltag Vision/" + inputs.constants.cameraName, inputs);
+    Logger.processInputs("Apriltag Vision/" + inputs.constants.cameraName, inputs);
   }
 
   public void processAlgaeInputs() {
-    Logger.processInputs(
-        "Algae Vision/" + inputs.constants.cameraName, inputs);
+    Logger.processInputs("Algae Vision/" + inputs.constants.cameraName, inputs);
   }
 
   public Optional<EstimatedRobotPose> update(PhotonPipelineResult result) {
