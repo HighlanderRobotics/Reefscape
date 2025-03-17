@@ -55,6 +55,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public static final double MAX_ACCELERATION = 10.0;
   public static final double SLOW_ACCELERATION = 7.0;
+  public static final double MEDIUM_ACCELERATION = 8.5;
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
@@ -143,6 +144,20 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command setExtensionSlow(double meters) {
     return this.setExtensionSlow(() -> meters);
+  }
+
+  public Command setExtensionMedium(DoubleSupplier meters) {
+    return this.run(
+        () -> {
+          io.setTarget(meters.getAsDouble(), MEDIUM_ACCELERATION);
+          setpoint = meters.getAsDouble();
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Elevator/Setpoint", setpoint);
+        });
+  }
+
+  public Command setExtensionMedium(double meters) {
+    return this.setExtensionMedium(() -> meters);
   }
 
   public Command hold() {
