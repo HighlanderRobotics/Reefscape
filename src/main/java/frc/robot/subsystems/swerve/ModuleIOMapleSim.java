@@ -202,8 +202,7 @@ public class ModuleIOMapleSim implements ModuleIO {
   }
 
   @Override
-  public void setDriveSetpoint(
-      final double metersPerSecond, final double forceNewtons, final boolean coastOut) {
+  public void setDriveSetpoint(final double metersPerSecond, final double forceNewtons) {
     // Doesnt actually refresh drive velocity signal, but should be cached
     if (metersPerSecond == 0
         && forceNewtons == 0

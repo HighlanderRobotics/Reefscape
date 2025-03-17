@@ -118,8 +118,7 @@ public class ModuleIOSim implements ModuleIO {
   }
 
   @Override
-  public void setDriveSetpoint(
-      final double metersPerSecond, final double forceNewtons, final boolean coastOut) {
+  public void setDriveSetpoint(final double metersPerSecond, final double forceNewtons) {
     driveTalon.setControl(
         driveControlVelocity.withVelocity(metersPerSecond).withFeedForward(forceNewtons));
   }
