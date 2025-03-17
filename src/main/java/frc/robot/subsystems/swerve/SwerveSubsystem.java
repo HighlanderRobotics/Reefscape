@@ -440,6 +440,7 @@ public class SwerveSubsystem extends SubsystemBase {
       }
       i++;
     }
+    Logger.recordOutput("Vision/Front Cameras Have Tags", hasFrontTags);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Vision/Camera Poses", cameraPoses);
     Pose3d[] arr = new Pose3d[cameras.length];
     for (int k = 0; k < cameras.length; k++) {
