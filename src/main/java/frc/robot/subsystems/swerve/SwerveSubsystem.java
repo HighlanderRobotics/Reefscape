@@ -143,10 +143,10 @@ public class SwerveSubsystem extends SubsystemBase {
         () -> {
           for (var camera : cameras) {
             Tracer.trace("Update cam inputs", camera::updateInputs);
-            Tracer.trace("Process cam inputs", camera::processInputs);
+            Tracer.trace("Process cam inputs", camera::processApriltagInputs);
           }
           Tracer.trace("Update algae cam inputs", algaeCamera::updateInputs);
-          Tracer.trace("Process algae cam inputs", algaeCamera::processInputs);
+          Tracer.trace("Process algae cam inputs", algaeCamera::processAlgaeInputs);
           Tracer.trace(
               "Update odo inputs",
               () -> odoThread.updateInputs(odoThreadInputs, lastOdometryUpdateTimestamp));
