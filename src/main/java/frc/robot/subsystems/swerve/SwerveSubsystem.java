@@ -340,12 +340,12 @@ public class SwerveSubsystem extends SubsystemBase {
               camera.inputs.timeSinceLastPong,
               camera.inputs.targets);
       try {
+        if ((camera.getName().equals("Front_Left_Camera")
+                || camera.getName().equals("Front_Right_Camera"))
+            && camera.inputs.numTags > 0) {
+          hasFrontTags = true;
+        }
         if (!camera.inputs.stale) {
-          if ((camera.getName().equals("Front_Left_Camera")
-                  || camera.getName().equals("Front_Right_Camera"))
-              && camera.inputs.numTags > 0) {
-            hasFrontTags = true;
-          }
           var estPose = Tracer.trace("Update Camera", () -> camera.update(result));
           var visionPose = estPose.get().estimatedPose;
           // Sets the pose on the sim field
@@ -406,7 +406,8 @@ public class SwerveSubsystem extends SubsystemBase {
                                                 || t.getFiducialId() == 15
                                                 || t.getFiducialId() == 14)
                                 ? 1.2
-                                : 1.0));
+                                : 1.0)
+                        .times(Robot.state.get() == SuperState.PRE_NET ? 0.5 : 1.0));
                 // the sussifier
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
