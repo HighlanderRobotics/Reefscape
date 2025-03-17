@@ -388,7 +388,7 @@ public class Autos {
                             .getNorm()
                         < toleranceMeters
                     && (manipulator.getSecondBeambreak()))
-        .onTrue(Commands.runOnce(() -> autoPreScore = true))
-        .onFalse(Commands.runOnce(() -> autoPreScore = false));
+        .whileTrue(Commands.run(() -> autoPreScore = true))
+        .whileFalse(Commands.run(() -> autoPreScore = false));
   }
 }

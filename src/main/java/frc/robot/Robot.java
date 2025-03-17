@@ -376,8 +376,7 @@ public class Robot extends LoggedRobot {
               .or(
                   new Trigger(
                           () ->
-                              swerve.hasFrontTags
-                                  && AutoAim.isInToleranceCoral(
+                              AutoAim.isInToleranceCoral(
                                       swerve.getPose(),
                                       Units.inchesToMeters(1.0),
                                       Units.degreesToRadians(1.0))
@@ -391,7 +390,8 @@ public class Robot extends LoggedRobot {
                                       0.0,
                                       swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
                                       3.0))
-                      .debounce(0.08)),
+                      .debounce(0.08)
+                      .and(() -> swerve.hasFrontTags)),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver
@@ -701,8 +701,7 @@ public class Robot extends LoggedRobot {
                 Commands.waitUntil(
                         new Trigger(
                                 () ->
-                                    swerve.hasFrontTags
-                                        && AutoAim.isInToleranceCoral(
+                                    AutoAim.isInToleranceCoral(
                                             swerve.getPose(),
                                             Units.inchesToMeters(1.0),
                                             Units.degreesToRadians(1.0))
@@ -717,7 +716,8 @@ public class Robot extends LoggedRobot {
                                             0.0,
                                             swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
                                             3.0))
-                            .debounce(0.08))
+                            .debounce(0.08)
+                            .and(() -> swerve.hasFrontTags))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
