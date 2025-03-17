@@ -313,7 +313,7 @@ public class Autos {
                                     0.0,
                                     swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
                                     3.0))
-                    .debounce(0.10)),
+                    .debounce(0.06)),
             Commands.print("Scoring!"),
             Commands.runOnce(
                 () -> {
