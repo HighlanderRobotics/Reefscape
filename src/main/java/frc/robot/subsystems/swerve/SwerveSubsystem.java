@@ -332,6 +332,11 @@ public class SwerveSubsystem extends SubsystemBase {
     var i = 0;
     hasFrontTags = false;
     for (var camera : cameras) {
+      if ((camera.getName().equals("Front_Left_Camera")
+              || camera.getName().equals("Front_Right_Camera"))
+          && camera.inputs.targets.size() > 0) {
+        hasFrontTags = true;
+      }
       final PhotonPipelineResult result =
           new PhotonPipelineResult(
               camera.inputs.sequenceID,
@@ -340,11 +345,6 @@ public class SwerveSubsystem extends SubsystemBase {
               camera.inputs.timeSinceLastPong,
               camera.inputs.targets);
       try {
-        if ((camera.getName().equals("Front_Left_Camera")
-                || camera.getName().equals("Front_Right_Camera"))
-            && camera.inputs.numTags > 0) {
-          hasFrontTags = true;
-        }
         if (!camera.inputs.stale) {
           var estPose = Tracer.trace("Update Camera", () -> camera.update(result));
           var visionPose = estPose.get().estimatedPose;
