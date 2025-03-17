@@ -172,7 +172,7 @@ public class Autos {
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "RO", "E", "PRO", "D", "PRO", "C", "PRO", "B", "PRO" // each stop we are going to, in order
+      "RO", "E", "PRO", "D", "PRO", "C", "PRM", "B", "PRO" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
