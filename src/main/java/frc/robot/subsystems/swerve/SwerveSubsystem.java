@@ -545,6 +545,25 @@ public class SwerveSubsystem extends SubsystemBase {
    */
   private void drive(
       ChassisSpeeds speeds, boolean openLoop, double[] moduleForcesX, double[] moduleForcesY) {
+    drive(speeds, openLoop, moduleForcesX, moduleForcesY, false);
+  }
+
+  /**
+   * Runs the drivetrain at the given robot relative speeds
+   *
+   * @param speeds robot relative target speeds
+   * @param openLoop should the modules use open loop voltage to approximate the setpoint
+   * @param moduleForcesX field relative force feedforward to apply to the modules. Must have the
+   *     same number of elements as there are modules.
+   * @param moduleForcesY field relative force feedforward to apply to the modules. Must have the
+   *     same number of elements as there are modules.
+   */
+  private void drive(
+      ChassisSpeeds speeds,
+      boolean openLoop,
+      double[] moduleForcesX,
+      double[] moduleForcesY,
+      boolean coastOut) {
     // Calculate module setpoints
     speeds = ChassisSpeeds.discretize(speeds, 0.02);
     final SwerveModuleState[] setpointStates = kinematics.toSwerveModuleStates(speeds);
@@ -651,7 +670,8 @@ public class SwerveSubsystem extends SubsystemBase {
           speeds,
           false,
           useModuleForceFF ? sample.moduleForcesX() : new double[4],
-          useModuleForceFF ? sample.moduleForcesY() : new double[4]);
+          useModuleForceFF ? sample.moduleForcesY() : new double[4],
+          DriverStation.isAutonomous() && DriverStation.getMatchTime() < 2);
     };
   }
 

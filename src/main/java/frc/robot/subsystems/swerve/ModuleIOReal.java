@@ -183,7 +183,8 @@ public class ModuleIOReal implements ModuleIO {
   }
 
   @Override
-  public void setDriveSetpoint(final double metersPerSecond, final double forceNewtons) {
+  public void setDriveSetpoint(
+      final double metersPerSecond, final double forceNewtons, final boolean coastOut) {
     // Doesnt actually refresh drive velocity signal, but should be cached
     if (metersPerSecond == 0
         && forceNewtons == 0
@@ -194,7 +195,8 @@ public class ModuleIOReal implements ModuleIO {
           driveControlVelocity
               .withVelocity(metersPerSecond)
               // meters -> motor rotations should be handled by SensorToMechanismRatio
-              .withFeedForward(forceNewtons / (9.37 / 483.0)));
+              .withFeedForward(forceNewtons / (9.37 / 483.0))
+              .withOverrideCoastDurNeutral(coastOut));
     }
   }
 
