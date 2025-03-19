@@ -445,6 +445,8 @@ public class Superstructure {
                     ? SuperState.INTAKE_ALGAE_HIGH
                     : SuperState.INTAKE_ALGAE_LOW));
 
+    antiJamReq.onTrue(this.forceState(SuperState.ANTI_JAM));
+
     // ANTI_JAM logic
     stateTriggers
         .get(SuperState.ANTI_JAM)
