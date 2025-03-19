@@ -295,7 +295,7 @@ public class Robot extends LoggedRobot {
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimitEnable(true)
                               .withStatorCurrentLimit(60.0)
-                              .withSupplyCurrentLimit(30.0)
+                              .withSupplyCurrentLimit(20.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
                           new MotorOutputConfigs()
@@ -341,6 +341,10 @@ public class Robot extends LoggedRobot {
               ? new RollerIOReal(
                   19,
                   RollerIOReal.getDefaultConfig()
+                      .withCurrentLimits(
+                          new CurrentLimitsConfigs()
+                              .withSupplyCurrentLimit(10.0)
+                              .withSupplyCurrentLimitEnable(true))
                       .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2.0)))
               : new RollerIOSim(
                   0.01,

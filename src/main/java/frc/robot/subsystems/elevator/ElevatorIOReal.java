@@ -74,10 +74,10 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.StatorCurrentLimit = 80.0;
     // Fuck it we ball
     config.CurrentLimits.StatorCurrentLimitEnable = false;
-    config.CurrentLimits.SupplyCurrentLimit = 70.0;
+    config.CurrentLimits.SupplyCurrentLimit = 60.0;
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
     config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
-    config.CurrentLimits.SupplyCurrentLowerTime = 0.0;
+    config.CurrentLimits.SupplyCurrentLowerTime = 0.25;
 
     config.MotionMagic.MotionMagicAcceleration = ElevatorSubsystem.MAX_ACCELERATION;
     // Estimated from slightly less than motor free speed
