@@ -184,7 +184,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.index().withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
+        .whileTrue(manipulator.index().repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -445,7 +445,9 @@ public class Superstructure {
                     ? SuperState.INTAKE_ALGAE_HIGH
                     : SuperState.INTAKE_ALGAE_LOW));
 
-    antiJamReq.onTrue(this.forceState(SuperState.ANTI_JAM));
+    antiJamReq
+        .onTrue(this.forceState(SuperState.ANTI_JAM))
+        .onFalse(this.forceState(SuperState.IDLE));
 
     // ANTI_JAM logic
     stateTriggers
