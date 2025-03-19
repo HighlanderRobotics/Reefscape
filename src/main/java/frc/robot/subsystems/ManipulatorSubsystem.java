@@ -72,11 +72,11 @@ public class ManipulatorSubsystem extends RollerSubsystem {
             .until(() -> firstBBInputs.get || secondBBInputs.get)
             .unless(() -> firstBBInputs.get),
         setVelocity(3.0).until(() -> secondBBInputs.get).unless(() -> secondBBInputs.get),
-        setVelocity(-1.0).until(() -> firstBBInputs.get && !secondBBInputs.get),
+        setVelocity(-3.0).until(() -> firstBBInputs.get && !secondBBInputs.get),
         // TODO tune timeout
         // Commands.runOnce(() -> io.resetEncoder(0.0)),
         Commands.run(() -> io.setPosition(Rotation2d.fromRotations(1.1)))
-            .until(() -> !firstBBInputs.get || !secondBBInputs.get));
+            .until(() -> !firstBBInputs.get && !secondBBInputs.get));
   } // TODO check if anything got lost in merge?
 
   public Command jog(double rotations) {
