@@ -404,47 +404,48 @@ public class Robot extends LoggedRobot {
                                   manipulatorPose.transformBy(
                                       new Transform3d(
                                           Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
-                            // return false;
-                            return branch
-                                        .getTranslation()
-                                        .getDistance(manipulatorPose.getTranslation())
-                                    < Units.inchesToMeters(1.5)
-                                || branch
-                                        .getTranslation()
-                                        .getDistance(
-                                            manipulatorPose
-                                                .transformBy(
-                                                    new Transform3d(
-                                                        Units.inchesToMeters(3.0),
-                                                        0.0,
-                                                        0.0,
-                                                        new Rotation3d()))
-                                                .getTranslation())
-                                    < Units.inchesToMeters(1.5);
+                            return false;
+                            // return branch
+                            //             .getTranslation()
+                            //             .getDistance(manipulatorPose.getTranslation())
+                            //         < Units.inchesToMeters(1.5)
+                            //     || branch
+                            //             .getTranslation()
+                            //             .getDistance(
+                            //                 manipulatorPose
+                            //                     .transformBy(
+                            //                         new Transform3d(
+                            //                             Units.inchesToMeters(3.0),
+                            //                             0.0,
+                            //                             0.0,
+                            //                             new Rotation3d()))
+                            //                     .getTranslation())
+                            //         < Units.inchesToMeters(1.5);
                           })
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore)
-              .or(
-                  new Trigger(
-                          () ->
-                              AutoAim.isInToleranceCoral(
-                                      swerve.getPose(),
-                                      Units.inchesToMeters(1.0),
-                                      Units.degreesToRadians(1.0))
-                                  && MathUtil.isNear(
-                                      0,
-                                      Math.hypot(
-                                          swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                                          swerve.getVelocityRobotRelative().vyMetersPerSecond),
-                                      AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-                                  && MathUtil.isNear(
-                                      0.0,
-                                      swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-                                      3.0)
-                                  && currentTarget != ReefTarget.L4)
-                      .debounce(0.08)
-                      .and(() -> swerve.hasFrontTags)),
+          //   .or(
+          //       new Trigger(
+          //               () ->
+          //                   AutoAim.isInToleranceCoral(
+          //                           swerve.getPose(),
+          //                           Units.inchesToMeters(1.0),
+          //                           Units.degreesToRadians(1.0))
+          //                       && MathUtil.isNear(
+          //                           0,
+          //                           Math.hypot(
+          //                               swerve.getVelocityRobotRelative().vxMetersPerSecond,
+          //                               swerve.getVelocityRobotRelative().vyMetersPerSecond),
+          //                           AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+          //                       && MathUtil.isNear(
+          //                           0.0,
+          //                           swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+          //                           3.0)
+          //                       && currentTarget != ReefTarget.L4)
+          //           .debounce(0.08)
+          //           .and(() -> swerve.hasFrontTags))
+          ,
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
           driver
@@ -461,7 +462,7 @@ public class Robot extends LoggedRobot {
           driver.start(),
           operator.rightBumper(),
           operator.leftBumper(),
-          new Trigger(() -> killVisionIK));
+          new Trigger(() -> killVisionIK).or(() -> currentTarget == ReefTarget.L4));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
