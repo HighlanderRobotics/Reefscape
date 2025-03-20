@@ -8,6 +8,7 @@ import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
@@ -40,11 +41,14 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private LinearFilter currentFilter = LinearFilter.movingAverage(20);
   private double currentFilterValue = 0.0;
 
+  private Timer zeroTimer = new Timer();
+
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
     super(rollerIO, NAME);
     this.firstBBIO = firstBBIO;
     this.secondBBIO = secondBBIO;
+    zeroTimer.start();
   }
 
   @Override
@@ -68,6 +72,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     if (firstBBInputs.get && !secondBBInputs.get) {
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));
+      zeroTimer.reset();
     }
   }
 
@@ -77,7 +82,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
             .until(() -> firstBBInputs.get || secondBBInputs.get)
             .unless(() -> firstBBInputs.get),
         setVelocity(3.0).until(() -> secondBBInputs.get).unless(() -> secondBBInputs.get),
-        setVelocity(-3.0).until(() -> firstBBInputs.get && !secondBBInputs.get),
+        setVelocity(-3.0)
+            .until(() -> firstBBInputs.get && !secondBBInputs.get)
+            .unless(() -> zeroTimer.get() < 0.25),
         // TODO tune timeout
         // Commands.runOnce(() -> io.resetEncoder(0.0)),
         Commands.run(() -> io.setPosition(Rotation2d.fromRotations(1.1)))

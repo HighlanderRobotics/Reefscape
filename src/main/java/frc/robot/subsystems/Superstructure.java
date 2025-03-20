@@ -467,6 +467,13 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
+        .and(killVisionIK)
+        .onTrue(forceState(SuperState.IDLE));
+
+    stateTriggers
+        .get(SuperState.SCORE_CORAL)
+        .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .and(intakeAlgaeReq)
         .and(() -> intakeTargetOnReef())
         .onTrue(
