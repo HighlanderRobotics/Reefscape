@@ -462,7 +462,8 @@ public class Robot extends LoggedRobot {
           driver.start(),
           operator.rightBumper(),
           operator.leftBumper(),
-          new Trigger(() -> killVisionIK).or(() -> currentTarget == ReefTarget.L4));
+          new Trigger(() -> killVisionIK).or(() -> currentTarget == ReefTarget.L4),
+          () -> MathUtil.clamp(operator.getLeftY(), -1.0, 0.0));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 

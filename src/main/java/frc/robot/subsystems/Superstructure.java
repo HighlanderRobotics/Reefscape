@@ -97,6 +97,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Kill Vision and IK")
   private final Trigger killVisionIK;
 
+  @AutoLogOutput(key = "Superstructure/Coral Score Adjust")
+  private final DoubleSupplier coralAdjust;
+
   private SuperState state = SuperState.IDLE;
   private SuperState prevState = SuperState.IDLE;
   private Map<SuperState, Trigger> stateTriggers = new HashMap<SuperState, Trigger>();
@@ -133,7 +136,8 @@ public class Superstructure {
       Trigger homeReq,
       Trigger revFunnelReq,
       Trigger forceFunnelReq,
-      Trigger killVisionIK) {
+      Trigger killVisionIK,
+      DoubleSupplier coralAdjust) {
     this.elevator = elevator;
     this.manipulator = manipulator;
     this.shoulder = shoulder;
@@ -164,6 +168,8 @@ public class Superstructure {
     this.forceFunnelReq = forceFunnelReq;
 
     this.killVisionIK = killVisionIK;
+
+    this.coralAdjust = coralAdjust;
 
     stateTimer.start();
 
@@ -347,7 +353,7 @@ public class Superstructure {
                 ElevatorSubsystem.L1_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
                 WristSubsystem.WRIST_SCORE_L1_POS))
-        .whileTrue(manipulator.jog(1.4))
+        .whileTrue(manipulator.jog(1.4 + coralAdjust.getAsDouble()))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L1_POS))
@@ -368,7 +374,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L2_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L2_EXTENSION)))
-        .whileTrue(manipulator.jog(1.4))
+        .whileTrue(manipulator.jog(1.4 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -386,7 +392,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L3_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L3_EXTENSION)))
-        .whileTrue(manipulator.jog(1.4))
+        .whileTrue(manipulator.jog(1.4 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -404,7 +410,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L4_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L4_EXTENSION)))
-        .whileTrue(manipulator.jog(1.4))
+        .whileTrue(manipulator.jog(1.4 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
