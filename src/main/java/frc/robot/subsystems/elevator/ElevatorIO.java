@@ -19,6 +19,8 @@ public interface ElevatorIO {
 
   public void updateInputs(final ElevatorIOInputsAutoLogged inputs);
 
+  public void setTarget(final double meters, final double maxAccel);
+
   public void setTarget(final double meters);
 
   public void setVoltage(final double voltage);

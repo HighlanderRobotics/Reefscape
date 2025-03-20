@@ -134,4 +134,6 @@ public abstract class SwerveConstants {
   public abstract double getBumperWidth();
 
   public abstract double getBumperLength();
+
+  public abstract VisionConstants getAlgaeVisionConstants();
 }

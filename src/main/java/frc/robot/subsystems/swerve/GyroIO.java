@@ -21,6 +21,8 @@ public interface GyroIO {
     public boolean isConnected = false;
     public Rotation2d yawPosition = new Rotation2d();
     public double yawVelocityRadPerSec = 0.0;
+    public Rotation2d pitch = new Rotation2d();
+    public Rotation2d roll = new Rotation2d();
   }
 
   public void updateInputs(final GyroIOInputs inputs);
