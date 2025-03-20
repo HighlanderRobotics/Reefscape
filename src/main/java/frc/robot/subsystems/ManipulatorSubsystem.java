@@ -18,6 +18,7 @@ import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.utils.Tracer;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class ManipulatorSubsystem extends RollerSubsystem {
@@ -95,6 +96,12 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return Commands.sequence(
         // this.runOnce(() -> io.resetEncoder(0.0)),
         this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations))));
+  }
+
+  public Command jog(DoubleSupplier rotations) {
+    return Commands.sequence(
+        // this.runOnce(() -> io.resetEncoder(0.0)),
+        this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations.getAsDouble()))));
   }
 
   public Command hold() {
