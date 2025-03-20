@@ -404,7 +404,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L4_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L4_EXTENSION)))
-        .whileTrue(manipulator.jog(1.0))
+        .whileTrue(manipulator.jog(1.4))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
