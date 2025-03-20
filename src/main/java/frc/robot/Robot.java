@@ -381,41 +381,48 @@ public class Robot extends LoggedRobot {
               .negate()
               .and(() -> DriverStation.isTeleop())
               .or(
-                  () -> {
-                    final var state =
-                        new ExtensionState(
-                            elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle());
-                    final var branch =
-                        ExtensionKinematics.getBranchPose(swerve.getPose(), state, currentTarget);
-                    final var manipulatorPose =
-                        ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
-                    if (Robot.ROBOT_TYPE != RobotType.REAL)
-                      Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
-                    if (Robot.ROBOT_TYPE != RobotType.REAL)
-                      Logger.recordOutput("IK/Branch", branch);
-                    if (Robot.ROBOT_TYPE != RobotType.REAL)
-                      Logger.recordOutput(
-                          "IK/Extension Check",
-                          manipulatorPose,
-                          manipulatorPose.transformBy(
-                              new Transform3d(
-                                  Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
-                    // return false;
-                    return branch.getTranslation().getDistance(manipulatorPose.getTranslation())
-                            < Units.inchesToMeters(1.5)
-                        || branch
-                                .getTranslation()
-                                .getDistance(
-                                    manipulatorPose
-                                        .transformBy(
-                                            new Transform3d(
-                                                Units.inchesToMeters(3.0),
-                                                0.0,
-                                                0.0,
-                                                new Rotation3d()))
-                                        .getTranslation())
-                            < Units.inchesToMeters(1.5);
-                  })
+                  new Trigger(
+                          () -> {
+                            final var state =
+                                new ExtensionState(
+                                    elevator.getExtensionMeters(),
+                                    shoulder.getAngle(),
+                                    wrist.getAngle());
+                            final var branch =
+                                ExtensionKinematics.getBranchPose(
+                                    swerve.getPose(), state, currentTarget);
+                            final var manipulatorPose =
+                                ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
+                            if (Robot.ROBOT_TYPE != RobotType.REAL)
+                              Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
+                            if (Robot.ROBOT_TYPE != RobotType.REAL)
+                              Logger.recordOutput("IK/Branch", branch);
+                            if (Robot.ROBOT_TYPE != RobotType.REAL)
+                              Logger.recordOutput(
+                                  "IK/Extension Check",
+                                  manipulatorPose,
+                                  manipulatorPose.transformBy(
+                                      new Transform3d(
+                                          Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
+                            // return false;
+                            return branch
+                                        .getTranslation()
+                                        .getDistance(manipulatorPose.getTranslation())
+                                    < Units.inchesToMeters(1.5)
+                                || branch
+                                        .getTranslation()
+                                        .getDistance(
+                                            manipulatorPose
+                                                .transformBy(
+                                                    new Transform3d(
+                                                        Units.inchesToMeters(3.0),
+                                                        0.0,
+                                                        0.0,
+                                                        new Rotation3d()))
+                                                .getTranslation())
+                                    < Units.inchesToMeters(1.5);
+                          })
+                      .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore)
               .or(

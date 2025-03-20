@@ -404,7 +404,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L4_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L4_EXTENSION)))
-        .whileTrue(manipulator.jog(1.4))
+        .whileTrue(manipulator.jog(1.0))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -461,7 +461,7 @@ public class Superstructure {
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
-        // .debounce(0.15)
+        .debounce(0.15)
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
