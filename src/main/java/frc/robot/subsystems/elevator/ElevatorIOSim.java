@@ -57,6 +57,12 @@ public class ElevatorIOSim implements ElevatorIO {
   }
 
   @Override
+  public void setTarget(double meters, double maxAccel) {
+    pid.setConstraints(new Constraints(5.0, maxAccel));
+    setTarget(meters);
+  }
+
+  @Override
   public void setVoltage(final double voltage) {
     volts = voltage;
     physicsSim.setInputVoltage(MathUtil.clamp(voltage, -12.0, 12.0));

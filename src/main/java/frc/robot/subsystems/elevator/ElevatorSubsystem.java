@@ -40,8 +40,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
-  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(8.0);
-  public static final double L1_WHACK_CORAL_EXTENSION_METERS = Units.inchesToMeters(18);
+  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(12.0);
+  public static final double L1_WHACK_CORAL_EXTENSION_METERS = Units.inchesToMeters(24.0);
   public static final double L2_EXTENSION_METERS = Units.inchesToMeters(16.0);
   public static final double L3_EXTENSION_METERS = Units.inchesToMeters(31.5);
   public static final double L4_EXTENSION_METERS = Units.inchesToMeters(58.0);
@@ -54,7 +54,11 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(61.5);
   public static final double ALGAE_PROCESSOR_EXTENSION = 0.0;
 
-  public static final double HP_EXTENSION_METERS = Units.inchesToMeters(1.0);
+  public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
+
+  public static final double MAX_ACCELERATION = 10.0;
+  public static final double SLOW_ACCELERATION = 7.0;
+  public static final double MEDIUM_ACCELERATION = 8.5;
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
   private final ElevatorIO io;
@@ -120,7 +124,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public Command setExtension(DoubleSupplier meters) {
     return this.run(
         () -> {
-          io.setTarget(meters.getAsDouble());
+          io.setTarget(meters.getAsDouble(), MAX_ACCELERATION);
           setpoint = meters.getAsDouble();
           if (Robot.ROBOT_TYPE != RobotType.REAL)
             Logger.recordOutput("Elevator/Setpoint", setpoint);
@@ -129,6 +133,34 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public Command setExtension(double meters) {
     return this.setExtension(() -> meters);
+  }
+
+  public Command setExtensionSlow(DoubleSupplier meters) {
+    return this.run(
+        () -> {
+          io.setTarget(meters.getAsDouble(), SLOW_ACCELERATION);
+          setpoint = meters.getAsDouble();
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Elevator/Setpoint", setpoint);
+        });
+  }
+
+  public Command setExtensionSlow(double meters) {
+    return this.setExtensionSlow(() -> meters);
+  }
+
+  public Command setExtensionMedium(DoubleSupplier meters) {
+    return this.run(
+        () -> {
+          io.setTarget(meters.getAsDouble(), MEDIUM_ACCELERATION);
+          setpoint = meters.getAsDouble();
+          if (Robot.ROBOT_TYPE != RobotType.REAL)
+            Logger.recordOutput("Elevator/Setpoint", setpoint);
+        });
+  }
+
+  public Command setExtensionMedium(double meters) {
+    return this.setExtensionMedium(() -> meters);
   }
 
   public Command hold() {

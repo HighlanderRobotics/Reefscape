@@ -65,6 +65,7 @@ public class VisionIOSim implements VisionIO {
 
   @Override
   public void updateInputs(VisionIOInputs inputs) {
+    // TODO add sphere for algae sim
     sim.update(pose.get());
     var results = camera.getAllUnreadResults();
     inputs.constants = constants;

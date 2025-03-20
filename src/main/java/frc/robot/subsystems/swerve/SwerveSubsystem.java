@@ -20,11 +20,13 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -34,6 +36,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.Samples;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalID;
@@ -48,6 +51,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -61,6 +65,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final Module[] modules; // FL, FR, BL, BR
   private final OdometryThreadIO odoThread;
   private final OdometryThreadIOInputs odoThreadInputs = new OdometryThreadIOInputs();
+  private final Vision algaeCamera;
 
   private SwerveDriveKinematics kinematics;
 
@@ -91,13 +96,16 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private boolean useModuleForceFF = !Robot.isSimulation();
 
+  public boolean hasFrontTags = false;
+
   public SwerveSubsystem(
       SwerveConstants constants,
       GyroIO gyroIO,
       VisionIO[] visionIOs,
       ModuleIO[] moduleIOs,
       OdometryThreadIO odoThread,
-      Optional<SwerveDriveSimulation> simulation) {
+      Optional<SwerveDriveSimulation> simulation,
+      VisionIO algaeCameraIO) {
     this.constants = constants;
     this.kinematics = new SwerveDriveKinematics(constants.getModuleTranslations());
     this.estimator =
@@ -111,6 +119,7 @@ public class SwerveSubsystem extends SubsystemBase {
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
     this.simulation = simulation;
+    this.algaeCamera = new Vision(algaeCameraIO);
     cameras = new Vision[visionIOs.length];
     modules = new Module[moduleIOs.length];
 
@@ -138,8 +147,10 @@ public class SwerveSubsystem extends SubsystemBase {
         () -> {
           for (var camera : cameras) {
             Tracer.trace("Update cam inputs", camera::updateInputs);
-            Tracer.trace("Process cam inputs", camera::processInputs);
+            Tracer.trace("Process cam inputs", camera::processApriltagInputs);
           }
+          Tracer.trace("Update algae cam inputs", algaeCamera::updateInputs);
+          Tracer.trace("Process algae cam inputs", algaeCamera::processAlgaeInputs);
           Tracer.trace(
               "Update odo inputs",
               () -> odoThread.updateInputs(odoThreadInputs, lastOdometryUpdateTimestamp));
@@ -179,8 +190,28 @@ public class SwerveSubsystem extends SubsystemBase {
           }
 
           Tracer.trace("Update odometry", this::updateOdometry);
-          Tracer.trace("Update vision", this::updateVision);
+          Tracer.trace("Update tag vision", this::updateVision);
+          Tracer.trace("Update algae vision", this::updateAlgaeVision);
         });
+  }
+
+  private void updateAlgaeVision() {
+    final PhotonPipelineResult result =
+        new PhotonPipelineResult(
+            algaeCamera.inputs.sequenceID,
+            algaeCamera.inputs.captureTimestampMicros,
+            algaeCamera.inputs.publishTimestampMicros,
+            algaeCamera.inputs.timeSinceLastPong,
+            algaeCamera.inputs.targets);
+    try {
+      if (!algaeCamera.inputs.stale) {
+        Logger.recordOutput("Vision/Algae Result", result);
+      } else {
+        Logger.recordOutput("Vision/Algae Camera/Invalid Result", "Stale");
+      }
+    } catch (NullPointerException e) {
+      Logger.recordOutput("Vision/Algae Camera/Invalid Result", "No Targets");
+    }
   }
 
   private void updateOdometry() {
@@ -299,7 +330,13 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private void updateVision() {
     var i = 0;
+    hasFrontTags = false;
     for (var camera : cameras) {
+      if ((camera.getName().equals("Front_Left_Camera")
+              || camera.getName().equals("Front_Right_Camera"))
+          && camera.inputs.targets.size() > 0) {
+        hasFrontTags = true;
+      }
       final PhotonPipelineResult result =
           new PhotonPipelineResult(
               camera.inputs.sequenceID,
@@ -328,12 +365,50 @@ public class SwerveSubsystem extends SubsystemBase {
                     visionPose.toPose2d(),
                     camera.inputs.captureTimestampMicros / 1.0e6,
                     deviations
-                        .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
+                        // .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
                         .times(
                             camera.getName().equals("Front_Left_Camera")
                                     || camera.getName().equals("Front_Right_Camera")
-                                ? 1.0
-                                : 1.5));
+                                ? 0.75
+                                : 2.0)
+                        // reef positions
+                        .times(
+                            (camera.getName().equals("Front_Left_Camera")
+                                        || camera.getName().equals("Front_Right_Camera"))
+                                    && (Robot.state.get().toString().startsWith("PRE_L")
+                                        || Robot.state.get() == SuperState.SCORE_CORAL
+                                        || Robot.state.get() == SuperState.INTAKE_ALGAE_HIGH
+                                        || Robot.state.get() == SuperState.INTAKE_ALGAE_LOW)
+                                ? 0.5
+                                : 1.5) // TODO tune these sorts of numbers
+                        // hp tags
+                        .times(
+                            // !camera.getName().equals("Front_Camera")
+                            // &&
+                            estPose.get().targetsUsed.stream()
+                                    .anyMatch(
+                                        t ->
+                                            t.getFiducialId() == 12
+                                                || t.getFiducialId() == 13
+                                                || t.getFiducialId() == 2
+                                                || t.getFiducialId() == 1)
+                                ? 1.5
+                                : 1.0)
+                        // barge tags
+                        .times(
+                            // !camera.getName().equals("Front_Right_Camera")
+                            // &&
+                            estPose.get().targetsUsed.stream()
+                                    .anyMatch(
+                                        t ->
+                                            t.getFiducialId() == 4
+                                                || t.getFiducialId() == 5
+                                                || t.getFiducialId() == 15
+                                                || t.getFiducialId() == 14)
+                                ? 1.2
+                                : 1.0)
+                        .times(Robot.state.get() == SuperState.PRE_NET ? 0.5 : 1.0));
+                // the sussifier
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
@@ -365,6 +440,7 @@ public class SwerveSubsystem extends SubsystemBase {
       }
       i++;
     }
+    Logger.recordOutput("Vision/Front Cameras Have Tags", hasFrontTags);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Vision/Camera Poses", cameraPoses);
     Pose3d[] arr = new Pose3d[cameras.length];
     for (int k = 0; k < cameras.length; k++) {
@@ -409,6 +485,13 @@ public class SwerveSubsystem extends SubsystemBase {
   /** Returns the current odometry rotation as returned by {@link #getPose()}. */
   public Rotation2d getRotation() {
     return getPose().getRotation();
+  }
+
+  public Rotation3d getRotation3d() {
+    return new Rotation3d(
+        gyroInputs.roll.getRadians(),
+        gyroInputs.pitch.getRadians(),
+        gyroInputs.yawPosition.getRadians());
   }
 
   public void resetPose(Pose2d pose) {
@@ -697,5 +780,55 @@ public class SwerveSubsystem extends SubsystemBase {
     for (var module : modules) {
       module.setCurrentLimits(configs);
     }
+  }
+
+  @SuppressWarnings("resource")
+  public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
+    final PIDController xController = new PIDController(1, 0.0, 0.0); // TODO tune
+    final PIDController yController = new PIDController(9, 0.0, 0.8); // TODO tune
+    return this.run(
+        () -> {
+          var target =
+              new PhotonPipelineResult(
+                      algaeCamera.inputs.sequenceID,
+                      algaeCamera.inputs.captureTimestampMicros,
+                      algaeCamera.inputs.publishTimestampMicros,
+                      algaeCamera.inputs.timeSinceLastPong,
+                      algaeCamera.inputs.targets)
+                  .getBestTarget();
+          if (target != null) {
+            double yaw = -target.getYaw();
+            double pitch = target.getPitch();
+            double r = Units.inchesToMeters(36.990 - 8.125) / Math.tan(Math.toRadians(pitch - 35));
+            double yOffset = r * Math.sin(Math.toRadians(yaw));
+            double xOffset = r * Math.cos(Math.toRadians(yaw));
+            Logger.recordOutput("AutoAim/Algae Detection/X Offset", xOffset);
+            Logger.recordOutput("AutoAim/Algae Detection/Y Offset", yOffset);
+            Logger.recordOutput("AutoAim/Algae Detection/R", r);
+            Logger.recordOutput("AutoAim/Algae Detection/Yaw", yaw);
+            Logger.recordOutput("AutoAim/Algae Detection/Pitch", pitch);
+            drive(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                        new ChassisSpeeds(
+                            xVel.getAsDouble(), yVel.getAsDouble(), theta.getAsDouble()),
+                        getRotation())
+                    .plus(
+                        new ChassisSpeeds(
+                            (1 / (1 + Math.abs(yOffset))) * xController.calculate(xOffset, 0.0),
+                            yController.calculate(yOffset, 0.0),
+                            0.0)),
+                false,
+                new double[4],
+                new double[4]);
+          } else {
+            drive(
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                    new ChassisSpeeds(xVel.getAsDouble(), yVel.getAsDouble(), theta.getAsDouble()),
+                    getRotation()),
+                false,
+                new double[4],
+                new double[4]);
+          }
+        });
   }
 }
