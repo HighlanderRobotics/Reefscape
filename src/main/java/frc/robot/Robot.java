@@ -400,6 +400,7 @@ public class Robot extends LoggedRobot {
                           manipulatorPose.transformBy(
                               new Transform3d(
                                   Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
+                    // return false;
                     return branch.getTranslation().getDistance(manipulatorPose.getTranslation())
                             < Units.inchesToMeters(1.5)
                         || branch

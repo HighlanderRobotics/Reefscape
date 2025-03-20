@@ -448,12 +448,7 @@ public class Superstructure {
                         MathUtil.isNear(
                             elevator.getExtensionMeters(), 0.0, Units.inchesToMeters(4.0))),
                 () -> reefTarget.get() == ReefTarget.L1))
-        .whileTrue(manipulator.hold())
-        .and(
-            () ->
-                shoulder.isNearAngle(reefTarget.get().shoulderAngle)
-                    || (shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_WHACK_L1_POS)
-                        && reefTarget.get() == ReefTarget.L1))
+        .and(() -> elevator.isNearTarget() && shoulder.isNearTarget() && wrist.isNearTarget())
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
         .and(() -> reefTarget.get() == ReefTarget.L1)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_WHACK_CORAL_EXTENSION_METERS))

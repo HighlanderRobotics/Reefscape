@@ -105,7 +105,7 @@ public class ExtensionKinematics {
     return new ExtensionState(
         MathUtil.clamp(elevatorHeight, 0.0, ElevatorSubsystem.MAX_EXTENSION_METERS),
         Rotation2d.fromRadians(shoulderAngle),
-        wristPose.getRotation());
+        Rotation2d.fromDegrees(MathUtil.clamp(wristPose.getRotation().getDegrees(), -45.0, 45.0)));
   }
 
   public static Pose2d solveFK(ExtensionState state) {
@@ -165,9 +165,9 @@ public class ExtensionKinematics {
       ShoulderSubsystem shoulder,
       WristSubsystem wrist,
       Supplier<ExtensionState> target) {
-    final LinearFilter elevatorFilter = LinearFilter.singlePoleIIR(0.1, 0.020);
-    final LinearFilter shoulderFilter = LinearFilter.singlePoleIIR(0.1, 0.020);
-    final LinearFilter wristFilter = LinearFilter.singlePoleIIR(0.1, 0.020);
+    final LinearFilter elevatorFilter = LinearFilter.movingAverage(5);
+    final LinearFilter shoulderFilter = LinearFilter.movingAverage(5);
+    final LinearFilter wristFilter = LinearFilter.movingAverage(5);
     return Commands.runOnce(
             () -> {
               elevatorFilter.reset();
