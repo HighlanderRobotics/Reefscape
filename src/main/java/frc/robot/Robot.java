@@ -393,7 +393,8 @@ public class Robot extends LoggedRobot {
                                   && MathUtil.isNear(
                                       0.0,
                                       swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-                                      3.0))
+                                      3.0)
+                                  && currentTarget != ReefTarget.L4)
                       .debounce(0.08)
                       .and(() -> swerve.hasFrontTags)),
           driver.rightTrigger().or(() -> Autos.autoPreScore),
