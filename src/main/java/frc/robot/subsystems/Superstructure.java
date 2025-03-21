@@ -612,19 +612,11 @@ public class Superstructure {
                     || (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
                         || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK))
         .onTrue(
-            Commands.run(
-                () -> {
-                  if (Robot.ROBOT_TYPE == RobotType.REAL) {
-                    System.out.println("real");
-                    this.forceState(SuperState.READY_ALGAE);
-                  } else if (manipulator.hasAlgae()) {
-                    System.out.println("sim");
-                    this.forceState(SuperState.READY_ALGAE);
-                  } else {
-                    System.out.println("none");
-                    this.forceState(SuperState.IDLE);
-                  }
-                }));
+            (Robot.ROBOT_TYPE == RobotType.REAL)
+                ? forceState(SuperState.READY_ALGAE)
+                : ((manipulator.hasAlgae())
+                    ? forceState(SuperState.READY_ALGAE)
+                    : forceState(SuperState.PRE_CLIMB)));
 
     // READY_ALGAE logic
     stateTriggers

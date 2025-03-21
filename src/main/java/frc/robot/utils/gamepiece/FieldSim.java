@@ -39,7 +39,7 @@ public class FieldSim {
       GamePiece gamePiece = gamePieces.get(i);
 
       Pose3d pose = gamePiece.getPose();
-      System.out.println(pose);
+      //  System.out.println(pose);
       Logger.recordOutput("FieldSim/GamePiece" + i + "/Pose", pose);
     }
     Logger.recordOutput("FieldSim/Held Piece", heldPiece);

@@ -58,7 +58,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     Logger.processInputs(NAME + "/First Beambreak", firstBBInputs);
     Logger.processInputs(NAME + "/Second Beambreak", secondBBInputs);
-    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Superstructure" + "/Has Algae", hasAlgae);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
