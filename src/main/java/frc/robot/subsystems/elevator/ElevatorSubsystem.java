@@ -57,7 +57,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
 
   public static final double MAX_ACCELERATION = 10.0;
-  public static final double SLOW_ACCELERATION = 7.0;
+  public static final double SLOW_ACCELERATION = 5.0;
   public static final double MEDIUM_ACCELERATION = 8.5;
 
   private final ElevatorIOInputsAutoLogged inputs = new ElevatorIOInputsAutoLogged();
