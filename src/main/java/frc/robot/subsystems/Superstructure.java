@@ -60,8 +60,8 @@ public class Superstructure {
 
   private final Supplier<Pose2d> pose;
   private final Supplier<ChassisSpeeds> chassisVel;
-  private final Supplier<ReefTarget> reefTarget;
-  private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
+  @AutoLogOutput(key = "Superstructure/Reef Target") private final Supplier<ReefTarget> reefTarget;
+  @AutoLogOutput(key = "Superstructure/Algae Intake Target") private final Supplier<AlgaeIntakeTarget> algaeIntakeTarget;
   private final Supplier<AlgaeScoreTarget> algaeScoreTarget;
 
   @AutoLogOutput(key = "Superstructure/Pre Score Request")
