@@ -42,6 +42,9 @@ public class WristSubsystem extends SubsystemBase {
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(4);
 
+  public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
+
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
@@ -84,6 +87,16 @@ public class WristSubsystem extends SubsystemBase {
 
   public Command setSlowTargetAngle(final Rotation2d target) {
     return this.setSlowTargetAngle(() -> target);
+  }
+
+  public Command setCrawlTargetAngle(final Supplier<Rotation2d> target) {
+    return this.runOnce(() -> io.setMotionMagicConfigs(CRAWL_MOTION_MAGIC))
+        .andThen(this.setTargetAngle(target))
+        .finallyDo((interrupted) -> io.setMotionMagicConfigs(DEFAULT_MOTION_MAGIC));
+  }
+
+  public Command setCrawlTargetAngle(final Rotation2d target) {
+    return this.setCrawlTargetAngle(() -> target);
   }
 
   public Command hold() {
