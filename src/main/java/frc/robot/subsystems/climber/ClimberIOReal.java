@@ -3,6 +3,7 @@ package frc.robot.subsystems.climber;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -26,7 +27,7 @@ public class ClimberIOReal implements ClimberIO {
   private final StatusSignal<Angle> position = motor.getPosition();
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
-  private final PositionVoltage motionMagic = new PositionVoltage(0.0);
+  private final DynamicMotionMagicVoltage motionMagic = new DynamicMotionMagicVoltage(0.0, ClimberSubsystem.FAST_VEL, 100.0, 100.0);
 
   public ClimberIOReal() {
     final var config = new TalonFXConfiguration();
@@ -78,6 +79,11 @@ public class ClimberIOReal implements ClimberIO {
   @Override
   public void setPosition(final double position) {
     motor.setControl(motionMagic.withPosition(position));
+  }
+
+  @Override
+  public void setPosition(final double position, final double vel) {
+    motor.setControl(motionMagic.withPosition(position).withVelocity(vel));
   }
 
   @Override

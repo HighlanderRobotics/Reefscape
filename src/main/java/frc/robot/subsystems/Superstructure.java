@@ -702,7 +702,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.CLIMB)
         .whileTrue(
-            climber.setPosition(1.3).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
+            climber.setPositionSlow(1.3).withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
 
     // May need more checks to see if canceling is safe
     stateTriggers
