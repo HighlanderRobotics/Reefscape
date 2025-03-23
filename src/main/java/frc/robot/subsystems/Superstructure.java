@@ -703,7 +703,7 @@ public class Superstructure {
         .get(SuperState.CLIMB)
         .whileTrue(
             climber
-                .setPositionSlow(1.3)
+                .setPositionSlow(1.35)
                 .withInterruptBehavior(InterruptionBehavior.kCancelIncoming));
 
     // May need more checks to see if canceling is safe
