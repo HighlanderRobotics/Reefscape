@@ -18,7 +18,7 @@ public class ClimberSubsystem extends SubsystemBase {
   public static final double CLIMB_GEAR_RATIO = 4.0 * 4.0 * 5.0;
   public static final double CLIMB_EXTENDED_POSITION = 3.4;
 
-  public static final double FAST_VEL = 1.2;
+  public static final double FAST_VEL = 2.0;
   public static final double SLOW_VEL = 0.5;
 
   private final ClimberIO io;

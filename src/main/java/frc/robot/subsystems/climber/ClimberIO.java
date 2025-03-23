@@ -18,6 +18,7 @@ public interface ClimberIO {
   public void setVoltage(final double volts);
 
   public void setPosition(final double position);
+
   public void setPosition(final double position, final double vel);
 
   public void resetEncoder(final double position);

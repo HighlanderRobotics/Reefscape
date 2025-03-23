@@ -4,7 +4,6 @@ import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
-import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -27,7 +26,8 @@ public class ClimberIOReal implements ClimberIO {
   private final StatusSignal<Angle> position = motor.getPosition();
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
-  private final DynamicMotionMagicVoltage motionMagic = new DynamicMotionMagicVoltage(0.0, ClimberSubsystem.FAST_VEL, 100.0, 100.0);
+  private final DynamicMotionMagicVoltage motionMagic =
+      new DynamicMotionMagicVoltage(0.0, ClimberSubsystem.FAST_VEL, 100.0, 100.0);
 
   public ClimberIOReal() {
     final var config = new TalonFXConfiguration();
