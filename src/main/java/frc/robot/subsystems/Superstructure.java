@@ -424,15 +424,17 @@ public class Superstructure {
         .get(SuperState.SCORE_CORAL)
         .whileTrue(
             Commands.either(
-                Commands.parallel(
-                        elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS),
-                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS),
-                        wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS))
-                    .until(
-                        () ->
-                            elevator.isNearTarget()
-                                && shoulder.isNearTarget()
-                                && wrist.isNearTarget()),
+                Commands.waitSeconds(0.040)
+                    .andThen(
+                        Commands.parallel(
+                                elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS),
+                                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS),
+                                wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS))
+                            .until(
+                                () ->
+                                    elevator.isNearTarget()
+                                        && shoulder.isNearTarget()
+                                        && wrist.isNearTarget())),
                 // Score on L2-4
                 Commands.either(
                     Commands.parallel(
