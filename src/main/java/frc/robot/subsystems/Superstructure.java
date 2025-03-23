@@ -666,7 +666,7 @@ public class Superstructure {
             Commands.parallel(
                 elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
-                wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
+                wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
