@@ -425,9 +425,14 @@ public class Superstructure {
         .whileTrue(
             Commands.either(
                 Commands.parallel(
-                    elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS),
-                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS),
-                    wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS)),
+                        elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS),
+                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS),
+                        wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS))
+                    .until(
+                        () ->
+                            elevator.isNearTarget()
+                                && shoulder.isNearTarget()
+                                && wrist.isNearTarget()),
                 // Score on L2-4
                 Commands.either(
                     Commands.parallel(
@@ -459,9 +464,7 @@ public class Superstructure {
         .and(() -> reefTarget.get() == ReefTarget.L1)
         .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_WHACK_CORAL_EXTENSION_METERS))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_WHACK_L1_POS))
-        .whileTrue(
-            Commands.waitSeconds(0.1)
-                .andThen(wrist.setTargetAngle(WristSubsystem.WRIST_WHACK_L1_POS)));
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_WHACK_L1_POS));
 
     stateTriggers
         .get(SuperState.SCORE_CORAL)
