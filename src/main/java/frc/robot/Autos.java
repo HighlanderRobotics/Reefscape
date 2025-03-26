@@ -339,8 +339,6 @@ public class Autos {
                 swerve,
                 () -> CoralTargets.getClosestTarget(trajEndPose.get()),
                 ChassisSpeeds::new,
-                // Keeps the robot off the reef wall until it's aligned side-side
-                // new Transform2d(-0.1, 0.0, Rotation2d.kZero),
                 new Constraints(1.5, 2.0)));
   }
 
