@@ -7,12 +7,6 @@ import java.util.Arrays;
 
 public class SkidDetection {
 
-  private SwerveDriveKinematics kinematics;
-
-  public SkidDetection(SwerveDriveKinematics kinematics) {
-    this.kinematics = kinematics;
-  }
-
   /**
    * Detects modules that are skidding
    *
@@ -20,7 +14,10 @@ public class SkidDetection {
    * @param yawVelocityRadPerSec From gyro
    * @return the skidding modules [Front left, front right, back left, back right] true if skidding
    */
-  public boolean[] detectSkiddingModules(SwerveModuleState[] moduleStates, double yawVelocityRadPerSec) {
+  public boolean[] detectSkiddingModules(
+      SwerveDriveKinematics kinematics,
+      SwerveModuleState[] moduleStates,
+      double yawVelocityRadPerSec) {
 
     // Get the pure rotational component based on the gyro yaw velocity
     SwerveModuleState[] rotationalComponents =
@@ -42,14 +39,25 @@ public class SkidDetection {
     }
     double xTransComponentAverage = Arrays.stream(xTransComponents).average().getAsDouble();
     // Check that this is the correct calc
-    double xTransComponentStdDev = Math.sqrt(Arrays.stream(xTransComponents).map(value -> Math.pow(value - xTransComponentAverage, 2)).sum() / 4);
-            
+    double xTransComponentStdDev =
+        Math.sqrt(
+            Arrays.stream(xTransComponents)
+                    .map(value -> Math.pow(value - xTransComponentAverage, 2))
+                    .sum()
+                / 4);
+
     double yTransComponentAverage = Arrays.stream(yTransComponents).average().getAsDouble();
-    double yTransComponentStdDev = Math.sqrt(Arrays.stream(yTransComponents).map(value -> Math.pow(value - yTransComponentAverage, 2)).sum() / 4);
+    double yTransComponentStdDev =
+        Math.sqrt(
+            Arrays.stream(yTransComponents)
+                    .map(value -> Math.pow(value - yTransComponentAverage, 2))
+                    .sum()
+                / 4);
 
     boolean[] result = new boolean[4];
     for (int i = 0; i <= moduleStates.length; i++) {
-      // If the measurement deviates by more than 2 standard deviations assume it's skidding (TODO: TUNE)
+      // If the measurement deviates by more than 2 standard deviations assume it's skidding (TODO:
+      // TUNE)
       if (Math.abs(xTransComponents[i] - xTransComponentAverage) >= xTransComponentStdDev * 2
           || Math.abs(yTransComponents[i] - yTransComponentAverage) >= yTransComponentStdDev * 2) {
         result[i] = true;

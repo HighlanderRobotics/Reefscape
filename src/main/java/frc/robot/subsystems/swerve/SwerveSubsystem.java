@@ -41,8 +41,8 @@ import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
 import frc.robot.subsystems.vision.Vision;
 import frc.robot.subsystems.vision.VisionHelper;
 import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.utils.Tracer;
 import frc.robot.utils.SkidDetection;
+import frc.robot.utils.Tracer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -114,8 +114,6 @@ public class SwerveSubsystem extends SubsystemBase {
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
     this.simulation = simulation;
-    
-    this.skidDetection = new SkidDetection(this.kinematics);
 
     cameras = new Vision[visionIOs.length];
     modules = new Module[moduleIOs.length];
@@ -273,15 +271,29 @@ public class SwerveSubsystem extends SubsystemBase {
       }
       missingModuleData.set(false);
 
-      boolean[] skiddingModules = skidDetection.detectSkiddingModules(getModuleStates(), gyroInputs.yawVelocityRadPerSec);
+      boolean[] skiddingModules =
+          skidDetection.detectSkiddingModules(
+              kinematics, getModuleStates(), gyroInputs.yawVelocityRadPerSec);
       Logger.recordOutput("Odometry/Skidding Modules", skiddingModules);
 
       for (int i = 0; i <= skiddingModules.length; i++) {
         // If a module is skidding, average the other modules
         if (skiddingModules[i]) {
-          double averageDeltaPosition = ( Arrays.stream(moduleDeltas).map(delta -> delta.distanceMeters).reduce(0.0, (Double a, Double b) -> a + b) - moduleDeltas[i].distanceMeters ) / 3;
-          double averageDeltaRotationRads = ( Arrays.stream(moduleDeltas).map(delta -> delta.angle.getRadians()).reduce(0.0, (Double a, Double b) -> a + b) - moduleDeltas[i].angle.getRadians() ) / 3;
-          moduleDeltas[i] = new SwerveModulePosition(averageDeltaPosition, Rotation2d.fromRadians(averageDeltaRotationRads));
+          double averageDeltaPosition =
+              (Arrays.stream(moduleDeltas)
+                          .map(delta -> delta.distanceMeters)
+                          .reduce(0.0, (Double a, Double b) -> a + b)
+                      - moduleDeltas[i].distanceMeters)
+                  / 3;
+          double averageDeltaRotationRads =
+              (Arrays.stream(moduleDeltas)
+                          .map(delta -> delta.angle.getRadians())
+                          .reduce(0.0, (Double a, Double b) -> a + b)
+                      - moduleDeltas[i].angle.getRadians())
+                  / 3;
+          moduleDeltas[i] =
+              new SwerveModulePosition(
+                  averageDeltaPosition, Rotation2d.fromRadians(averageDeltaRotationRads));
         }
       }
 
