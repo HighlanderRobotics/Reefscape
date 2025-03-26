@@ -102,17 +102,10 @@ public class AutoAim {
     final ProfiledPIDController headingController =
         // assume we can accelerate to max in 2/3 of a second
         new ProfiledPIDController(
-            Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(),
-            0.0,
-            0.0,
-            constraints);
+            Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(), 0.0, 0.0, constraints);
     headingController.enableContinuousInput(-Math.PI, Math.PI);
     final ProfiledPIDController vxController =
-        new ProfiledPIDController(
-            10.0,
-            0.01,
-            0.02,
-            constraints);
+        new ProfiledPIDController(10.0, 0.01, 0.02, constraints);
     final ProfiledPIDController vyController =
         new ProfiledPIDController(
             10.0,
