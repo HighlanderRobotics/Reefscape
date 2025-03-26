@@ -105,14 +105,14 @@ public class AutoAim {
             Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(),
             0.0,
             0.0,
-            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION));
+            constraints);
     headingController.enableContinuousInput(-Math.PI, Math.PI);
     final ProfiledPIDController vxController =
         new ProfiledPIDController(
             10.0,
             0.01,
             0.02,
-            new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+            constraints);
     final ProfiledPIDController vyController =
         new ProfiledPIDController(
             10.0,
