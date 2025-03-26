@@ -755,8 +755,7 @@ public class Robot extends LoggedRobot {
                 Commands.waitUntil(
                         new Trigger(
                                 () ->
-                                    AutoAim.isInToleranceAlgaeIntake(
-                                            swerve.getPose())
+                                    AutoAim.isInToleranceAlgaeIntake(swerve.getPose())
                                         && MathUtil.isNear(
                                             0,
                                             Math.hypot(
