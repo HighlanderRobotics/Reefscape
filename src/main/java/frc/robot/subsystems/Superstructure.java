@@ -35,6 +35,7 @@ public class Superstructure {
   public static enum SuperState {
     IDLE,
     HOME,
+    INTAKE_CORAL_GROUND,
     READY_CORAL,
     SPIT_CORAL,
     PRE_L1,
@@ -72,6 +73,9 @@ public class Superstructure {
 
   @AutoLogOutput(key = "Superstructure/Algae Intake Request")
   private final Trigger intakeAlgaeReq;
+
+  @AutoLogOutput(key = "Superstructure/Coral Intake Request")
+  private final Trigger intakeCoralReq;
 
   @AutoLogOutput(key = "Superstructure/Pre Climb Request")
   private final Trigger preClimbReq;
@@ -129,6 +133,7 @@ public class Superstructure {
       Trigger scoreReq,
       Trigger preScoreReq,
       Trigger intakeAlgaeReq,
+      Trigger intakeCoralReq,
       Trigger climbReq,
       Trigger climbConfReq,
       Trigger climbCancelReq,
@@ -155,6 +160,7 @@ public class Superstructure {
     this.scoreReq = scoreReq;
 
     this.intakeAlgaeReq = intakeAlgaeReq;
+    this.intakeCoralReq = intakeCoralReq;
 
     this.preClimbReq = climbReq;
     this.climbConfReq = climbConfReq;
@@ -221,6 +227,11 @@ public class Superstructure {
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
+    stateTriggers
+        .get(SuperState.IDLE)
+        .and(intakeCoralReq)
+        .onTrue(this.forceState(SuperState.INTAKE_CORAL_GROUND));
+
     // IDLE -> INTAKE_ALGAE_{location}
     stateTriggers
         .get(SuperState.IDLE)
@@ -277,6 +288,22 @@ public class Superstructure {
                 elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs())))
         .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
         .onTrue(this.forceState(prevState));
+
+    stateTriggers
+        .get(SuperState.INTAKE_CORAL_GROUND)
+        .whileTrue(
+            extendWithClearance(
+                ElevatorSubsystem.GROUND_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
+                WristSubsystem.WRIST_CORAL_GROUND))
+        .whileTrue(manipulator.intakeCoral().repeatedly())
+        .and(manipulator::getSecondBeambreak)
+        .onTrue(this.forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.INTAKE_CORAL_GROUND)
+        .and(intakeCoralReq.negate())
+        .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
     stateTriggers

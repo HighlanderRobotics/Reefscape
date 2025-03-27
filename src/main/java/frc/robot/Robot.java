@@ -119,7 +119,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -448,6 +448,7 @@ public class Robot extends LoggedRobot {
           ,
           driver.rightTrigger().or(() -> Autos.autoPreScore),
           driver.leftTrigger(),
+          driver.leftBumper(),
           driver
               .x()
               .and(driver.pov(-1).negate())

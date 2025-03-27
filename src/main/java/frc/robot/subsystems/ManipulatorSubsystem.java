@@ -24,6 +24,7 @@ import org.littletonrobotics.junction.Logger;
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
+  public static final double CORAL_INTAKE_VOLTAGE = -10.0;
   public static final double ALGAE_INTAKE_VOLTAGE = -10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = -3.0;
   public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
@@ -75,6 +76,12 @@ public class ManipulatorSubsystem extends RollerSubsystem {
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));
       zeroTimer.reset();
     }
+
+    if (!firstBBInputs.get && secondBBInputs.get) {
+      // Number calculated from coral length, may need tuning
+      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.63));
+      zeroTimer.reset();
+    }
   }
 
   public Command index() {
@@ -111,6 +118,10 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public Command backIndex() {
     return Commands.sequence(
         setVelocity(-INDEXING_VELOCITY).until(() -> !secondBBInputs.get), index());
+  }
+
+  public Command intakeCoral() {
+    return setVoltage(CORAL_INTAKE_VOLTAGE).until(() -> secondBBInputs.get).andThen(hold());
   }
 
   public Command intakeAlgae() {
