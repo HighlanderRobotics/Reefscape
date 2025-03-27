@@ -21,7 +21,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(180 - 49.519570 + 5);
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(-30.0);
-  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(-33.0);
+  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(-23.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_SCORE_L1_POS = Rotation2d.fromDegrees(-70);
@@ -33,7 +33,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(-44.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_RETRACT_POS =
       Rotation2d.fromDegrees(-44.0);
-  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(80);
+  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(70);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = WRIST_RETRACTED_POS;
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
@@ -41,6 +41,9 @@ public class WristSubsystem extends SubsystemBase {
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(4);
+
+  public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
 
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
@@ -86,6 +89,16 @@ public class WristSubsystem extends SubsystemBase {
     return this.setSlowTargetAngle(() -> target);
   }
 
+  public Command setCrawlTargetAngle(final Supplier<Rotation2d> target) {
+    return this.runOnce(() -> io.setMotionMagicConfigs(CRAWL_MOTION_MAGIC))
+        .andThen(this.setTargetAngle(target))
+        .finallyDo((interrupted) -> io.setMotionMagicConfigs(DEFAULT_MOTION_MAGIC));
+  }
+
+  public Command setCrawlTargetAngle(final Rotation2d target) {
+    return this.setCrawlTargetAngle(() -> target);
+  }
+
   public Command hold() {
     return Commands.sequence(
         setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
@@ -97,6 +110,10 @@ public class WristSubsystem extends SubsystemBase {
 
   public Rotation2d getSetpoint() {
     return setpoint;
+  }
+
+  public boolean isNearTarget() {
+    return isNearAngle(setpoint);
   }
 
   public boolean isNearAngle(Rotation2d target) {

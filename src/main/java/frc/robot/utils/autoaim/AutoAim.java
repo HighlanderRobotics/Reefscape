@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -41,7 +42,7 @@ public class AutoAim {
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
   public static final double VELOCITY_TOLERANCE_METERSPERSECOND = 0.5;
-  public static final double INITIAL_REEF_KEEPOFF_DISTANCE_METERS = -0.05;
+  public static final double INITIAL_REEF_KEEPOFF_DISTANCE_METERS = -0.1;
 
   public static Command translateToPose(SwerveSubsystem swerve, Supplier<Pose2d> target) {
     return translateToPose(swerve, target, () -> new ChassisSpeeds());
@@ -61,30 +62,55 @@ public class AutoAim {
         swerve, () -> end.get().transformBy(translationToIntermediate), end);
   }
 
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve,
+      Supplier<Pose2d> intermediate,
+      Supplier<Pose2d> end,
+      Constraints constraints) {
+    return translateToPose(swerve, intermediate, ChassisSpeeds::new, constraints)
+        .until(() -> isInTolerance(swerve.getPose(), intermediate.get()))
+        .andThen(translateToPose(swerve, end, ChassisSpeeds::new, constraints));
+  }
+
+  /** Transforms the end pose by translationToIntermediate to get the intermediate pose */
+  public static Command autoAimWithIntermediatePose(
+      SwerveSubsystem swerve,
+      Supplier<Pose2d> end,
+      Transform2d translationToIntermediate,
+      Constraints constraints) {
+    return autoAimWithIntermediatePose(
+        swerve, () -> end.get().transformBy(translationToIntermediate), end, constraints);
+  }
+
   public static Command translateToPose(
       SwerveSubsystem swerve, Supplier<Pose2d> target, Supplier<ChassisSpeeds> speedsModifier) {
+    return translateToPose(
+        swerve,
+        target,
+        speedsModifier,
+        new Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+  }
+
+  public static Command translateToPose(
+      SwerveSubsystem swerve,
+      Supplier<Pose2d> target,
+      Supplier<ChassisSpeeds> speedsModifier,
+      Constraints constraints) {
     // This feels like a horrible way of getting around lambda final requirements
     // Is there a cleaner way of doing this?
     final Pose2d cachedTarget[] = {new Pose2d()};
     final ProfiledPIDController headingController =
         // assume we can accelerate to max in 2/3 of a second
         new ProfiledPIDController(
-            Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(),
-            0.0,
-            0.0,
-            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION));
+            Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(), 0.0, 0.0, constraints);
     headingController.enableContinuousInput(-Math.PI, Math.PI);
     final ProfiledPIDController vxController =
-        new ProfiledPIDController(
-            10.0,
-            0.01,
-            0.01,
-            new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+        new ProfiledPIDController(10.0, 0.01, 0.02, constraints);
     final ProfiledPIDController vyController =
         new ProfiledPIDController(
             10.0,
             0.01,
-            0.01,
+            0.02,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.runOnce(
             () -> {
@@ -243,6 +269,12 @@ public class AutoAim {
             0.0, Math.hypot(diff.getX(), diff.getY()), AutoAim.TRANSLATION_TOLERANCE_METERS)
         && MathUtil.isNear(
             0.0, diff.getRotation().getRadians(), AutoAim.ROTATION_TOLERANCE_RADIANS);
+  }
+
+  public static boolean isInToleranceCoral(Pose2d pose, double translationTol, double rotationTol) {
+    final var diff = pose.minus(CoralTargets.getClosestTarget(pose));
+    return MathUtil.isNear(0.0, Math.hypot(diff.getX(), diff.getY()), translationTol)
+        && MathUtil.isNear(0.0, diff.getRotation().getRadians(), rotationTol);
   }
 
   public static boolean isInToleranceAlgaeIntake(Pose2d pose) {

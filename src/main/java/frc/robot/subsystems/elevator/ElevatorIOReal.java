@@ -7,8 +7,8 @@ package frc.robot.subsystems.elevator;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -28,7 +28,7 @@ public class ElevatorIOReal implements ElevatorIO {
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
   private final TorqueCurrentFOC torque = new TorqueCurrentFOC(0.0);
-  private final MotionMagicVoltage positionTorque = new MotionMagicVoltage(0.0).withEnableFOC(true);
+  private final DynamicMotionMagicVoltage positionVoltage;
 
   // misusing type system here - these correspond to linear meters, NOT rotations
   private final StatusSignal<Angle> position = motor.getPosition();
@@ -74,18 +74,26 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.StatorCurrentLimit = 80.0;
     // Fuck it we ball
     config.CurrentLimits.StatorCurrentLimitEnable = false;
-    config.CurrentLimits.SupplyCurrentLimit = 70.0;
-    config.CurrentLimits.SupplyCurrentLimitEnable = false;
+    config.CurrentLimits.SupplyCurrentLimit = 60.0;
+    config.CurrentLimits.SupplyCurrentLimitEnable = true;
     config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
-    config.CurrentLimits.SupplyCurrentLowerTime = 0.0;
+    config.CurrentLimits.SupplyCurrentLowerTime = 0.25;
 
-    config.MotionMagic.MotionMagicAcceleration = 12.0;
+    config.MotionMagic.MotionMagicAcceleration = ElevatorSubsystem.MAX_ACCELERATION;
     // Estimated from slightly less than motor free speed
     config.MotionMagic.MotionMagicCruiseVelocity = 4.5;
     // (5500.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
 
     config.MotionMagic.MotionMagicExpo_kV = 1.9;
     config.MotionMagic.MotionMagicExpo_kA = 0.1141;
+
+    positionVoltage =
+        new DynamicMotionMagicVoltage(
+                0.0,
+                config.MotionMagic.MotionMagicCruiseVelocity,
+                config.MotionMagic.MotionMagicAcceleration,
+                100.0)
+            .withEnableFOC(true);
 
     motor.getConfigurator().apply(config);
     follower.getConfigurator().apply(config);
@@ -109,8 +117,13 @@ public class ElevatorIOReal implements ElevatorIO {
   }
 
   @Override
+  public void setTarget(final double meters, final double maxAccel) {
+    motor.setControl(positionVoltage.withPosition(meters).withAcceleration(maxAccel));
+  }
+
+  @Override
   public void setTarget(final double meters) {
-    motor.setControl(positionTorque.withPosition(meters));
+    motor.setControl(positionVoltage.withPosition(meters));
   }
 
   @Override

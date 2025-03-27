@@ -15,8 +15,11 @@ public class ClimberSubsystem extends SubsystemBase {
   // TODO update
   public static final double CLIMBER_ARM_LENGTH_METERS = Units.inchesToMeters(11.0);
   public static final double CLIMBER_DRUM_RADIUS_METERS = Units.inchesToMeters(1.0);
-  public static final double CLIMB_GEAR_RATIO = 125.0;
-  public static final double CLIMB_EXTENDED_POSITION = 3.5;
+  public static final double CLIMB_GEAR_RATIO = 4.0 * 4.0 * 5.0;
+  public static final double CLIMB_EXTENDED_POSITION = 3.4;
+
+  public static final double FAST_VEL = 2.0;
+  public static final double SLOW_VEL = 0.5;
 
   private final ClimberIO io;
   private final ClimberIOInputsAutoLogged inputs = new ClimberIOInputsAutoLogged();
@@ -36,7 +39,11 @@ public class ClimberSubsystem extends SubsystemBase {
   }
 
   public Command setPosition(double position) {
-    return this.run(() -> io.setPosition(position));
+    return this.run(() -> io.setPosition(position, FAST_VEL));
+  }
+
+  public Command setPositionSlow(double position) {
+    return this.run(() -> io.setPosition(position, SLOW_VEL));
   }
 
   public Command resetClimber() {

@@ -65,4 +65,10 @@ public class ClimberIOSim implements ClimberIO {
   public void resetEncoder(double position) {
     armSim.setState(position, 0);
   }
+
+  @Override
+  public void setPosition(double position, double vel) {
+    // TODO Auto-generated method stub
+    throw new UnsupportedOperationException("Unimplemented method 'setPosition'");
+  }
 }

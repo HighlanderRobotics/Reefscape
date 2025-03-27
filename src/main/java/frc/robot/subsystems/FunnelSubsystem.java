@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.roller.RollerIO;
@@ -9,14 +10,17 @@ import frc.robot.subsystems.servo.ServoIOInputsAutoLogged;
 import org.littletonrobotics.junction.Logger;
 
 public class FunnelSubsystem extends RollerSubsystem {
-  public static final Rotation2d FIRST_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(125.0);
+  public static final Rotation2d FIRST_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(135.0);
   public static final Rotation2d FIRST_LATCH_OPEN_POSITION = Rotation2d.fromDegrees(45.0);
-  public static final Rotation2d SECOND_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(45.0);
+  public static final Rotation2d SECOND_LATCH_CLOSED_POSITION = Rotation2d.fromDegrees(35.0);
   public static final Rotation2d SECOND_LATCH_OPEN_POSITION = Rotation2d.fromDegrees(125.0);
   // this could be in its own subsystem but it doesnt really matter tbh
   private final ServoIO firstLatchIO, secondLatchIO;
   private final ServoIOInputsAutoLogged firstLatchInputs = new ServoIOInputsAutoLogged(),
       secondLatchInputs = new ServoIOInputsAutoLogged();
+
+  private final LinearFilter currentFilter = LinearFilter.singlePoleIIR(0.15, 0.020);
+  private double currentFilterValue = 0;
 
   public FunnelSubsystem(RollerIO io, ServoIO firstLatchIO, ServoIO secondLatchIO) {
     super(io, "Funnel");
@@ -30,9 +34,14 @@ public class FunnelSubsystem extends RollerSubsystem {
   @Override
   public void periodic() {
     super.periodic();
+    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
     // no updating latch inputs bc blank inputs
     Logger.processInputs("Funnel/First Latch", firstLatchInputs);
     Logger.processInputs("Funnel/Second Latch", secondLatchInputs);
+  }
+
+  public double getFilteredCurrent() {
+    return currentFilterValue;
   }
 
   /** DO NOT RUN IF YOU WANT TO SCORE MORE CORAL */

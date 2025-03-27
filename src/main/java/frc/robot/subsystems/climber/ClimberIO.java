@@ -19,5 +19,7 @@ public interface ClimberIO {
 
   public void setPosition(final double position);
 
+  public void setPosition(final double position, final double vel);
+
   public void resetEncoder(final double position);
 }

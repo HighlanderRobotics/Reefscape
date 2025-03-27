@@ -29,7 +29,7 @@ public class Vision {
           new double[] {
             Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY, Double.POSITIVE_INFINITY
           });
-  public static final double distanceFactor = 2.0;
+  public static final double distanceFactor = 3.0;
 
   public record VisionConstants(
       String cameraName,
@@ -53,8 +53,12 @@ public class Vision {
     io.updateInputs(inputs);
   }
 
-  public void processInputs() {
+  public void processApriltagInputs() {
     Logger.processInputs("Apriltag Vision/" + inputs.constants.cameraName, inputs);
+  }
+
+  public void processAlgaeInputs() {
+    Logger.processInputs("Algae Vision/" + inputs.constants.cameraName, inputs);
   }
 
   public Optional<EstimatedRobotPose> update(PhotonPipelineResult result) {

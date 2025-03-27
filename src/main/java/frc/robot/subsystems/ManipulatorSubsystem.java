@@ -6,6 +6,9 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Robot;
@@ -15,6 +18,7 @@ import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.utils.Tracer;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class ManipulatorSubsystem extends RollerSubsystem {
@@ -23,6 +27,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double ALGAE_INTAKE_VOLTAGE = -10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = -3.0;
   public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
+  public static final Transform2d IK_WRIST_TO_CORAL =
+      new Transform2d(
+          Units.inchesToMeters(1.0), Units.inchesToMeters(3.0), Rotation2d.fromDegrees(0.0));
 
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
@@ -35,11 +42,14 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private LinearFilter currentFilter = LinearFilter.movingAverage(20);
   private double currentFilterValue = 0.0;
 
+  private Timer zeroTimer = new Timer();
+
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
     super(rollerIO, NAME);
     this.firstBBIO = firstBBIO;
     this.secondBBIO = secondBBIO;
+    zeroTimer.start();
   }
 
   @Override
@@ -63,24 +73,35 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     if (firstBBInputs.get && !secondBBInputs.get) {
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));
+      zeroTimer.reset();
     }
   }
 
   public Command index() {
     return Commands.sequence(
-        setVelocity(9.0).until(() -> firstBBInputs.get).unless(() -> firstBBInputs.get),
+        setVelocity(9.0)
+            .until(() -> firstBBInputs.get || secondBBInputs.get)
+            .unless(() -> firstBBInputs.get),
         setVelocity(3.0).until(() -> secondBBInputs.get).unless(() -> secondBBInputs.get),
+        setVelocity(-3.0)
+            .until(() -> firstBBInputs.get && !secondBBInputs.get)
+            .unless(() -> zeroTimer.get() < 0.25),
         // TODO tune timeout
         // Commands.runOnce(() -> io.resetEncoder(0.0)),
-        Commands.run(() -> io.setPosition(Rotation2d.fromRotations(1.1))),
-        // setVelocity(2.0).withTimeout(0.25),
-        setVelocity(0));
+        Commands.run(() -> io.setPosition(Rotation2d.fromRotations(1.1)))
+            .until(() -> !firstBBInputs.get && !secondBBInputs.get));
   } // TODO check if anything got lost in merge?
 
   public Command jog(double rotations) {
     return Commands.sequence(
         // this.runOnce(() -> io.resetEncoder(0.0)),
         this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations))));
+  }
+
+  public Command jog(DoubleSupplier rotations) {
+    return Commands.sequence(
+        // this.runOnce(() -> io.resetEncoder(0.0)),
+        this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations.getAsDouble()))));
   }
 
   public Command hold() {

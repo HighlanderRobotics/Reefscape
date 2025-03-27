@@ -7,8 +7,10 @@ package frc.robot;
 import choreo.auto.AutoFactory;
 import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -17,6 +19,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.autoaim.AutoAim;
@@ -29,14 +32,16 @@ import org.littletonrobotics.junction.Logger;
 public class Autos {
   private final SwerveSubsystem swerve;
   private final ManipulatorSubsystem manipulator;
+  private final FunnelSubsystem funnel;
   private final AutoFactory factory;
 
   public static boolean autoPreScore = false;
   public static boolean autoScore = false; // TODO perhaps this should not be static
 
-  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator) {
+  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
     this.swerve = swerve;
     this.manipulator = manipulator;
+    this.funnel = funnel;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -109,7 +114,7 @@ public class Autos {
                 .get(startPos + "to" + endPos)
                 .atTime(
                     steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
-                        - (endPos.length() == 1 ? 0.5 : 0.0)))
+                        - (endPos.length() == 1 ? 0.1 : 0.0)))
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
@@ -139,7 +144,7 @@ public class Autos {
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "LO", "J", "PLO", "K", "PLO", "L", "PLO", "A", "PLO" // each stop we are going to, in order
+      "LO", "J", "PLO", "K", "PLO", "L", "PLM", "A", "PLO" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
@@ -148,6 +153,7 @@ public class Autos {
     routine
         // run first path
         .active()
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("LOtoJ").resetOdometry(), steps.get("LOtoJ").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -158,6 +164,10 @@ public class Autos {
       runPath(routine, startPos, endPos, nextPos, steps);
     }
 
+    routine
+        .observe(steps.get("LtoPLM").done())
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+
     return routine.cmd();
   }
 
@@ -167,7 +177,7 @@ public class Autos {
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "RO", "E", "PRO", "D", "PRO", "C", "PRO", "B", "PRO" // each stop we are going to, in order
+      "RO", "E", "PRO", "D", "PRO", "C", "PRM", "B", "PRO" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
@@ -177,6 +187,7 @@ public class Autos {
     routine
         // run first path
         .active()
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("ROtoE").resetOdometry(), steps.get("ROtoE").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -186,8 +197,11 @@ public class Autos {
       String nextPos = stops[i + 2];
       runPath(routine, startPos, endPos, nextPos, steps);
     }
-    // final path
-    routine.observe(steps.get("PROtoB").done()).onTrue(scoreInAuto());
+
+    routine
+        .observe(steps.get("CtoPRM").done())
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+
     return routine.cmd();
   }
 
@@ -288,17 +302,27 @@ public class Autos {
                 new Trigger(
                         () ->
                             AutoAim.isInTolerance(
-                                swerve.getPose(),
-                                CoralTargets.getClosestTarget(trajEndPose.get()),
-                                swerve.getVelocityFieldRelative(),
-                                Units.inchesToMeters(3.0),
-                                Units.degreesToRadians(1.0)))
-                    .debounce(0.25)),
+                                    swerve.getPose(),
+                                    CoralTargets.getClosestTarget(trajEndPose.get()),
+                                    swerve.getVelocityFieldRelative(),
+                                    Units.inchesToMeters(1.0),
+                                    Units.degreesToRadians(1.0))
+                                && MathUtil.isNear(
+                                    0,
+                                    Math.hypot(
+                                        swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                        swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                    AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                                && MathUtil.isNear(
+                                    0.0,
+                                    swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+                                    3.0))
+                    .debounce(0.10)),
             Commands.print("Scoring!"),
             Commands.runOnce(
                 () -> {
                   autoScore = true;
-                  Robot.setCurrentTarget(ReefTarget.L4);
+                  // Robot.setCurrentTarget(ReefTarget.L4);
                 }),
             Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
                 .alongWith(
@@ -309,12 +333,13 @@ public class Autos {
                 () -> {
                   autoScore = false;
                   autoPreScore = false;
-                }),
-            // Retract some
-            Commands.waitSeconds(0.3))
+                }))
         .raceWith(
             AutoAim.translateToPose(
-                swerve, () -> CoralTargets.getClosestTarget(trajEndPose.get())));
+                swerve,
+                () -> CoralTargets.getClosestTarget(trajEndPose.get()),
+                ChassisSpeeds::new,
+                new Constraints(1.5, 2.0)));
   }
 
   // TODO: REMOVE THIS OVERLOAD
@@ -338,13 +363,17 @@ public class Autos {
           //             ChassisSpeeds.fromRobotRelativeSpeeds(
           //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
           swerve
-              .driveVoltage(() -> new ChassisSpeeds(-0.5, 0.0, 0.0))
-              .until(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()));
+              .driveVoltage(() -> new ChassisSpeeds(-0.0, 0.0, 0.0))
+              .until(
+                  () ->
+                      manipulator.getSecondBeambreak()
+                          || manipulator.getFirstBeambreak()
+                          || funnel.getFilteredCurrent() > 20.0));
     }
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 4.0); // TODO tune
+    bindElevatorExtension(routine, 3.5); // TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {
@@ -361,7 +390,7 @@ public class Autos {
                             .getNorm()
                         < toleranceMeters
                     && (manipulator.getSecondBeambreak()))
-        .onTrue(Commands.runOnce(() -> autoPreScore = true))
-        .onFalse(Commands.runOnce(() -> autoPreScore = false));
+        .whileTrue(Commands.run(() -> autoPreScore = true))
+        .whileFalse(Commands.run(() -> autoPreScore = false));
   }
 }
