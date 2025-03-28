@@ -308,9 +308,11 @@ public class Superstructure {
     // READY_CORAL logic
     stateTriggers
         .get(SuperState.READY_CORAL)
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
+        .whileTrue(
+            extendWithClearance(
+                ElevatorSubsystem.HP_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_RETRACTED_POS,
+                WristSubsystem.WRIST_RETRACTED_POS))
         .whileTrue(manipulator.index());
     // keep indexing to make sure its chilling
 
@@ -770,7 +772,10 @@ public class Superstructure {
     return Commands.sequence(
         // Retract shoulder + wrist
         Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                shoulder
+                    .hold()
+                    .until(() -> wrist.getAngle().getDegrees() < 90.0)
+                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
                 wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.hold())
             .until(

@@ -16,7 +16,7 @@ import org.littletonrobotics.junction.Logger;
 public class WristSubsystem extends SubsystemBase {
   public static final double WRIST_GEAR_RATIO = 4.0 * 4.0 * (64.0 / 34.0);
   // TODO: UPDATE WHEN CAD IS FINISHED
-  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(180.0);
+  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(220.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
   public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(180 - 49.519570 + 5);
 
@@ -30,7 +30,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_L2_POS = Rotation2d.fromDegrees(-35);
   public static final Rotation2d WRIST_SCORE_L3_POS = Rotation2d.fromDegrees(-35);
   public static final Rotation2d WRIST_SCORE_L4_POS = Rotation2d.fromDegrees(-45);
-  public static final Rotation2d WRIST_CLEARANCE_POS = Rotation2d.fromDegrees(-50.0);
+  public static final Rotation2d WRIST_CLEARANCE_POS = Rotation2d.fromDegrees(0.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(-44.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_RETRACT_POS =
       Rotation2d.fromDegrees(-44.0);

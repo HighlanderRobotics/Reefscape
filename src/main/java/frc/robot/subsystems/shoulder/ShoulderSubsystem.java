@@ -120,6 +120,11 @@ public class ShoulderSubsystem extends SubsystemBase {
     return setTargetAngle(() -> target);
   }
 
+  public Command hold() {
+    return Commands.sequence(
+        setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
+  }
+
   public Rotation2d getAngle() {
     return inputs.position;
   }
