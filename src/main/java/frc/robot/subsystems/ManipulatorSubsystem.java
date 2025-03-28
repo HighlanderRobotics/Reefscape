@@ -7,7 +7,6 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -28,9 +27,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double ALGAE_INTAKE_VOLTAGE = -10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = -3.0;
   public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
-  public static final Transform2d IK_WRIST_TO_CORAL =
-      new Transform2d(
-          Units.inchesToMeters(1.0), Units.inchesToMeters(3.0), Rotation2d.fromDegrees(0.0));
+  public static final Transform2d IK_WRIST_TO_CORAL = ExtensionKinematics.IK_WRIST_TO_CORAL;
 
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),

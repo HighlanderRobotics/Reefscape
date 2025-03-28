@@ -28,9 +28,9 @@ public class ExtensionKinematics {
   // These need to be here bc their main constants arent loaded when we need the constants in this
   // class
   private static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
-  private static final Transform2d IK_WRIST_TO_CORAL =
+  static final Transform2d IK_WRIST_TO_CORAL =
       new Transform2d(
-          Units.inchesToMeters(11.0), Units.inchesToMeters(6.842), Rotation2d.fromDegrees(0.0));
+          Units.inchesToMeters(-11.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
   private static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
   // Not super accurate bc of whack
@@ -128,7 +128,8 @@ public class ExtensionKinematics {
                 0,
                 0,
                 fk.getY() + ElevatorSubsystem.Z_OFFSET_METERS,
-                new Rotation3d(0, -state.wristAngle().getRadians(), 0)));
+                new Rotation3d(0, -state.wristAngle().getRadians(), 0)))
+        .transformBy(new Transform3d(-IK_WRIST_TO_CORAL.getX() + 0.1, 0.0, 0.0, Rotation3d.kZero));
   }
 
   public static Pose3d getBranchPose(Pose2d pose, ExtensionState state, ReefTarget level) {
