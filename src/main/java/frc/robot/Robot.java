@@ -1067,12 +1067,15 @@ public class Robot extends LoggedRobot {
                   0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
           new Pose3d( // Manipulator
               new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS
-                      + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                  0,
-                  elevator.getExtensionMeters()
-                      + ShoulderSubsystem.Z_OFFSET_METERS
-                      + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+                      ShoulderSubsystem.X_OFFSET_METERS
+                          + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                      0,
+                      elevator.getExtensionMeters()
+                          + ShoulderSubsystem.Z_OFFSET_METERS
+                          + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                  .plus(
+                      new Translation3d(Units.inchesToMeters(1.0), 0.0, Units.inchesToMeters(-8.0))
+                          .rotateBy(new Rotation3d(0.0, -wrist.getAngle().getRadians(), 0.0))),
               new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
         });
 
