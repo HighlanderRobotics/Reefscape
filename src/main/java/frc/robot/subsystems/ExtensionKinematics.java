@@ -30,20 +30,20 @@ public class ExtensionKinematics {
   private static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
   static final Transform2d IK_WRIST_TO_CORAL =
       new Transform2d(
-          Units.inchesToMeters(-11.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
+          Units.inchesToMeters(8.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
   private static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
   // Not super accurate bc of whack
   public static final Pose2d L1_POSE = new Pose2d(); // solveFK(L1_EXTENSION);
   public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
   public static final Pose2d L2_POSE =
-      new Pose2d(new Translation2d(0.24, 0.78), new Rotation2d(-0.61));
+      new Pose2d(new Translation2d(0.26, 0.72), new Rotation2d(-0.61));
   public static final ExtensionState L2_EXTENSION = solveIK(L2_POSE);
   public static final Pose2d L3_POSE =
-      new Pose2d(new Translation2d(0.24, 1.14), new Rotation2d(-0.61));
+      new Pose2d(new Translation2d(0.26, 1.12), new Rotation2d(-0.61));
   public static final ExtensionState L3_EXTENSION = solveIK(L3_POSE);
   public static final Pose2d L4_POSE =
-      new Pose2d(new Translation2d(0.27, 1.79), new Rotation2d(-0.79));
+      new Pose2d(new Translation2d(0.4, 1.85), Rotation2d.fromDegrees(90.0));
   public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
@@ -98,7 +98,7 @@ public class ExtensionKinematics {
     return new ExtensionState(
         MathUtil.clamp(elevatorHeight, 0.0, ElevatorSubsystem.MAX_EXTENSION_METERS),
         Rotation2d.fromRadians(shoulderAngle),
-        Rotation2d.fromDegrees(MathUtil.clamp(wristPose.getRotation().getDegrees(), -45.0, 45.0)));
+        Rotation2d.fromDegrees(MathUtil.clamp(wristPose.getRotation().getDegrees(), -45.0, 120.0)));
   }
 
   public static Pose2d solveFK(ExtensionState state) {
@@ -128,8 +128,7 @@ public class ExtensionKinematics {
                 0,
                 0,
                 fk.getY() + ElevatorSubsystem.Z_OFFSET_METERS,
-                new Rotation3d(0, -state.wristAngle().getRadians(), 0)))
-        .transformBy(new Transform3d(-IK_WRIST_TO_CORAL.getX() + 0.1, 0.0, 0.0, Rotation3d.kZero));
+                new Rotation3d(0, -state.wristAngle().getRadians(), 0)));
   }
 
   public static Pose3d getBranchPose(Pose2d pose, ExtensionState state, ReefTarget level) {
