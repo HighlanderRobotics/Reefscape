@@ -21,6 +21,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Mechanism;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.ExtensionKinematics;
 import java.util.function.DoubleSupplier;
 import java.util.function.Function;
 import org.littletonrobotics.junction.Logger;
@@ -40,11 +41,15 @@ public class ElevatorSubsystem extends SubsystemBase {
 
   public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
-  public static final double L1_EXTENSION_METERS = Units.inchesToMeters(12.0);
+  public static final double L1_EXTENSION_METERS =
+      ExtensionKinematics.L1_EXTENSION.elevatorHeightMeters();
   public static final double L1_WHACK_CORAL_EXTENSION_METERS = Units.inchesToMeters(24.0);
-  public static final double L2_EXTENSION_METERS = Units.inchesToMeters(17.0);
-  public static final double L3_EXTENSION_METERS = Units.inchesToMeters(31.5);
-  public static final double L4_EXTENSION_METERS = Units.inchesToMeters(58.0);
+  public static final double L2_EXTENSION_METERS =
+      ExtensionKinematics.L2_EXTENSION.elevatorHeightMeters();
+  public static final double L3_EXTENSION_METERS =
+      ExtensionKinematics.L3_EXTENSION.elevatorHeightMeters();
+  public static final double L4_EXTENSION_METERS =
+      ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters();
 
   public static final double INTAKE_ALGAE_GROUND_EXTENSION = Units.inchesToMeters(5.0);
   public static final double INTAKE_ALGAE_STACK_EXTENSION = Units.inchesToMeters(12.5);

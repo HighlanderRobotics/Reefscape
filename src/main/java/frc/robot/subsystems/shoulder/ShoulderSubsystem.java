@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.utils.Tracer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -36,10 +37,14 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(34.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS =
       Rotation2d.fromDegrees(60.0);
-  public static final Rotation2d SHOULDER_SCORE_POS = Rotation2d.fromDegrees(60);
+  // may be incorrect as l2-3 poses are derived from ExtensionKinematics now
+  public static final Rotation2d SHOULDER_SCORE_POS =
+      ExtensionKinematics.L2_EXTENSION.shoulderAngle();
   public static final Rotation2d SHOULDER_WHACK_L1_POS = Rotation2d.fromDegrees(45);
-  public static final Rotation2d SHOULDER_SCORE_L1_POS = Rotation2d.fromDegrees(45);
-  public static final Rotation2d SHOULDER_SCORE_L4_POS = Rotation2d.fromDegrees(55);
+  public static final Rotation2d SHOULDER_SCORE_L1_POS =
+      ExtensionKinematics.L1_EXTENSION.shoulderAngle();
+  public static final Rotation2d SHOULDER_SCORE_L4_POS =
+      ExtensionKinematics.L4_EXTENSION.shoulderAngle();
   public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(40);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(75.0);

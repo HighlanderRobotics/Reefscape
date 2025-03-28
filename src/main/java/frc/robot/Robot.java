@@ -986,6 +986,15 @@ public class Robot extends LoggedRobot {
           Stream.of(AlgaeIntakeTargets.values())
               .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
               .toArray(Pose2d[]::new));
+
+    Logger.recordOutput("IK/L1 FK Pose", ExtensionKinematics.L1_POSE);
+    System.out.println("ExtensionKinematics.L1_POSE: " + ExtensionKinematics.L1_POSE);
+    Logger.recordOutput("IK/L2 FK Pose", ExtensionKinematics.L2_POSE);
+    System.out.println("ExtensionKinematics.L2_POSE: " + ExtensionKinematics.L2_POSE);
+    Logger.recordOutput("IK/L3 FK Pose", ExtensionKinematics.L3_POSE);
+    System.out.println("ExtensionKinematics.L3_POSE: " + ExtensionKinematics.L3_POSE);
+    Logger.recordOutput("IK/L4 FK Pose", ExtensionKinematics.L4_POSE);
+    System.out.println("ExtensionKinematics.L4_POSE: " + ExtensionKinematics.L4_POSE);
   }
 
   private void addAutos() {
