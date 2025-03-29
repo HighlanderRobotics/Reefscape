@@ -1,10 +1,8 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -377,11 +375,18 @@ public class Superstructure {
     // PRE_L{1-4} logic + -> SCORE_CORAL
     stateTriggers
         .get(SuperState.PRE_L1)
+        // .whileTrue(
+        //     this.extendWithClearance(
+        //         ElevatorSubsystem.L1_EXTENSION_METERS,
+        //         ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
+        //         WristSubsystem.WRIST_SCORE_L1_POS))
         .whileTrue(
             this.extendWithClearance(
-                ElevatorSubsystem.L1_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-                WristSubsystem.WRIST_SCORE_L1_POS))
+                () ->
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.L1_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.L1_EXTENSION)))
         .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS))
@@ -452,45 +457,39 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_CORAL)
         .whileTrue(
-            Commands.either(
-                Commands.parallel(
-                    elevator.setExtension(ElevatorSubsystem.L1_EXTENSION_METERS),
-                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS),
-                    wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_L1_POS)),
-                // Score on L2-4
-                Commands.either(
-                    Commands.parallel(
-                        ExtensionKinematics.holdStateCommand(
-                            elevator,
-                            shoulder,
-                            wrist,
-                            () ->
-                                killVisionIK.getAsBoolean()
-                                    ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
-                                    : ExtensionKinematics.getPoseCompensatedExtension(
-                                        pose.get(),
-                                        ExtensionKinematics.getExtensionForLevel(
-                                            reefTarget.get())))),
-                    this.extendWithClearance(
-                        () ->
-                            killVisionIK.getAsBoolean()
-                                ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
-                                : ExtensionKinematics.getPoseCompensatedExtension(
-                                    pose.get(),
-                                    ExtensionKinematics.getExtensionForLevel(reefTarget.get()))),
-                    // End L2-4
-                    () ->
-                        MathUtil.isNear(
-                            elevator.getExtensionMeters(), 0.0, Units.inchesToMeters(4.0))),
-                () -> reefTarget.get() == ReefTarget.L1))
+            //         Commands.either(
+            // Commands.parallel(
+            //     ExtensionKinematics.holdStateCommand(
+            //         elevator,
+            //         shoulder,
+            //         wrist,
+            //         () ->
+            //             killVisionIK.getAsBoolean()
+            //                 ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+            //                 : ExtensionKinematics.getPoseCompensatedExtension(
+            //                     pose.get(),
+            //                     ExtensionKinematics.getExtensionForLevel(
+            //                         reefTarget.get())))),
+            this.extendWithClearance(
+                () ->
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.getExtensionForLevel(reefTarget.get())))
+            // // End
+            // () ->
+            //     MathUtil.isNear(
+            //         elevator.getExtensionMeters(), 0.0, Units.inchesToMeters(4.0))))
+            )
         .and(() -> elevator.isNearTarget() && shoulder.isNearTarget() && wrist.isNearTarget())
         .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
-        .and(() -> reefTarget.get() == ReefTarget.L1)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_WHACK_CORAL_EXTENSION_METERS))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_WHACK_L1_POS))
-        .whileTrue(
-            Commands.waitSeconds(0.1)
-                .andThen(wrist.setTargetAngle(WristSubsystem.WRIST_WHACK_L1_POS)));
+    // .and(() -> reefTarget.get() == ReefTarget.L1)
+    // .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_WHACK_CORAL_EXTENSION_METERS))
+    // .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_WHACK_L1_POS))
+    // .whileTrue(
+    //     Commands.waitSeconds(0.1)
+    //         .andThen(wrist.setTargetAngle(WristSubsystem.WRIST_WHACK_L1_POS)))
+    ;
 
     stateTriggers
         .get(SuperState.SCORE_CORAL)

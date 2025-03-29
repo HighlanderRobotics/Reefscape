@@ -34,7 +34,8 @@ public class ExtensionKinematics {
   private static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
   // Not super accurate bc of whack
-  public static final Pose2d L1_POSE = new Pose2d(); // solveFK(L1_EXTENSION);
+  public static final Pose2d L1_POSE =
+      new Pose2d(0.26, 0.35, Rotation2d.fromDegrees(15.0)); // solveFK(L1_EXTENSION);
   public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
   public static final Pose2d L2_POSE =
       new Pose2d(new Translation2d(0.26, 0.72), new Rotation2d(-0.61));
