@@ -37,6 +37,7 @@ public class Autos {
 
   public static boolean autoPreScore = false;
   public static boolean autoScore = false; // TODO perhaps this should not be static
+  public static boolean autoGroundIntake = false;
 
   public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
     this.swerve = swerve;
@@ -144,7 +145,7 @@ public class Autos {
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "LO", "J", "PLO", "K", "PLO", "L", "PLM", "A", "PLO" // each stop we are going to, in order
+      "LO", "J", "PLO", "K", "PLO", "L", // "PLM", "A", "PLO" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
@@ -164,9 +165,13 @@ public class Autos {
       runPath(routine, startPos, endPos, nextPos, steps);
     }
 
+    final var groundTraj = routine.trajectory("LtoAGround");
+
     routine
-        .observe(steps.get("LtoPLM").done())
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+        .observe(steps.get("PLOtoL").done())
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)))
+        .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
+        .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
 
     return routine.cmd();
   }

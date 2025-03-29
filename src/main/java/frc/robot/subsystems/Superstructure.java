@@ -35,6 +35,7 @@ public class Superstructure {
   public static enum SuperState {
     IDLE,
     HOME,
+    INTAKE_CORAL_GROUND,
     READY_CORAL,
     SPIT_CORAL,
     PRE_L1,
@@ -72,6 +73,9 @@ public class Superstructure {
 
   @AutoLogOutput(key = "Superstructure/Algae Intake Request")
   private final Trigger intakeAlgaeReq;
+
+  @AutoLogOutput(key = "Superstructure/Coral Intake Request")
+  private final Trigger intakeCoralReq;
 
   @AutoLogOutput(key = "Superstructure/Pre Climb Request")
   private final Trigger preClimbReq;
@@ -129,6 +133,7 @@ public class Superstructure {
       Trigger scoreReq,
       Trigger preScoreReq,
       Trigger intakeAlgaeReq,
+      Trigger intakeCoralReq,
       Trigger climbReq,
       Trigger climbConfReq,
       Trigger climbCancelReq,
@@ -155,6 +160,7 @@ public class Superstructure {
     this.scoreReq = scoreReq;
 
     this.intakeAlgaeReq = intakeAlgaeReq;
+    this.intakeCoralReq = intakeCoralReq;
 
     this.preClimbReq = climbReq;
     this.climbConfReq = climbConfReq;
@@ -199,7 +205,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.index().repeatedly())
+        .whileTrue(manipulator.intakeCoral().repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -220,6 +226,11 @@ public class Superstructure {
                             : 0.0)))
         .and(manipulator::getFirstBeambreak)
         .onTrue(this.forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.IDLE)
+        .and(intakeCoralReq)
+        .onTrue(this.forceState(SuperState.INTAKE_CORAL_GROUND));
 
     // IDLE -> INTAKE_ALGAE_{location}
     stateTriggers
@@ -278,13 +289,31 @@ public class Superstructure {
         .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
         .onTrue(this.forceState(prevState));
 
+    stateTriggers
+        .get(SuperState.INTAKE_CORAL_GROUND)
+        .whileTrue(
+            extendWithClearance(
+                ElevatorSubsystem.GROUND_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
+                WristSubsystem.WRIST_CORAL_GROUND))
+        .whileTrue(manipulator.intakeCoral().repeatedly())
+        .and(manipulator::getSecondBeambreak)
+        .onTrue(this.forceState(SuperState.READY_CORAL));
+
+    stateTriggers
+        .get(SuperState.INTAKE_CORAL_GROUND)
+        .and(intakeCoralReq.negate())
+        .onTrue(this.forceState(SuperState.IDLE));
+
     // READY_CORAL logic
     stateTriggers
         .get(SuperState.READY_CORAL)
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.HP_EXTENSION_METERS))
-        .whileTrue(manipulator.index());
+        .whileTrue(
+            extendWithClearance(
+                ElevatorSubsystem.HP_EXTENSION_METERS,
+                ShoulderSubsystem.SHOULDER_RETRACTED_POS,
+                WristSubsystem.WRIST_RETRACTED_POS))
+        .whileTrue(manipulator.jog(ManipulatorSubsystem.CORAL_HOLD_POS));
     // keep indexing to make sure its chilling
 
     stateTriggers
@@ -540,12 +569,20 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
-        .whileTrue(this.extendWithClearance(() -> ExtensionKinematics.LOW_ALGAE_EXTENSION))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
-        .whileTrue(this.extendWithClearance(() -> ExtensionKinematics.HIGH_ALGAE_EXTENSION))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
 
     stateTriggers
@@ -743,7 +780,10 @@ public class Superstructure {
     return Commands.sequence(
         // Retract shoulder + wrist
         Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                shoulder
+                    .hold()
+                    .until(() -> wrist.getAngle().getDegrees() < 90.0)
+                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
                 wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.hold())
             .until(
