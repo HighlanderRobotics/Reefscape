@@ -29,7 +29,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
   public static final Transform2d IK_WRIST_TO_CORAL = ExtensionKinematics.IK_WRIST_TO_CORAL;
 
-  public static final double CORAL_HOLD_POS = 1.0;
+  public static final double CORAL_HOLD_POS = 0.5;
 
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
@@ -117,10 +117,14 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public Command intakeCoral() {
+    return intakeCoral(CORAL_INTAKE_VELOCITY);
+  }
+
+  public Command intakeCoral(double vel) {
     return Commands.sequence(
-        setVelocity(CORAL_INTAKE_VELOCITY).until(() -> secondBBInputs.get),
+        setVelocity(vel).until(() -> secondBBInputs.get),
         setVelocity(1.0).until(() -> !firstBBInputs.get),
-        jog(CORAL_HOLD_POS));
+        jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 
   public Command intakeAlgae() {

@@ -306,8 +306,7 @@ public class Robot extends LoggedRobot {
                               .withSupplyCurrentLimit(20.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
-                          new MotorOutputConfigs()
-                              .withInverted(InvertedValue.CounterClockwise_Positive))
+                          new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
                       .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(5.8667))
                       .withSlot0(new Slot0Configs().withKV(0.70).withKP(0.5))
                       .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))

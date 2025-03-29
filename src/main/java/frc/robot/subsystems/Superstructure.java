@@ -203,7 +203,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.intakeCoral().repeatedly())
+        .whileTrue(manipulator.intakeCoral(-3.0).repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -294,8 +294,12 @@ public class Superstructure {
                 ElevatorSubsystem.GROUND_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
                 WristSubsystem.WRIST_CORAL_GROUND))
+        .whileTrue(
+            Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
+                .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly())
         .and(manipulator::getSecondBeambreak)
+        .debounce(0.060)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
     stateTriggers
@@ -311,7 +315,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_RETRACTED_POS,
                 WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(manipulator.jog(ManipulatorSubsystem.CORAL_HOLD_POS));
+        .whileTrue(manipulator.hold());
     // keep indexing to make sure its chilling
 
     stateTriggers
@@ -387,7 +391,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L1_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L1_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L1_POS))
@@ -408,7 +412,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L2_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L2_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -426,7 +430,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L3_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L3_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -444,7 +448,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L4_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L4_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -780,15 +784,16 @@ public class Superstructure {
         // Retract shoulder + wrist
         Commands.parallel(
                 shoulder
-                    .hold()
+                    .run(() -> {})
                     .until(() -> wrist.getAngle().getDegrees() < 90.0)
                     .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
-                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                wrist.setTargetAngle(
+                    () ->
+                        wrist.getAngle().getDegrees() < 90.0
+                            ? Rotation2d.fromDegrees(45.0)
+                            : WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.hold())
-            .until(
-                () ->
-                    shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
-                        && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)),
+            .until(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
         // extend elevator
         Commands.parallel(
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),

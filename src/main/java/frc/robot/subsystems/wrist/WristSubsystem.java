@@ -19,11 +19,11 @@ public class WristSubsystem extends SubsystemBase {
   // TODO: UPDATE WHEN CAD IS FINISHED
   public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(220.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
-  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(88.0);
+  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(101.0);
 
-  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(0.0);
+  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
   public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(160.0);
-  public static final Rotation2d WRIST_CORAL_GROUND = Rotation2d.fromDegrees(0.0);
+  public static final Rotation2d WRIST_CORAL_GROUND = Rotation2d.fromDegrees(-3.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-50);
   public static final Rotation2d WRIST_SCORE_L1_POS = ExtensionKinematics.L1_EXTENSION.wristAngle();
@@ -39,13 +39,19 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = WRIST_RETRACTED_POS;
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(6);
+      new MotionMagicConfigs()
+          .withMotionMagicCruiseVelocity(4 * 0.25)
+          .withMotionMagicAcceleration(6);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(4);
+      new MotionMagicConfigs()
+          .withMotionMagicCruiseVelocity(4 * 0.25)
+          .withMotionMagicAcceleration(4);
 
   public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
+      new MotionMagicConfigs()
+          .withMotionMagicCruiseVelocity(2 * 0.25)
+          .withMotionMagicAcceleration(2);
 
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
@@ -130,7 +136,7 @@ public class WristSubsystem extends SubsystemBase {
               System.out.println("Wrist Zeroing");
             }),
         this.run(() -> io.setMotorVoltage(-1.0))
-            .until(() -> Math.abs(currentFilter.calculate(inputs.statorCurrentAmps)) > 10.0),
+            .until(() -> Math.abs(currentFilter.calculate(inputs.statorCurrentAmps)) > 15.0),
         this.runOnce(
             () -> {
               hasZeroed = true;
