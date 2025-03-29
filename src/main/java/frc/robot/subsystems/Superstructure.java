@@ -205,7 +205,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.index().repeatedly())
+        .whileTrue(manipulator.intakeCoral().repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -313,7 +313,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_RETRACTED_POS,
                 WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(manipulator.index());
+        .whileTrue(manipulator.jog(ManipulatorSubsystem.CORAL_HOLD_POS));
     // keep indexing to make sure its chilling
 
     stateTriggers
