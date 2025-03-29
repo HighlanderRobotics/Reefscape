@@ -39,6 +39,8 @@ public class AutoAim {
   public static Pose2d RED_PROCESSOR_POS = ChoreoAllianceFlipUtil.flip(BLUE_PROCESSOR_POS);
   public static List<Pose2d> PROCESSOR_POSES = List.of(BLUE_PROCESSOR_POS, RED_PROCESSOR_POS);
 
+  public static final double L1_TROUGH_WIDTH_METERS = 0.935;
+
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
   public static final double VELOCITY_TOLERANCE_METERSPERSECOND = 0.5;
