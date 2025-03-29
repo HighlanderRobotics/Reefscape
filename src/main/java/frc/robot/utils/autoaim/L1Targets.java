@@ -94,7 +94,7 @@ public enum L1Targets {
     // It feels like there should be a better way to do this
     return new Rectangle2d(
         pose.nearest(transformedLines.stream().map(line -> line.getCenter()).toList()),
-        AutoAim.L1_TROUGH_WIDTH_METERS,
-        0.0);
+        0.0,
+        AutoAim.L1_TROUGH_WIDTH_METERS);
   }
 }
