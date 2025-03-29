@@ -68,7 +68,6 @@ public class ClimberIOSim implements ClimberIO {
 
   @Override
   public void setPosition(double position, double vel) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'setPosition'");
+    setPosition(position);
   }
 }
