@@ -69,6 +69,8 @@ public class SwerveSubsystem extends SubsystemBase {
 
   private final Vision[] cameras;
 
+  private Timer lastSkidTimer = new Timer();
+
   /** For delta tracking with PhoenixOdometryThread* */
   private SwerveModulePosition[] lastModulePositions =
       new SwerveModulePosition[] {
@@ -283,21 +285,22 @@ public class SwerveSubsystem extends SubsystemBase {
       for (int i = 0; i <= skiddingModules.length; i++) {
         // If a module is skidding, average the other modules
         if (skiddingModules[i]) {
-          double averageDeltaPosition =
-              (Arrays.stream(moduleDeltas)
-                          .map(delta -> delta.distanceMeters)
-                          .reduce(0.0, (Double a, Double b) -> a + b)
-                      - moduleDeltas[i].distanceMeters)
-                  / 3;
-          double averageDeltaRotationRads =
-              (Arrays.stream(moduleDeltas)
-                          .map(delta -> delta.angle.getRadians())
-                          .reduce(0.0, (Double a, Double b) -> a + b)
-                      - moduleDeltas[i].angle.getRadians())
-                  / 3;
-          moduleDeltas[i] =
-              new SwerveModulePosition(
-                  averageDeltaPosition, Rotation2d.fromRadians(averageDeltaRotationRads));
+          lastSkidTimer.restart();
+          // double averageDeltaPosition =
+          //     (Arrays.stream(moduleDeltas)
+          //                 .map(delta -> delta.distanceMeters)
+          //                 .reduce(0.0, (Double a, Double b) -> a + b)
+          //             - moduleDeltas[i].distanceMeters)
+          //         / 3;
+          // double averageDeltaRotationRads =
+          //     (Arrays.stream(moduleDeltas)
+          //                 .map(delta -> delta.angle.getRadians())
+          //                 .reduce(0.0, (Double a, Double b) -> a + b)
+          //             - moduleDeltas[i].angle.getRadians())
+          //         / 3;
+          // moduleDeltas[i] =
+          //     new SwerveModulePosition(
+          //         averageDeltaPosition, Rotation2d.fromRadians(averageDeltaRotationRads));
         }
       }
 
@@ -363,7 +366,9 @@ public class SwerveSubsystem extends SubsystemBase {
                     camera.inputs.captureTimestampMicros / 1.0e6,
                     deviations
                         .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
-                        .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5));
+                        .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5)
+                        // Weight vision higher if a skid recently happened TODO: TUNE WEIGHTS
+                        .times(lastSkidTimer.isRunning() && lastSkidTimer.get() > 3 ? 1.0 : lastSkidTimer.get() / 3.0));
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
