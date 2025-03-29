@@ -58,12 +58,10 @@ public class SkidDetection {
     for (int i = 0; i <= moduleStates.length; i++) {
       // If the measurement deviates by more than 2 standard deviations assume it's skidding (TODO:
       // TUNE)
-      if (Math.abs(xTransComponents[i] - xTransComponentAverage) >= xTransComponentStdDev * 2
-          || Math.abs(yTransComponents[i] - yTransComponentAverage) >= yTransComponentStdDev * 2) {
-        result[i] = true;
-      } else {
-        result[i] = false;
-      }
+      result[i] =
+          Math.abs(xTransComponents[i] - xTransComponentAverage) >= xTransComponentStdDev * 2
+              || Math.abs(yTransComponents[i] - yTransComponentAverage)
+                  >= yTransComponentStdDev * 2;
     }
 
     return result;

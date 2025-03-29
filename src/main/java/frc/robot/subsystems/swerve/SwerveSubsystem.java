@@ -272,8 +272,12 @@ public class SwerveSubsystem extends SubsystemBase {
       missingModuleData.set(false);
 
       boolean[] skiddingModules =
-          skidDetection.detectSkiddingModules(
-              kinematics, getModuleStates(), gyroInputs.yawVelocityRadPerSec);
+          Tracer.trace(
+              "detect skidding modules",
+              () ->
+                  skidDetection.detectSkiddingModules(
+                      kinematics, getModuleStates(), gyroInputs.yawVelocityRadPerSec));
+
       Logger.recordOutput("Odometry/Skidding Modules", skiddingModules);
 
       for (int i = 0; i <= skiddingModules.length; i++) {
