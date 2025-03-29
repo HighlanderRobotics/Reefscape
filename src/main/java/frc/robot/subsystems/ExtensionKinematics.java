@@ -24,31 +24,27 @@ import frc.robot.utils.autoaim.CoralTargets;
 import java.util.function.Supplier;
 
 public class ExtensionKinematics {
+
+  // These need to be here bc their main constants arent loaded when we need the constants in this
+  // class
+  private static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
+  static final Transform2d IK_WRIST_TO_CORAL =
+      new Transform2d(
+          Units.inchesToMeters(8.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
+  private static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
+
   // Not super accurate bc of whack
-  public static final ExtensionState L1_EXTENSION =
-      new ExtensionState(
-          ElevatorSubsystem.L1_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-          WristSubsystem.WRIST_SCORE_L1_POS);
-  public static final Pose2d L1_POSE = solveFK(L1_EXTENSION);
-  public static final ExtensionState L2_EXTENSION =
-      new ExtensionState(
-          ElevatorSubsystem.L2_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_POS,
-          WristSubsystem.WRIST_SCORE_L2_POS);
-  public static final Pose2d L2_POSE = solveFK(L2_EXTENSION);
-  public static final ExtensionState L3_EXTENSION =
-      new ExtensionState(
-          ElevatorSubsystem.L3_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_POS,
-          WristSubsystem.WRIST_SCORE_L3_POS);
-  public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
-  public static final ExtensionState L4_EXTENSION =
-      new ExtensionState(
-          ElevatorSubsystem.L4_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_L4_POS,
-          WristSubsystem.WRIST_SCORE_L4_POS);
-  public static final Pose2d L4_POSE = solveFK(L4_EXTENSION);
+  public static final Pose2d L1_POSE = new Pose2d(); // solveFK(L1_EXTENSION);
+  public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
+  public static final Pose2d L2_POSE =
+      new Pose2d(new Translation2d(0.26, 0.72), new Rotation2d(-0.61));
+  public static final ExtensionState L2_EXTENSION = solveIK(L2_POSE);
+  public static final Pose2d L3_POSE =
+      new Pose2d(new Translation2d(0.26, 1.12), new Rotation2d(-0.61));
+  public static final ExtensionState L3_EXTENSION = solveIK(L3_POSE);
+  public static final Pose2d L4_POSE =
+      new Pose2d(new Translation2d(0.4, 1.85), Rotation2d.fromDegrees(90.0));
+  public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
       new ExtensionState(
@@ -75,9 +71,9 @@ public class ExtensionKinematics {
    */
   public static ExtensionState solveIK(Pose2d target) {
     // Offset wrist pose from target
-    final var wristPose = target.transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL.inverse());
+    final var wristPose = target.transformBy(IK_WRIST_TO_CORAL.inverse());
     // Find shoulder angle from needed horizontal extension
-    var shoulderAngle = Math.acos(wristPose.getX() / ShoulderSubsystem.ARM_LENGTH_METERS);
+    var shoulderAngle = Math.acos(wristPose.getX() / ARM_LENGTH_METERS);
     // Set angle to horizontal if we can't reach
     if (Double.isNaN(shoulderAngle)) shoulderAngle = 0.0;
     // Elevator goes to remaining needed height
@@ -86,16 +82,13 @@ public class ExtensionKinematics {
             .getTranslation()
             .minus(
                 new Translation2d(
-                    ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle),
-                    ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
+                    ARM_LENGTH_METERS * Math.cos(shoulderAngle),
+                    ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
             .getY();
     // If we're extending higher than we can reach, prioritize matching Z instead of X
-    if (elevatorHeight > ElevatorSubsystem.MAX_EXTENSION_METERS) {
-      elevatorHeight = ElevatorSubsystem.MAX_EXTENSION_METERS;
-      shoulderAngle =
-          Math.asin(
-              (target.getY() - ElevatorSubsystem.MAX_EXTENSION_METERS)
-                  / ShoulderSubsystem.ARM_LENGTH_METERS);
+    if (elevatorHeight > MAX_EXTENSION_METERS) {
+      elevatorHeight = MAX_EXTENSION_METERS;
+      shoulderAngle = Math.asin((target.getY() - MAX_EXTENSION_METERS) / ARM_LENGTH_METERS);
       // Limit shoulder angle
       if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
         shoulderAngle = Units.degreesToRadians(85.0);
@@ -105,7 +98,7 @@ public class ExtensionKinematics {
     return new ExtensionState(
         MathUtil.clamp(elevatorHeight, 0.0, ElevatorSubsystem.MAX_EXTENSION_METERS),
         Rotation2d.fromRadians(shoulderAngle),
-        Rotation2d.fromDegrees(MathUtil.clamp(wristPose.getRotation().getDegrees(), -45.0, 45.0)));
+        Rotation2d.fromDegrees(MathUtil.clamp(wristPose.getRotation().getDegrees(), -45.0, 120.0)));
   }
 
   public static Pose2d solveFK(ExtensionState state) {

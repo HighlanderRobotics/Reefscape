@@ -119,7 +119,7 @@ public class Robot extends LoggedRobot {
     }
   }
 
-  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.REPLAY;
+  public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
 
@@ -139,7 +139,7 @@ public class Robot extends LoggedRobot {
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L4(
         ElevatorSubsystem.L4_EXTENSION_METERS,
-        20.0,
+        -20.0,
         WristSubsystem.WRIST_SCORE_L4_POS,
         ShoulderSubsystem.SHOULDER_SCORE_L4_POS);
 
@@ -182,6 +182,7 @@ public class Robot extends LoggedRobot {
   private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  private boolean leftHandedTarget = false;
 
   @AutoLogOutput private boolean killVisionIK = false;
 
@@ -284,7 +285,9 @@ public class Robot extends LoggedRobot {
               },
           PhoenixOdometryThread.getInstance(),
           swerveDriveSimulation,
-          new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
+          ROBOT_TYPE != RobotType.SIM
+              ? new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants())
+              : new VisionIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
 
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
@@ -305,13 +308,13 @@ public class Robot extends LoggedRobot {
                       .withMotorOutput(
                           new MotorOutputConfigs()
                               .withInverted(InvertedValue.CounterClockwise_Positive))
-                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                      .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))
+                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(5.8667))
+                      .withSlot0(new Slot0Configs().withKV(0.70).withKP(0.5))
                       .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))
               : new RollerIOSim(
                   0.01,
-                  2,
-                  new SimpleMotorFeedforward(0.0, 0.24),
+                  5.8677,
+                  new SimpleMotorFeedforward(0.0, 0.7),
                   new ProfiledPIDController(
                       0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(15, 1))),
           new BeambreakIOReal(1, true),
@@ -424,7 +427,7 @@ public class Robot extends LoggedRobot {
                           })
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore)
+              .or(() -> Autos.autoScore && DriverStation.isAutonomousEnabled())
           //   .or(
           //       new Trigger(
           //               () ->
@@ -446,8 +449,11 @@ public class Robot extends LoggedRobot {
           //           .debounce(0.08)
           //           .and(() -> swerve.hasFrontTags))
           ,
-          driver.rightTrigger().or(() -> Autos.autoPreScore),
+          driver.rightTrigger().or(() -> Autos.autoPreScore && DriverStation.isAutonomousEnabled()),
           driver.leftTrigger(),
+          driver
+              .leftBumper()
+              .or(() -> Autos.autoGroundIntake && DriverStation.isAutonomousEnabled()),
           driver
               .x()
               .and(driver.pov(-1).negate())
@@ -463,7 +469,7 @@ public class Robot extends LoggedRobot {
           operator.rightBumper(),
           operator.leftBumper(),
           new Trigger(() -> killVisionIK)
-              .or(() -> currentTarget == ReefTarget.L4)
+              //   .or(() -> currentTarget == ReefTarget.L4)
               .or(() -> DriverStation.isAutonomous()),
           () -> MathUtil.clamp(operator.getLeftY(), -1.0, 0.0));
 
@@ -646,7 +652,7 @@ public class Robot extends LoggedRobot {
                 elevator.setVoltage(0.0))
             .withName("Elevator Default Command"));
 
-    manipulator.setDefaultCommand(manipulator.index());
+    manipulator.setDefaultCommand(manipulator.hold());
 
     shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
 
@@ -693,7 +699,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
@@ -707,7 +712,7 @@ public class Robot extends LoggedRobot {
                               .plus(
                                   new Transform2d(
                                       twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
-                          driver.leftBumper().getAsBoolean());
+                          leftHandedTarget);
                     },
                     // Keeps the robot off the reef wall until it's aligned side-side
                     new Transform2d(
@@ -716,7 +721,6 @@ public class Robot extends LoggedRobot {
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
@@ -773,7 +777,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(
             swerve.groundIntakeAutoAlign(
@@ -788,7 +791,6 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
@@ -821,7 +823,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.PRE_CLIMB
@@ -839,7 +840,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
@@ -939,6 +939,9 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
+    operator.povLeft().onTrue(Commands.runOnce(() -> leftHandedTarget = true));
+    operator.povRight().onTrue(Commands.runOnce(() -> leftHandedTarget = false));
+
     operator
         .back()
         .and(operator.start())
@@ -985,6 +988,15 @@ public class Robot extends LoggedRobot {
           Stream.of(AlgaeIntakeTargets.values())
               .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
               .toArray(Pose2d[]::new));
+
+    Logger.recordOutput("IK/L1 FK Pose", ExtensionKinematics.L1_POSE);
+    System.out.println("ExtensionKinematics.L1_POSE: " + ExtensionKinematics.L1_POSE);
+    Logger.recordOutput("IK/L2 FK Pose", ExtensionKinematics.L2_POSE);
+    System.out.println("ExtensionKinematics.L2_POSE: " + ExtensionKinematics.L2_POSE);
+    Logger.recordOutput("IK/L3 FK Pose", ExtensionKinematics.L3_POSE);
+    System.out.println("ExtensionKinematics.L3_POSE: " + ExtensionKinematics.L3_POSE);
+    Logger.recordOutput("IK/L4 FK Pose", ExtensionKinematics.L4_POSE);
+    System.out.println("ExtensionKinematics.L4_POSE: " + ExtensionKinematics.L4_POSE);
   }
 
   private void addAutos() {
@@ -1066,12 +1078,15 @@ public class Robot extends LoggedRobot {
                   0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
           new Pose3d( // Manipulator
               new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS
-                      + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                  0,
-                  elevator.getExtensionMeters()
-                      + ShoulderSubsystem.Z_OFFSET_METERS
-                      + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+                      ShoulderSubsystem.X_OFFSET_METERS
+                          + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                      0,
+                      elevator.getExtensionMeters()
+                          + ShoulderSubsystem.Z_OFFSET_METERS
+                          + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                  .plus(
+                      new Translation3d(Units.inchesToMeters(1.0), 0.0, Units.inchesToMeters(-8.0))
+                          .rotateBy(new Rotation3d(0.0, -wrist.getAngle().getRadians(), 0.0))),
               new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
         });
 
@@ -1094,12 +1109,16 @@ public class Robot extends LoggedRobot {
                     0.0)),
             new Pose3d( // Manipulator
                 new Translation3d(
-                    ShoulderSubsystem.X_OFFSET_METERS
-                        + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                    0,
-                    elevator.getSetpoint()
-                        + ShoulderSubsystem.Z_OFFSET_METERS
-                        + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+                        ShoulderSubsystem.X_OFFSET_METERS
+                            + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                        0,
+                        elevator.getSetpoint()
+                            + ShoulderSubsystem.Z_OFFSET_METERS
+                            + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                    .plus(
+                        new Translation3d(
+                                Units.inchesToMeters(1.0), 0.0, Units.inchesToMeters(-8.0))
+                            .rotateBy(new Rotation3d(0.0, -wrist.getAngle().getRadians(), 0.0))),
                 new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
           });
 
@@ -1155,9 +1174,15 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
-          "Manipulator FK Pose",
+          "IK/Manipulator FK Pose",
           ExtensionKinematics.getManipulatorPose(
               swerve.getPose(), superstructure.getExtensionState()));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "IK/Extension FK Pose",
+          ExtensionKinematics.solveFK(
+              new ExtensionState(
+                  elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
     state = superstructure::getState;
   }
 
