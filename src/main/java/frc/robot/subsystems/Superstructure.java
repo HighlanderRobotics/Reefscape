@@ -780,10 +780,10 @@ public class Superstructure {
     return Commands.sequence(
         // Retract shoulder + wrist
         Commands.parallel(
-                // shoulder
-                //     .hold()
-                //     .until(() -> true)
-                (shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
+                shoulder
+                    .hold()
+                    .until(() -> wrist.getAngle().getDegrees() < 90.0)
+                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
                 wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.hold())
             .until(
