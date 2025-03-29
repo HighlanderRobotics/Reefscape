@@ -569,12 +569,20 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_LOW)
-        .whileTrue(this.extendWithClearance(() -> ExtensionKinematics.LOW_ALGAE_EXTENSION))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_HIGH)
-        .whileTrue(this.extendWithClearance(() -> ExtensionKinematics.HIGH_ALGAE_EXTENSION))
+        .whileTrue(
+            this.extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
 
     stateTriggers
@@ -772,10 +780,10 @@ public class Superstructure {
     return Commands.sequence(
         // Retract shoulder + wrist
         Commands.parallel(
-                shoulder
-                    .hold()
-                    .until(() -> wrist.getAngle().getDegrees() < 90.0)
-                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
+                // shoulder
+                //     .hold()
+                //     .until(() -> true)
+                (shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
                 wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.hold())
             .until(
