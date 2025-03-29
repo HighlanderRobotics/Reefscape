@@ -776,7 +776,7 @@ public class Robot extends LoggedRobot {
         .or(driver.leftBumper())
         .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(
-            swerve.driveToAlgae(
+            swerve.groundIntakeAutoAlign(
                 () ->
                     modifyJoystick(driver.getLeftY())
                         * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),

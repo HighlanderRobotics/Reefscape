@@ -783,9 +783,10 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   @SuppressWarnings("resource")
-  public Command driveToAlgae(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
+  public Command groundIntakeAutoAlign(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
     final PIDController xController = new PIDController(1, 0.0, 0.0); // TODO tune
     final PIDController yController = new PIDController(9, 0.0, 0.8); // TODO tune
+    final PIDController headingController = new PIDController(0.1, 0.0, 0.0); //TODO tune
     return this.run(
         () -> {
           var target =
@@ -799,14 +800,14 @@ public class SwerveSubsystem extends SubsystemBase {
           if (target != null) {
             double yaw = -target.getYaw();
             double pitch = target.getPitch();
-            double r = Units.inchesToMeters(36.990 - 8.125) / Math.tan(Math.toRadians(pitch - 35));
+            double r = Units.inchesToMeters(36.990 - 8.125) / Math.tan(Math.toRadians(pitch - 35)); //height adjustment?
             double yOffset = r * Math.sin(Math.toRadians(yaw));
             double xOffset = r * Math.cos(Math.toRadians(yaw));
-            Logger.recordOutput("AutoAim/Algae Detection/X Offset", xOffset);
-            Logger.recordOutput("AutoAim/Algae Detection/Y Offset", yOffset);
-            Logger.recordOutput("AutoAim/Algae Detection/R", r);
-            Logger.recordOutput("AutoAim/Algae Detection/Yaw", yaw);
-            Logger.recordOutput("AutoAim/Algae Detection/Pitch", pitch);
+            Logger.recordOutput("AutoAim/Ground Piece Detection/X Offset", xOffset);
+            Logger.recordOutput("AutoAim/Ground Piece Detection/Y Offset", yOffset);
+            Logger.recordOutput("AutoAim/Ground Piece Detection/Yaw Offset", yaw);
+            Logger.recordOutput("AutoAim/Ground Piece Detection/R", r);
+            Logger.recordOutput("AutoAim/Ground Piece Detection/Pitch", pitch);
             drive(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
                         new ChassisSpeeds(
@@ -816,7 +817,7 @@ public class SwerveSubsystem extends SubsystemBase {
                         new ChassisSpeeds(
                             (1 / (1 + Math.abs(yOffset))) * xController.calculate(xOffset, 0.0),
                             yController.calculate(yOffset, 0.0),
-                            0.0)),
+                            headingController.calculate(yaw, 0.0))),
                 false,
                 new double[4],
                 new double[4]);
