@@ -368,7 +368,7 @@ public class SwerveSubsystem extends SubsystemBase {
                         .times(DriverStation.isAutonomous() ? 2.0 : 1.0)
                         .times(camera.getName().equals("Front_Camera") ? 1.0 : 1.5)
                         // Weight vision higher if a skid recently happened TODO: TUNE WEIGHTS
-                        .times(lastSkidTimer.isRunning() && lastSkidTimer.get() > 3 ? 1.0 : 3.0));
+                        .times(lastSkidTimer.isRunning() && lastSkidTimer.get() > 3 ? 1.0 : 1/3.0));
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
