@@ -334,7 +334,7 @@ public class Robot extends LoggedRobot {
                       .withMotionMagic(WristSubsystem.DEFAULT_MOTION_MAGIC)
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
-                              .withStatorCurrentLimit(30.0)
+                              .withStatorCurrentLimit(10.0)
                               .withStatorCurrentLimitEnable(true)
                               .withSupplyCurrentLimit(20.0)
                               .withSupplyCurrentLimitEnable(true))

@@ -39,13 +39,13 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = WRIST_RETRACTED_POS;
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(6);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4 * 0.25).withMotionMagicAcceleration(6);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(4);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4 * 0.25).withMotionMagicAcceleration(4);
 
   public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2 * 0.25).withMotionMagicAcceleration(2);
 
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
