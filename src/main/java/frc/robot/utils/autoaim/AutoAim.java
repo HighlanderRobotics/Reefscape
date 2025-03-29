@@ -267,7 +267,16 @@ public class AutoAim {
         .andThen(
             swerve.driveVelocityFieldRelative(
                 () -> {
-                  final var diff = swerve.getPose().minus(cachedTarget[0]);
+                  Supplier<Pose2d> target =
+                      () ->
+                          new Pose2d(
+                              line.get().nearest(swerve.getPose().getTranslation()),
+                              line.get().getRotation());
+                  final var diff = swerve.getPose().minus(target.get());
+                  var driverReqSpeedsRobotRelative =
+                      ChassisSpeeds.fromFieldRelativeSpeeds(
+                          xVel.getAsDouble(), yVel.getAsDouble(), 0.0, swerve.getRotation());
+                  driverReqSpeedsRobotRelative.vxMetersPerSecond = 0;
                   final var speeds =
                       MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(0.25))
                               && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(0.25))
@@ -275,17 +284,20 @@ public class AutoAim {
                           ? new ChassisSpeeds()
                           : new ChassisSpeeds(
                                   vxController.calculate(
-                                          swerve.getPose().getX(), cachedTarget[0].getX())
+                                          swerve.getPose().getX(), target.get().getX())
                                       + vxController.getSetpoint().velocity,
                                   // Use the inputted y velocity target
                                   vyController.calculate(
-                                          swerve.getPose().getY(), cachedTarget[0].getY())
+                                          swerve.getPose().getY(), target.get().getY())
                                       + vyController.getSetpoint().velocity,
                                   headingController.calculate(
                                           swerve.getPose().getRotation().getRadians(),
-                                          cachedTarget[0].getRotation().getRadians())
+                                          target.get().getRotation().getRadians())
                                       + headingController.getSetpoint().velocity)
-                              .plus(new ChassisSpeeds(xVel.getAsDouble(), yVel.getAsDouble(), 0.0));
+                              .plus(
+                                  ChassisSpeeds.fromRobotRelativeSpeeds(
+                                          driverReqSpeedsRobotRelative, swerve.getRotation())
+                                      .times(1.2));
                   if (Robot.ROBOT_TYPE != RobotType.REAL)
                     Logger.recordOutput(
                         "AutoAim/Target Pose",
