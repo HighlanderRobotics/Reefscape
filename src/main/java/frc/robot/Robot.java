@@ -139,7 +139,7 @@ public class Robot extends LoggedRobot {
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L4(
         ElevatorSubsystem.L4_EXTENSION_METERS,
-        20.0,
+        -20.0,
         WristSubsystem.WRIST_SCORE_L4_POS,
         ShoulderSubsystem.SHOULDER_SCORE_L4_POS);
 
@@ -182,6 +182,7 @@ public class Robot extends LoggedRobot {
   private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  private boolean leftHandedTarget = false;
 
   @AutoLogOutput private boolean killVisionIK = false;
 
@@ -307,13 +308,13 @@ public class Robot extends LoggedRobot {
                       .withMotorOutput(
                           new MotorOutputConfigs()
                               .withInverted(InvertedValue.CounterClockwise_Positive))
-                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                      .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))
+                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(5.8667))
+                      .withSlot0(new Slot0Configs().withKV(0.70).withKP(0.5))
                       .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))
               : new RollerIOSim(
                   0.01,
-                  2,
-                  new SimpleMotorFeedforward(0.0, 0.24),
+                  5.8677,
+                  new SimpleMotorFeedforward(0.0, 0.7),
                   new ProfiledPIDController(
                       0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(15, 1))),
           new BeambreakIOReal(1, true),
@@ -696,7 +697,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
@@ -710,7 +710,7 @@ public class Robot extends LoggedRobot {
                               .plus(
                                   new Transform2d(
                                       twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
-                          driver.leftBumper().getAsBoolean());
+                          leftHandedTarget);
                     },
                     // Keeps the robot off the reef wall until it's aligned side-side
                     new Transform2d(
@@ -719,7 +719,6 @@ public class Robot extends LoggedRobot {
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
@@ -776,7 +775,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(
             swerve.driveToAlgae(
@@ -791,7 +789,6 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
@@ -824,7 +821,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.PRE_CLIMB
@@ -842,7 +838,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
@@ -941,6 +936,9 @@ public class Robot extends LoggedRobot {
     operator
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
+
+    operator.povLeft().onTrue(Commands.runOnce(() -> leftHandedTarget = true));
+    operator.povRight().onTrue(Commands.runOnce(() -> leftHandedTarget = false));
 
     operator
         .back()
