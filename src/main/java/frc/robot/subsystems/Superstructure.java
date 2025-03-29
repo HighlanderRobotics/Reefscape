@@ -636,7 +636,10 @@ public class Superstructure {
                         ? WristSubsystem.WRIST_RETRACTED_POS
                         : WristSubsystem.WRIST_INTAKE_ALGAE_REEF_RETRACT_POS))
         .and(() -> stateTimer.hasElapsed(1.0))
-        .and(() -> manipulator.getStatorCurrentAmps() > 20.0 || Robot.ROBOT_TYPE == RobotType.SIM)
+        .and(
+            () ->
+                manipulator.getStatorCurrentAmps() > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
+                    || Robot.ROBOT_TYPE == RobotType.SIM)
         .and(
             () ->
                 AlgaeIntakeTargets.getClosestTargetPose(pose.get())

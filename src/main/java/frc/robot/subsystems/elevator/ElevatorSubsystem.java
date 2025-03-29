@@ -51,7 +51,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double L4_EXTENSION_METERS =
       ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters();
 
-  public static final double INTAKE_ALGAE_GROUND_EXTENSION = Units.inchesToMeters(5.0);
+  public static final double INTAKE_ALGAE_GROUND_EXTENSION = 0.135;
   public static final double INTAKE_ALGAE_STACK_EXTENSION = Units.inchesToMeters(12.5);
   public static final double INTAKE_ALGAE_LOW_EXTENSION = Units.inchesToMeters(20.0);
   public static final double INTAKE_ALGAE_HIGH_EXTENSION = Units.inchesToMeters(35.0);
