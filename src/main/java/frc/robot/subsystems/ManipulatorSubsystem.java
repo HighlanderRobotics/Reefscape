@@ -124,7 +124,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return Commands.sequence(
         setVelocity(vel).until(() -> secondBBInputs.get),
         setVelocity(1.0).until(() -> !firstBBInputs.get),
-        jog(CORAL_HOLD_POS));
+        jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 
   public Command intakeAlgae() {

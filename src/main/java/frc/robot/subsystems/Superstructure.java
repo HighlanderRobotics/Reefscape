@@ -296,8 +296,12 @@ public class Superstructure {
                 ElevatorSubsystem.GROUND_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
                 WristSubsystem.WRIST_CORAL_GROUND))
+        .whileTrue(
+            Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
+                .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly())
         .and(manipulator::getSecondBeambreak)
+        .debounce(0.060)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
     stateTriggers
@@ -313,7 +317,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_RETRACTED_POS,
                 WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(manipulator.jog(ManipulatorSubsystem.CORAL_HOLD_POS));
+        .whileTrue(manipulator.hold());
     // keep indexing to make sure its chilling
 
     stateTriggers
