@@ -427,7 +427,7 @@ public class Robot extends LoggedRobot {
                           })
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore)
+              .or(() -> Autos.autoScore && DriverStation.isAutonomousEnabled())
           //   .or(
           //       new Trigger(
           //               () ->
@@ -449,9 +449,11 @@ public class Robot extends LoggedRobot {
           //           .debounce(0.08)
           //           .and(() -> swerve.hasFrontTags))
           ,
-          driver.rightTrigger().or(() -> Autos.autoPreScore),
+          driver.rightTrigger().or(() -> Autos.autoPreScore && DriverStation.isAutonomousEnabled()),
           driver.leftTrigger(),
-          driver.leftBumper(),
+          driver
+              .leftBumper()
+              .or(() -> Autos.autoGroundIntake && DriverStation.isAutonomousEnabled()),
           driver
               .x()
               .and(driver.pov(-1).negate())
@@ -650,7 +652,7 @@ public class Robot extends LoggedRobot {
                 elevator.setVoltage(0.0))
             .withName("Elevator Default Command"));
 
-    manipulator.setDefaultCommand(manipulator.index());
+    manipulator.setDefaultCommand(manipulator.hold());
 
     shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
 
