@@ -205,7 +205,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.intakeCoral().repeatedly())
+        .whileTrue(manipulator.intakeCoral(-3.0).repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -382,7 +382,7 @@ public class Superstructure {
                 ElevatorSubsystem.L1_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
                 WristSubsystem.WRIST_SCORE_L1_POS))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L1_POS))
@@ -403,7 +403,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L2_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L2_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -421,7 +421,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L3_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L3_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -439,7 +439,7 @@ public class Superstructure {
                         ? ExtensionKinematics.L4_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L4_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> 1.4 + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -781,15 +781,16 @@ public class Superstructure {
         // Retract shoulder + wrist
         Commands.parallel(
                 shoulder
-                    .hold()
+                    .run(() -> {})
                     .until(() -> wrist.getAngle().getDegrees() < 90.0)
                     .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
-                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                wrist.setTargetAngle(
+                    () ->
+                        wrist.getAngle().getDegrees() < 90.0
+                            ? Rotation2d.fromDegrees(45.0)
+                            : WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.hold())
-            .until(
-                () ->
-                    shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)
-                        && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS)),
+            .until(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
         // extend elevator
         Commands.parallel(
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),

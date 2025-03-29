@@ -57,7 +57,7 @@ public class WristIOReal implements WristIO {
 
     motor.optimizeBusUtilization();
 
-    motor.setPosition(edu.wpi.first.math.util.Units.degreesToRotations(-10.0));
+    motor.setPosition(edu.wpi.first.math.util.Units.degreesToRotations(10.0));
   }
 
   @Override
@@ -107,7 +107,7 @@ public class WristIOReal implements WristIO {
         .withSlot0(new Slot0Configs().withGravityType(GravityTypeValue.Arm_Cosine))
         .withMotorOutput(
             new MotorOutputConfigs()
-                .withNeutralMode(NeutralModeValue.Brake)
+                .withNeutralMode(NeutralModeValue.Coast)
                 .withInverted(InvertedValue.Clockwise_Positive));
   }
 }
