@@ -783,24 +783,35 @@ public class SwerveSubsystem extends SubsystemBase {
   }
 
   @SuppressWarnings("resource")
-  public Command groundIntakeAutoAlign(DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
+  public Command groundIntakeAutoAlign(
+      DoubleSupplier xVel, DoubleSupplier yVel, DoubleSupplier theta) {
     final PIDController xController = new PIDController(1, 0.0, 0.0); // TODO tune
     final PIDController yController = new PIDController(9, 0.0, 0.8); // TODO tune
-    final PIDController headingController = new PIDController(0.1, 0.0, 0.0); //TODO tune
+    final PIDController headingController = new PIDController(0.1, 0.0, 0.0); // TODO tune
     return this.run(
         () -> {
           var target =
-              new PhotonPipelineResult(
-                      algaeCamera.inputs.sequenceID,
-                      algaeCamera.inputs.captureTimestampMicros,
-                      algaeCamera.inputs.publishTimestampMicros,
-                      algaeCamera.inputs.timeSinceLastPong,
-                      algaeCamera.inputs.targets)
-                  .getBestTarget();
+              Robot.state.get() == SuperState.INTAKE_ALGAE_GROUND
+                  ? new PhotonPipelineResult(
+                          algaeCamera.inputs.sequenceID,
+                          algaeCamera.inputs.captureTimestampMicros,
+                          algaeCamera.inputs.publishTimestampMicros,
+                          algaeCamera.inputs.timeSinceLastPong,
+                          algaeCamera.inputs.targets)
+                      .getTargets().stream().filter(t -> t.objDetectId == 0).toList().get(0) //TODO check class id's
+                  : new PhotonPipelineResult( //TODO coral by default?
+                          algaeCamera.inputs.sequenceID,
+                          algaeCamera.inputs.captureTimestampMicros,
+                          algaeCamera.inputs.publishTimestampMicros,
+                          algaeCamera.inputs.timeSinceLastPong,
+                          algaeCamera.inputs.targets)
+                      .getTargets().stream().filter(t -> t.objDetectId == 1).toList().get(0);
           if (target != null) {
             double yaw = -target.getYaw();
             double pitch = target.getPitch();
-            double r = Units.inchesToMeters(36.990 - 8.125) / Math.tan(Math.toRadians(pitch - 35)); //height adjustment?
+            double r =
+                Units.inchesToMeters(36.990 - 8.125)
+                    / Math.tan(Math.toRadians(pitch - 35)); // height adjustment?
             double yOffset = r * Math.sin(Math.toRadians(yaw));
             double xOffset = r * Math.cos(Math.toRadians(yaw));
             Logger.recordOutput("AutoAim/Ground Piece Detection/X Offset", xOffset);
