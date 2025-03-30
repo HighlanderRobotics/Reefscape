@@ -291,14 +291,21 @@ public class Superstructure {
         .get(SuperState.INTAKE_CORAL_GROUND)
         .whileTrue(
             extendWithClearance(
-                ElevatorSubsystem.GROUND_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
-                WristSubsystem.WRIST_CORAL_GROUND))
+                    ElevatorSubsystem.GROUND_EXTENSION_METERS,
+                    ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
+                    WristSubsystem.WRIST_CORAL_GROUND)
+                .until(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS))
+                .andThen(
+                    Commands.parallel(
+                        shoulder.setVoltage(-1.0),
+                        elevator.setExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS),
+                        wrist.setTargetAngle(WristSubsystem.WRIST_CORAL_GROUND))))
         .whileTrue(
             Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
                 .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly())
         .and(manipulator::getSecondBeambreak)
+        .and(intakeCoralReq.negate())
         .debounce(0.060)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
@@ -562,9 +569,7 @@ public class Superstructure {
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(
             Commands.waitUntil(
-                    () -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
-                .andThen(
-                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS)))
+                () -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION)))
         .whileTrue(
             Commands.waitUntil(
                     () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
@@ -656,7 +661,7 @@ public class Superstructure {
         .get(SuperState.READY_ALGAE)
         .whileTrue(
             extendWithClearance(
-                0.0, ShoulderSubsystem.SHOULDER_RETRACTED_POS, WristSubsystem.WRIST_RETRACTED_POS))
+                0.0, ShoulderSubsystem.SHOULDER_RETRACTED_POS, WristSubsystem.WRIST_READY_ALGAE))
         .whileTrue(manipulator.intakeAlgae());
     // READY_ALGAE -> PRE_NET
     stateTriggers
@@ -806,7 +811,11 @@ public class Superstructure {
         // re-extend joints
         Commands.parallel(
             shoulder.setTargetAngle(shoulderAngle),
-            wrist.setTargetAngle(wristAngle),
+            wrist
+                .hold()
+                .until(() -> shoulder.isNearTarget())
+                .unless(() -> wristAngle.get().getDegrees() < 90.0)
+                .andThen(wrist.setTargetAngle(wristAngle)),
             elevator.setExtension(elevatorExtension)));
   }
 

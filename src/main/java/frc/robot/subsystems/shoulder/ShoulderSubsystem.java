@@ -125,6 +125,10 @@ public class ShoulderSubsystem extends SubsystemBase {
     return setTargetAngle(() -> target);
   }
 
+  public Command setVoltage(final double volts) {
+    return this.run(() -> io.setMotorVoltage(volts));
+  }
+
   public Command hold() {
     return Commands.sequence(
         setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
