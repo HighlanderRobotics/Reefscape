@@ -88,8 +88,8 @@ public class ExtensionKinematics {
             .getY();
     // If we're extending higher than we can reach, prioritize matching Z instead of X
     if (elevatorHeight > MAX_EXTENSION_METERS) {
-      elevatorHeight = MAX_EXTENSION_METERS;
-      shoulderAngle = Math.asin((target.getY() - MAX_EXTENSION_METERS) / ARM_LENGTH_METERS);
+      elevatorHeight = MAX_EXTENSION_METERS - Units.inchesToMeters(1.0);
+      shoulderAngle = Math.asin((wristPose.getY() - MAX_EXTENSION_METERS) / ARM_LENGTH_METERS);
       // Limit shoulder angle
       if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
         shoulderAngle = Units.degreesToRadians(85.0);

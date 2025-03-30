@@ -24,7 +24,7 @@ import org.littletonrobotics.junction.Logger;
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
-  public static final double CORAL_INTAKE_VELOCITY = -15.0;
+  public static final double CORAL_INTAKE_VELOCITY = -18.0;
   public static final double ALGAE_INTAKE_VOLTAGE = 10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = 1.0;
   public static final double ALGAE_CURRENT_THRESHOLD = 6.0;

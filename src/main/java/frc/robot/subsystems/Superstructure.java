@@ -616,17 +616,7 @@ public class Superstructure {
         .whileTrue(
             Commands.waitUntil(
                     () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
-                .andThen(manipulator.setVoltage(-12.0)))
-        .and(
-            () ->
-                Robot.ROBOT_TYPE == RobotType.REAL
-                    ? manipulator.getStatorCurrentAmps()
-                        > ManipulatorSubsystem.ALGAE_CURRENT_THRESHOLD
-                    : manipulator.hasAlgae())
-        .and(() -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
-        .onTrue(forceState(SuperState.CHECK_ALGAE));
+                .andThen(manipulator.setVoltage(12.0)));
 
     // leave intake
     stateTriggers
