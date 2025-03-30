@@ -29,7 +29,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double X_OFFSET_METERS = 0.1016254;
   public static final double Z_OFFSET_METERS = 0.207645;
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
-  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(45.0);
+  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(55.0);
   public static final Rotation2d SHOULDER_CORAL_GROUND_POS = Rotation2d.fromDegrees(8.0);
 
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(0.505);
