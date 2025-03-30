@@ -307,7 +307,7 @@ public class Superstructure {
             Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
                 .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly())
-        .and(manipulator::getSecondBeambreak)
+        .and(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak())
         .and(intakeCoralReq.negate())
         .debounce(0.060)
         .onTrue(this.forceState(SuperState.READY_CORAL));
@@ -315,6 +315,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_CORAL_GROUND)
         .and(intakeCoralReq.negate())
+        .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
@@ -568,11 +569,11 @@ public class Superstructure {
     // INTAKE_ALGAE_{location} -> READY_ALGAE
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_GROUND)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(
-            Commands.waitUntil(
-                () -> elevator.isNearExtension(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION)))
+            extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(
             Commands.waitUntil(
                     () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS))
@@ -598,13 +599,15 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.INTAKE_ALGAE_STACK)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION))
+        .whileTrue(
+            extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_STACK_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
         .whileTrue(
             Commands.waitUntil(
                     () -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
                 .andThen(manipulator.setVoltage(-12.0)))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_STACK_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_INTAKE_ALGAE_STACK_POS))
         .and(
             () ->
                 Robot.ROBOT_TYPE == RobotType.REAL
@@ -663,8 +666,10 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.READY_ALGAE)
         .whileTrue(
-            extendWithClearance(
-                0.0, ShoulderSubsystem.SHOULDER_RETRACTED_POS, WristSubsystem.WRIST_READY_ALGAE))
+            extendWithClearanceSlow(
+                () -> 0.1,
+                () -> ShoulderSubsystem.SHOULDER_RETRACTED_POS,
+                () -> WristSubsystem.WRIST_READY_ALGAE))
         .whileTrue(manipulator.intakeAlgae());
     // READY_ALGAE -> PRE_NET
     stateTriggers
@@ -804,12 +809,60 @@ public class Superstructure {
                             ? Rotation2d.fromDegrees(45.0)
                             : WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.hold())
+            // .unless(
+            //     () ->
+            //         shoulder.getAngle().getDegrees()
+            //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
+            //             && wrist.getAngle().getDegrees() < 90.0)
             .until(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
         // extend elevator
         Commands.parallel(
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                 wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                 elevator.setExtension(elevatorExtension))
+            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
+        // re-extend joints
+        Commands.parallel(
+            shoulder.setTargetAngle(shoulderAngle),
+            wrist
+                .hold()
+                .until(() -> shoulder.isNearTarget())
+                .unless(() -> wristAngle.get().getDegrees() < 90.0)
+                .andThen(wrist.setTargetAngle(wristAngle)),
+            elevator.setExtension(elevatorExtension)));
+  }
+
+  private Command extendWithClearanceSlow(
+      DoubleSupplier elevatorExtension,
+      Supplier<Rotation2d> shoulderAngle,
+      Supplier<Rotation2d> wristAngle) {
+    return Commands.sequence(
+        // Retract shoulder + wrist
+        Commands.parallel(
+                shoulder
+                    .run(() -> {})
+                    .until(() -> wrist.getAngle().getDegrees() < 90.0)
+                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
+                wrist.setTargetAngle(
+                    () ->
+                        wrist.getAngle().getDegrees() < 90.0
+                            ? Rotation2d.fromDegrees(45.0)
+                            : WristSubsystem.WRIST_CLEARANCE_POS),
+                elevator.hold())
+            // .unless(
+            //     () ->
+            //         shoulder.getAngle().getDegrees()
+            //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
+            //             && wrist.getAngle().getDegrees() < 90.0)
+            .until(
+                () ->
+                    shoulder.getAngle().getDegrees()
+                        < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()),
+        // extend elevator
+        Commands.parallel(
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                elevator.setExtensionSlow(elevatorExtension))
             .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
         // re-extend joints
         Commands.parallel(

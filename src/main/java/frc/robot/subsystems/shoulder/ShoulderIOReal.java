@@ -64,7 +64,7 @@ public class ShoulderIOReal implements ShoulderIO {
     config.CurrentLimits.SupplyCurrentLimitEnable = true;
 
     // guesses
-    config.MotionMagic.MotionMagicCruiseVelocity = 1.0 * 0.25;
+    config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
     config.MotionMagic.MotionMagicAcceleration = 4.0;
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Coast;

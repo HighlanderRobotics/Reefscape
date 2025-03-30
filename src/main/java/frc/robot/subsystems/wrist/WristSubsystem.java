@@ -22,7 +22,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(101.0);
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
-  public static final Rotation2d WRIST_READY_ALGAE = Rotation2d.fromDegrees(5.0);
+  public static final Rotation2d WRIST_READY_ALGAE = Rotation2d.fromDegrees(-10.0);
   public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(176.0);
   public static final Rotation2d WRIST_CORAL_GROUND = Rotation2d.fromDegrees(-6.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(-0.9);
@@ -40,19 +40,13 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(-30.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs()
-          .withMotionMagicCruiseVelocity(4 * 0.25)
-          .withMotionMagicAcceleration(6);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(3);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
-      new MotionMagicConfigs()
-          .withMotionMagicCruiseVelocity(4 * 0.25)
-          .withMotionMagicAcceleration(4);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(3);
 
   public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
-      new MotionMagicConfigs()
-          .withMotionMagicCruiseVelocity(2 * 0.25)
-          .withMotionMagicAcceleration(2);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
 
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
