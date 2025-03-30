@@ -117,6 +117,10 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return this.jog(inputs.positionRotations).until(() -> true).andThen(this.run(() -> {}));
   }
 
+  public void resetPosition(final double rotations) {
+    io.resetEncoder(rotations);
+  }
+
   public Command intakeCoral() {
     return intakeCoral(CORAL_INTAKE_VELOCITY);
   }

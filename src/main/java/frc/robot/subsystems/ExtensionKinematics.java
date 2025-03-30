@@ -37,14 +37,14 @@ public class ExtensionKinematics {
   public static final Pose2d L1_POSE =
       new Pose2d(0.26, 0.35, Rotation2d.fromDegrees(15.0)); // solveFK(L1_EXTENSION);
   public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
-  public static final Pose2d L2_POSE =
-      new Pose2d(new Translation2d(0.26, 0.72), new Rotation2d(-0.61));
-  public static final ExtensionState L2_EXTENSION = solveIK(L2_POSE);
-  public static final Pose2d L3_POSE =
-      new Pose2d(new Translation2d(0.26, 1.12), new Rotation2d(-0.61));
-  public static final ExtensionState L3_EXTENSION = solveIK(L3_POSE);
+  public static final ExtensionState L2_EXTENSION =
+      new ExtensionState(0.27, Rotation2d.fromRadians(0.569), Rotation2d.fromRadians(2.447));
+  public static final Pose2d L2_POSE = solveFK(L2_EXTENSION);
+  public static final ExtensionState L3_EXTENSION =
+      new ExtensionState(0.634, Rotation2d.fromRadians(1.022), Rotation2d.fromRadians(2.427));
+  public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final Pose2d L4_POSE =
-      new Pose2d(new Translation2d(0.4, 1.85), Rotation2d.fromDegrees(90.0));
+      new Pose2d(new Translation2d(0.4, 1.9), Rotation2d.fromDegrees(90.0));
   public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
@@ -104,11 +104,10 @@ public class ExtensionKinematics {
 
   public static Pose2d solveFK(ExtensionState state) {
     return new Pose2d(
-            state.shoulderAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-            state.elevatorHeightMeters()
-                + state.shoulderAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS,
+            state.shoulderAngle().getCos() * ARM_LENGTH_METERS,
+            state.elevatorHeightMeters() + state.shoulderAngle().getSin() * ARM_LENGTH_METERS,
             state.wristAngle())
-        .transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL);
+        .transformBy(IK_WRIST_TO_CORAL);
   }
 
   public static ExtensionState getPoseCompensatedExtension(Pose2d pose, ExtensionState target) {

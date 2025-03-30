@@ -131,10 +131,12 @@ public class Robot extends LoggedRobot {
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L2(
         ElevatorSubsystem.L2_EXTENSION_METERS,
+        -15.0,
         WristSubsystem.WRIST_SCORE_L2_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L3(
         ElevatorSubsystem.L3_EXTENSION_METERS,
+        -15.0,
         WristSubsystem.WRIST_SCORE_L3_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L4(

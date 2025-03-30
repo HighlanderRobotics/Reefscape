@@ -20,6 +20,7 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
+import frc.robot.utils.autoaim.CoralTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
 import java.util.HashMap;
 import java.util.Map;
@@ -203,7 +204,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.intakeCoralAir(-3.0).repeatedly())
+        .whileTrue(manipulator.intakeCoralAir(-6.0).repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -310,6 +311,7 @@ public class Superstructure {
         .and(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak())
         .and(intakeCoralReq.negate())
         .debounce(0.060)
+        .onTrue(Commands.runOnce(() -> manipulator.resetPosition(0.5)))
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
     stateTriggers
@@ -510,6 +512,12 @@ public class Superstructure {
         .get(SuperState.SCORE_CORAL)
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
+        .and(
+            () ->
+                CoralTargets.getClosestTarget(pose.get())
+                        .getTranslation()
+                        .getDistance(pose.get().getTranslation())
+                    > 0.2)
         .debounce(0.15)
         .onTrue(forceState(SuperState.IDLE));
 
