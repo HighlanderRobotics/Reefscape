@@ -201,9 +201,10 @@ public class Superstructure {
             //     .until(() -> elevator.isNearExtension(Units.inchesToMeters(5.0)))
             //     .andThen(
             extendWithClearance(
-                ElevatorSubsystem.HP_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_HP_POS,
-                WristSubsystem.WRIST_HP_POS)) // )
+                    ElevatorSubsystem.HP_EXTENSION_METERS,
+                    ShoulderSubsystem.SHOULDER_HP_POS,
+                    WristSubsystem.WRIST_HP_POS)
+                .repeatedly()) // )
         .whileTrue(manipulator.intakeCoralAir(-6.0).repeatedly())
         .whileTrue(
             funnel.setVoltage(
@@ -812,7 +813,9 @@ public class Superstructure {
                     .until(
                         () ->
                             wrist.getAngle().getDegrees() < 90.0
-                                || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS))
+                                || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)
+                                || wrist.getAngle().getDegrees() - 115.0
+                                    > shoulder.getAngle().getDegrees())
                     .andThen(
                         Commands.either(
                             shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
@@ -829,10 +832,7 @@ public class Superstructure {
             //         shoulder.getAngle().getDegrees()
             //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
             //             && wrist.getAngle().getDegrees() < 90.0)
-            .until(
-                () ->
-                    shoulder.getAngle().getDegrees()
-                        < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()),
+            .until(() -> shoulder.isNearTarget() && wrist.isNearTarget()),
         // extend elevator
         Commands.parallel(
                 Commands.either(

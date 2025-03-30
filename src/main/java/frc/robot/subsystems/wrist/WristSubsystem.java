@@ -34,7 +34,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_L4_POS = ExtensionKinematics.L4_EXTENSION.wristAngle();
 
   public static final Rotation2d WRIST_CLEARANCE_POS = Rotation2d.fromDegrees(30.0);
-  public static final Rotation2d WRIST_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(160.0);
+  public static final Rotation2d WRIST_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(170.0);
 
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(-20.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_RETRACT_POS =

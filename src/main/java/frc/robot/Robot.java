@@ -126,7 +126,7 @@ public class Robot extends LoggedRobot {
   public static enum ReefTarget {
     L1(
         ElevatorSubsystem.L1_EXTENSION_METERS,
-        12.0,
+        3.0,
         WristSubsystem.WRIST_SCORE_L1_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L2(
