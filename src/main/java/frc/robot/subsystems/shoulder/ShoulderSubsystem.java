@@ -49,6 +49,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(60.0);
   public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
+  public static final Rotation2d SHOULDER_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(70.0);
 
   private static final MotionMagicConfigs DEFAULT_CONFIGS =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(4.0);

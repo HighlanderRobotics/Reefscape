@@ -809,24 +809,40 @@ public class Superstructure {
         Commands.parallel(
                 shoulder
                     .run(() -> {})
-                    .until(() -> wrist.getAngle().getDegrees() < 90.0)
-                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
-                wrist.setTargetAngle(
-                    () ->
-                        wrist.getAngle().getDegrees() < 90.0
-                            ? Rotation2d.fromDegrees(45.0)
-                            : WristSubsystem.WRIST_CLEARANCE_POS),
+                    .until(
+                        () ->
+                            wrist.getAngle().getDegrees() < 90.0
+                                || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS))
+                    .andThen(
+                        Commands.either(
+                            shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                            shoulder.setTargetAngle(
+                                ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
+                            () -> wrist.getAngle().getDegrees() < 90.0)),
+                Commands.either(
+                    wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
+                    () -> wrist.getAngle().getDegrees() < 90.0),
                 elevator.hold())
             // .unless(
             //     () ->
             //         shoulder.getAngle().getDegrees()
             //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
             //             && wrist.getAngle().getDegrees() < 90.0)
-            .until(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
+            .until(
+                () ->
+                    shoulder.getAngle().getDegrees()
+                        < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()),
         // extend elevator
         Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                Commands.either(
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
+                    () -> wrist.getAngle().getDegrees() < 90.0),
+                Commands.either(
+                    wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
+                    () -> wrist.getAngle().getDegrees() < 90.0),
                 elevator.setExtension(elevatorExtension))
             .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
         // re-extend joints
@@ -849,13 +865,15 @@ public class Superstructure {
         Commands.parallel(
                 shoulder
                     .run(() -> {})
-                    .until(() -> wrist.getAngle().getDegrees() < 90.0)
+                    .until(
+                        () ->
+                            wrist.getAngle().getDegrees() < 90.0
+                                || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS))
                     .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
-                wrist.setTargetAngle(
-                    () ->
-                        wrist.getAngle().getDegrees() < 90.0
-                            ? Rotation2d.fromDegrees(45.0)
-                            : WristSubsystem.WRIST_CLEARANCE_POS),
+                Commands.either(
+                    wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
+                    () -> wrist.getAngle().getDegrees() < 90.0),
                 elevator.hold())
             // .unless(
             //     () ->
@@ -869,7 +887,10 @@ public class Superstructure {
         // extend elevator
         Commands.parallel(
                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                Commands.either(
+                    wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
+                    wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
+                    () -> wrist.getAngle().getDegrees() < 90.0),
                 elevator.setExtensionSlow(elevatorExtension))
             .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
         // re-extend joints
