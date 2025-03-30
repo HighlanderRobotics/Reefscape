@@ -309,8 +309,8 @@ public class Robot extends LoggedRobot {
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
                           new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
-                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(5.8667))
-                      .withSlot0(new Slot0Configs().withKV(0.70).withKP(0.5))
+                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(ManipulatorSubsystem.GEAR_RATIO))
+                      .withSlot0(new Slot0Configs().withKV(0.928).withKP(0.5))
                       .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))
               : new RollerIOSim(
                   0.01,

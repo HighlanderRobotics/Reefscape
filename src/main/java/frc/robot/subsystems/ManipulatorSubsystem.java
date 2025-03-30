@@ -32,6 +32,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public static final double CORAL_HOLD_POS = 0.5;
 
+  public static final double GEAR_RATIO = (58.0 / 10.0) * (24.0 / 18.0);
+
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
       secondBBInputs = new BeambreakIOInputsAutoLogged();
