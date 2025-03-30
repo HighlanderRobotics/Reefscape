@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.beambreak.BeambreakIO;
@@ -120,9 +121,17 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return intakeCoral(CORAL_INTAKE_VELOCITY);
   }
 
-  public Command intakeCoral(double vel) {
+  public Command intakeCoralAir(double vel) {
     return Commands.sequence(
         setVelocity(vel).until(() -> secondBBInputs.get),
+        setVelocity(1.0).until(() -> !firstBBInputs.get),
+        jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
+  }
+
+  public Command intakeCoral(double vel) {
+    return Commands.sequence(
+        setVelocity(vel).until(new Trigger(() -> secondBBInputs.get).debounce(0.5)),
+        Commands.runOnce(() -> io.setPosition(Rotation2d.fromRotations(0.5))),
         setVelocity(1.0).until(() -> !firstBBInputs.get),
         jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }

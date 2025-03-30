@@ -203,7 +203,7 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS)) // )
-        .whileTrue(manipulator.intakeCoral(-3.0).repeatedly())
+        .whileTrue(manipulator.intakeCoralAir(-3.0).repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -283,7 +283,10 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(
             Commands.parallel(
-                elevator.runCurrentZeroing(), wrist.currentZero(() -> shoulder.getInputs())))
+                shoulder.setTargetAngle(Rotation2d.fromDegrees(50.0)),
+                elevator.runCurrentZeroing(),
+                Commands.waitUntil(() -> shoulder.getAngle().getDegrees() > 20.0)
+                    .andThen(wrist.currentZero(() -> shoulder.getInputs()))))
         .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
         .onTrue(this.forceState(prevState));
 

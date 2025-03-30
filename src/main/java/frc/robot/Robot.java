@@ -301,7 +301,7 @@ public class Robot extends LoggedRobot {
                   RollerIOReal.getDefaultConfig()
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
-                              .withStatorCurrentLimitEnable(true)
+                              .withStatorCurrentLimitEnable(false)
                               .withStatorCurrentLimit(30.0)
                               .withSupplyCurrentLimit(20.0)
                               .withSupplyCurrentLimitEnable(true))
