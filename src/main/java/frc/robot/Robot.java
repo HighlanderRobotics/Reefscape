@@ -75,11 +75,15 @@ import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
+
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.ironmaple.simulation.SimulatedArena;
 import org.ironmaple.simulation.drivesims.GyroSimulation;
@@ -620,42 +624,18 @@ public class Robot extends LoggedRobot {
                 AutoAim.translateToPose(
                     swerve,
                     () -> {
-                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
 
-                      Pose2d targetPose =
-                          CoralTargets.getHandedClosestTarget(
-                              swerve
-                                  .getPose()
-                                  .plus(
-                                      new Transform2d(
-                                          twist.dx,
-                                          twist.dy,
-                                          Rotation2d.fromRadians(twist.dtheta))),
-                              driver.leftBumper().getAsBoolean());
+                List<Pose2d> vectorTs = Arrays.stream(CoralTargets.values())
+        .map(target -> CoralTargets.getRobotTargetLocation(target.location)) // Correct method call
+        .collect(Collectors.toList());
 
-                      // VR - robot, VT - target, VN - robot in 0.3 sec
-                      Translation2d vectorR =
-                          new Translation2d(swerve.getPose().getX(), swerve.getPose().getY());
-                      Translation2d vectorT =
-                          new Translation2d(targetPose.getX(), targetPose.getY());
-                      Translation2d vectorN =
-                          new Translation2d(vectorR.getX() + twist.dx, vectorR.getY() + twist.dy);
+                //has to be pose2d
+            //  Pose2d maxPose = Arrays.stream((DotProd(vectorTs)/vectorTs.getDistance())).max().getPose(); 
 
-                      Translation2d vectorRT = vectorT.minus(vectorR);
-                      Translation2d vectorNT = vectorT.minus(vectorN);
+               Pose2d maxPose = vectorTs.stream()
+        .max(Comparator.comparingDouble(pose -> dotProd(pose) / pose.getTranslation().getNorm())).orElseThrow();
+                return maxPose;
 
-                      double dotProd =
-                          vectorRT.getX() * vectorNT.getX() + vectorRT.getY() * vectorNT.getY();
-
-                      return CoralTargets.getHandedClosestTarget(
-                          dotProd >= 0
-                              ? swerve
-                                  .getPose()
-                                  .plus(
-                                      new Transform2d(
-                                          twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta)))
-                              : swerve.getPose(),
-                          driver.leftBumper().getAsBoolean());
                     }),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
@@ -1113,6 +1093,32 @@ public class Robot extends LoggedRobot {
 
   public static void setCurrentTarget(ReefTarget target) {
     currentTarget = target;
+  }
+
+  public double dotProd(Pose2d targetPose) {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+
+                      // VR - robot, VT - target, VN - robot in 0.3 sec
+                      Translation2d vectorR =
+                          new Translation2d(swerve.getPose().getX(), swerve.getPose().getY());
+                    
+                      Translation2d vectorN =
+                          new Translation2d(vectorR.getX() + twist.dx, vectorR.getY() + twist.dy);
+
+                   Translation2d vectorT =
+                       new Translation2d(targetPose.getX(), targetPose.getY());
+
+                          
+                        
+                      Translation2d vectorRT = vectorT.minus(vectorR);
+                      Translation2d vectorNT = vectorT.minus(vectorN);
+
+                      double dotProd =
+                          vectorRT.getX() * vectorNT.getX() + vectorRT.getY() * vectorNT.getY();
+
+               //       Arrays.stream(values()).map(()-> ((dotProd)/Math.pow(2, vectorT)))
+                          return dotProd;
+                    
   }
 
   public ReefTarget getCurrentTarget() {
