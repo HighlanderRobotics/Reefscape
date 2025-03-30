@@ -10,6 +10,7 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.beambreak.BeambreakIO;
@@ -23,13 +24,13 @@ import org.littletonrobotics.junction.Logger;
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
-  public static final double CORAL_INTAKE_VELOCITY = -15.0;
-  public static final double ALGAE_INTAKE_VOLTAGE = -10.0;
-  public static final double ALGAE_HOLDING_VOLTAGE = -3.0;
-  public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
+  public static final double CORAL_INTAKE_VELOCITY = -18.0;
+  public static final double ALGAE_INTAKE_VOLTAGE = 10.0;
+  public static final double ALGAE_HOLDING_VOLTAGE = 1.0;
+  public static final double ALGAE_CURRENT_THRESHOLD = 6.0;
   public static final Transform2d IK_WRIST_TO_CORAL = ExtensionKinematics.IK_WRIST_TO_CORAL;
 
-  public static final double CORAL_HOLD_POS = 1.0;
+  public static final double CORAL_HOLD_POS = 0.5;
 
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
@@ -116,11 +117,27 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return this.jog(inputs.positionRotations).until(() -> true).andThen(this.run(() -> {}));
   }
 
+  public void resetPosition(final double rotations) {
+    io.resetEncoder(rotations);
+  }
+
   public Command intakeCoral() {
+    return intakeCoral(CORAL_INTAKE_VELOCITY);
+  }
+
+  public Command intakeCoralAir(double vel) {
     return Commands.sequence(
-        setVelocity(CORAL_INTAKE_VELOCITY).until(() -> secondBBInputs.get),
+        setVelocity(vel).until(() -> secondBBInputs.get),
         setVelocity(1.0).until(() -> !firstBBInputs.get),
-        jog(CORAL_HOLD_POS));
+        jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
+  }
+
+  public Command intakeCoral(double vel) {
+    return Commands.sequence(
+        setVelocity(vel).until(new Trigger(() -> secondBBInputs.get).debounce(0.5)),
+        Commands.runOnce(() -> io.setPosition(Rotation2d.fromRotations(0.5))),
+        setVelocity(1.0).until(() -> !firstBBInputs.get),
+        jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 
   public Command intakeAlgae() {

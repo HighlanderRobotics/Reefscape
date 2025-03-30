@@ -51,8 +51,8 @@ public class ShoulderIOReal implements ShoulderIO {
     final TalonFXConfiguration config = new TalonFXConfiguration();
 
     config.Slot0.GravityType = GravityTypeValue.Arm_Cosine;
-    config.Slot0.kG = 8.6;
-    config.Slot0.kS = 2.5;
+    config.Slot0.kG = 8.0;
+    config.Slot0.kS = 3.5;
     config.Slot0.kV = 0.0;
     config.Slot0.kA = 0.0;
     config.Slot0.kP = 8000.0;
@@ -67,7 +67,7 @@ public class ShoulderIOReal implements ShoulderIO {
     config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
     config.MotionMagic.MotionMagicAcceleration = 4.0;
 
-    config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
+    config.MotorOutput.NeutralMode = NeutralModeValue.Coast;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
     config.Feedback.SensorToMechanismRatio = ShoulderSubsystem.SHOULDER_GEAR_RATIO;

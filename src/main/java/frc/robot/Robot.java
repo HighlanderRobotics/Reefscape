@@ -126,15 +126,17 @@ public class Robot extends LoggedRobot {
   public static enum ReefTarget {
     L1(
         ElevatorSubsystem.L1_EXTENSION_METERS,
-        12.0,
+        3.0,
         WristSubsystem.WRIST_SCORE_L1_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L2(
         ElevatorSubsystem.L2_EXTENSION_METERS,
+        -15.0,
         WristSubsystem.WRIST_SCORE_L2_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L3(
         ElevatorSubsystem.L3_EXTENSION_METERS,
+        -15.0,
         WristSubsystem.WRIST_SCORE_L3_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L4(
@@ -179,7 +181,7 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private static ReefTarget currentTarget = ReefTarget.L4;
+  private static ReefTarget currentTarget = ReefTarget.L1;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
@@ -306,8 +308,7 @@ public class Robot extends LoggedRobot {
                               .withSupplyCurrentLimit(20.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
-                          new MotorOutputConfigs()
-                              .withInverted(InvertedValue.CounterClockwise_Positive))
+                          new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
                       .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(5.8667))
                       .withSlot0(new Slot0Configs().withKV(0.70).withKP(0.5))
                       .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))
@@ -330,7 +331,7 @@ public class Robot extends LoggedRobot {
                   12,
                   WristIOReal.getDefaultConfiguration()
                       .withSlot0(
-                          new Slot0Configs().withKP(1000.0).withKD(5.0).withKS(0.3).withKV(3.6))
+                          new Slot0Configs().withKP(1000.0).withKD(10.0).withKS(0.3).withKV(3.6))
                       .withMotionMagic(WristSubsystem.DEFAULT_MOTION_MAGIC)
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()

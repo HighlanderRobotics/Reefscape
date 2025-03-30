@@ -30,20 +30,21 @@ public class ExtensionKinematics {
   private static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
   static final Transform2d IK_WRIST_TO_CORAL =
       new Transform2d(
-          Units.inchesToMeters(8.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
+          Units.inchesToMeters(12.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
   private static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
   // Not super accurate bc of whack
-  public static final Pose2d L1_POSE = new Pose2d(); // solveFK(L1_EXTENSION);
+  public static final Pose2d L1_POSE =
+      new Pose2d(0.26, 0.4, Rotation2d.fromDegrees(15.0)); // solveFK(L1_EXTENSION);
   public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
-  public static final Pose2d L2_POSE =
-      new Pose2d(new Translation2d(0.26, 0.72), new Rotation2d(-0.61));
-  public static final ExtensionState L2_EXTENSION = solveIK(L2_POSE);
-  public static final Pose2d L3_POSE =
-      new Pose2d(new Translation2d(0.26, 1.12), new Rotation2d(-0.61));
-  public static final ExtensionState L3_EXTENSION = solveIK(L3_POSE);
+  public static final ExtensionState L2_EXTENSION =
+      new ExtensionState(0.33, Rotation2d.fromRadians(0.569), Rotation2d.fromRadians(2.447));
+  public static final Pose2d L2_POSE = solveFK(L2_EXTENSION);
+  public static final ExtensionState L3_EXTENSION =
+      new ExtensionState(0.68, Rotation2d.fromRadians(1.022), Rotation2d.fromRadians(2.427));
+  public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final Pose2d L4_POSE =
-      new Pose2d(new Translation2d(0.4, 1.85), Rotation2d.fromDegrees(90.0));
+      new Pose2d(new Translation2d(0.37, 2.0), Rotation2d.fromDegrees(90.0));
   public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
@@ -87,8 +88,8 @@ public class ExtensionKinematics {
             .getY();
     // If we're extending higher than we can reach, prioritize matching Z instead of X
     if (elevatorHeight > MAX_EXTENSION_METERS) {
-      elevatorHeight = MAX_EXTENSION_METERS;
-      shoulderAngle = Math.asin((target.getY() - MAX_EXTENSION_METERS) / ARM_LENGTH_METERS);
+      elevatorHeight = MAX_EXTENSION_METERS - Units.inchesToMeters(1.0);
+      shoulderAngle = Math.asin((wristPose.getY() - MAX_EXTENSION_METERS) / ARM_LENGTH_METERS);
       // Limit shoulder angle
       if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
         shoulderAngle = Units.degreesToRadians(85.0);
@@ -103,11 +104,10 @@ public class ExtensionKinematics {
 
   public static Pose2d solveFK(ExtensionState state) {
     return new Pose2d(
-            state.shoulderAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-            state.elevatorHeightMeters()
-                + state.shoulderAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS,
+            state.shoulderAngle().getCos() * ARM_LENGTH_METERS,
+            state.elevatorHeightMeters() + state.shoulderAngle().getSin() * ARM_LENGTH_METERS,
             state.wristAngle())
-        .transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL);
+        .transformBy(IK_WRIST_TO_CORAL);
   }
 
   public static ExtensionState getPoseCompensatedExtension(Pose2d pose, ExtensionState target) {
