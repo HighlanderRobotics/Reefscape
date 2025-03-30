@@ -30,7 +30,7 @@ public class ExtensionKinematics {
   private static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
   static final Transform2d IK_WRIST_TO_CORAL =
       new Transform2d(
-          Units.inchesToMeters(8.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
+          Units.inchesToMeters(12.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
   private static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
 
   // Not super accurate bc of whack
@@ -44,7 +44,7 @@ public class ExtensionKinematics {
       new ExtensionState(0.68, Rotation2d.fromRadians(1.022), Rotation2d.fromRadians(2.427));
   public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final Pose2d L4_POSE =
-      new Pose2d(new Translation2d(0.37, 1.9), Rotation2d.fromDegrees(90.0));
+      new Pose2d(new Translation2d(0.37, 2.0), Rotation2d.fromDegrees(90.0));
   public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
