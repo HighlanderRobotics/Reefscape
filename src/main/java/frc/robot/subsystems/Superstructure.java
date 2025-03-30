@@ -726,7 +726,7 @@ public class Superstructure {
     // PRE_NET logic
     stateTriggers
         .get(SuperState.PRE_NET)
-        .whileTrue(manipulator.setVoltage(2 * ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
+        .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
         .whileTrue(
             Commands.parallel(
                 elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
@@ -741,11 +741,13 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_ALGAE_NET)
         .onTrue(Commands.runOnce(() -> stateTimer.reset()))
-        .whileTrue(manipulator.setVoltage(13.0))
+        .whileTrue(manipulator.setVoltage(-13.0))
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-        .and(() -> stateTimer.hasElapsed(1))
+        .and(() -> stateTimer.hasElapsed(0.5))
+        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS))
+        .and(() -> stateTimer.hasElapsed(1.0))
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
