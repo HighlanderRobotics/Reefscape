@@ -110,6 +110,10 @@ public class WristSubsystem extends SubsystemBase {
         setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
   }
 
+  public Command setVoltage(final double volts) {
+    return this.run(() -> io.setMotorVoltage(volts));
+  }
+
   public Rotation2d getAngle() {
     return inputs.position;
   }

@@ -702,6 +702,7 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
+        .or(driver.leftBumper())
         .and(() -> superstructure.stateIsCoralAlike())
         .whileTrue(
             Commands.parallel(
@@ -715,7 +716,7 @@ public class Robot extends LoggedRobot {
                               .plus(
                                   new Transform2d(
                                       twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
-                          leftHandedTarget);
+                          driver.leftBumper().getAsBoolean());
                     },
                     // Keeps the robot off the reef wall until it's aligned side-side
                     new Transform2d(
@@ -780,6 +781,7 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
+        .or(driver.leftBumper())
         .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
         .whileTrue(
             swerve.driveToAlgae(
@@ -794,6 +796,7 @@ public class Robot extends LoggedRobot {
                         * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
     driver
         .rightBumper()
+        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE

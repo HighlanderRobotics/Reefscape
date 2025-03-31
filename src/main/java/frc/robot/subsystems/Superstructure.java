@@ -304,7 +304,7 @@ public class Superstructure {
                     Commands.parallel(
                         shoulder.setVoltage(-1.0),
                         elevator.setExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS),
-                        wrist.setTargetAngle(WristSubsystem.WRIST_CORAL_GROUND))))
+                        wrist.setVoltage(-1.0))))
         .whileTrue(
             Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
                 .andThen(Commands.runOnce(() -> shoulder.rezero())))
