@@ -285,7 +285,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(
             Commands.parallel(
-                shoulder.setTargetAngle(Rotation2d.fromDegrees(50.0)),
+                shoulder.setTargetAngle(Rotation2d.fromDegrees(55.0)),
                 elevator.runCurrentZeroing(),
                 Commands.waitUntil(() -> shoulder.getAngle().getDegrees() > 20.0)
                     .andThen(wrist.currentZero(() -> shoulder.getInputs()))))
@@ -824,7 +824,8 @@ public class Superstructure {
             //         shoulder.getAngle().getDegrees()
             //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
             //             && wrist.getAngle().getDegrees() < 90.0)
-            .until(() -> shoulder.isNearTarget() && wrist.isNearTarget()),
+            .until(() -> shoulder.isNearTarget() && wrist.isNearTarget())
+            .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
         // extend elevator
         Commands.parallel(
                 Commands.either(
@@ -836,14 +837,18 @@ public class Superstructure {
                     wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
                     () -> wrist.getAngle().getDegrees() < 90.0),
                 elevator.setExtension(elevatorExtension))
-            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
+            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08))
+            .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
         // re-extend joints
         Commands.parallel(
             shoulder.setTargetAngle(shoulderAngle),
             wrist
                 .hold()
                 .until(() -> shoulder.isNearTarget())
-                .unless(() -> wristAngle.get().getDegrees() < 90.0)
+                .unless(
+                    () ->
+                        wristAngle.get().getDegrees() < 90.0
+                            || shoulder.getAngle().getDegrees() < 60.0)
                 .andThen(wrist.setTargetAngle(wristAngle)),
             elevator.setExtension(elevatorExtension)));
   }
