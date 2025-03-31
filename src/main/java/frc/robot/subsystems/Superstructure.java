@@ -304,7 +304,10 @@ public class Superstructure {
                     Commands.parallel(
                         shoulder.setVoltage(-1.0),
                         elevator.setExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS),
-                        wrist.setVoltage(-1.0))))
+                        wrist
+                            .setTargetAngle(WristSubsystem.WRIST_CORAL_GROUND)
+                            .until(wrist::isNearTarget)
+                            .andThen(wrist.setVoltage(-1.0)))))
         .whileTrue(
             Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
                 .andThen(Commands.runOnce(() -> shoulder.rezero())))
@@ -327,8 +330,8 @@ public class Superstructure {
         .whileTrue(
             extendWithClearance(
                 ElevatorSubsystem.HP_EXTENSION_METERS,
-                ShoulderSubsystem.SHOULDER_RETRACTED_POS,
-                WristSubsystem.WRIST_RETRACTED_POS))
+                ShoulderSubsystem.SHOULDER_HP_POS,
+                WristSubsystem.WRIST_HP_POS))
         .whileTrue(manipulator.hold());
     // keep indexing to make sure its chilling
 
