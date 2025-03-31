@@ -19,7 +19,7 @@ public class WristSubsystem extends SubsystemBase {
   // TODO: UPDATE WHEN CAD IS FINISHED
   public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(220.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
-  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(101.0);
+  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(85);
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
   public static final Rotation2d WRIST_READY_ALGAE = Rotation2d.fromDegrees(-10.0);
