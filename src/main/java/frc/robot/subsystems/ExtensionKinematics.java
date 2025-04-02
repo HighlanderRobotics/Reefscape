@@ -158,9 +158,9 @@ public class ExtensionKinematics {
       ShoulderSubsystem shoulder,
       WristSubsystem wrist,
       Supplier<ExtensionState> target) {
-    final LinearFilter elevatorFilter = LinearFilter.movingAverage(5);
-    final LinearFilter shoulderFilter = LinearFilter.movingAverage(5);
-    final LinearFilter wristFilter = LinearFilter.movingAverage(5);
+    final LinearFilter elevatorFilter = LinearFilter.movingAverage(8);
+    final LinearFilter shoulderFilter = LinearFilter.movingAverage(8);
+    final LinearFilter wristFilter = LinearFilter.movingAverage(8);
     return Commands.runOnce(
             () -> {
               elevatorFilter.reset();
