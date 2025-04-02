@@ -304,7 +304,7 @@ public class Robot extends LoggedRobot {
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimitEnable(true)
-                              .withStatorCurrentLimit(60.0)
+                              .withStatorCurrentLimit(120.0)
                               .withSupplyCurrentLimit(30.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
