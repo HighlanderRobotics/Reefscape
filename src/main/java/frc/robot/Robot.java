@@ -18,6 +18,7 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -343,7 +344,11 @@ public class Robot extends LoggedRobot {
                               .withSupplyCurrentLimitEnable(true))
                       .withFeedback(
                           new FeedbackConfigs()
-                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
+                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO))
+                      .withSoftwareLimitSwitch(
+                          new SoftwareLimitSwitchConfigs()
+                              .withForwardSoftLimitEnable(true)
+                              .withForwardSoftLimitThreshold(0.5)))
               : new WristIOSim());
 
   private final FunnelSubsystem funnel =
