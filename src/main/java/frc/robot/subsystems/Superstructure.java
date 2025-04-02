@@ -828,7 +828,7 @@ public class Superstructure {
             //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
             //             && wrist.getAngle().getDegrees() < 90.0)
             .until(() -> shoulder.isNearTarget() && wrist.isNearTarget())
-            .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
+            .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.150)),
         // extend elevator
         Commands.parallel(
                 Commands.either(
@@ -851,7 +851,8 @@ public class Superstructure {
                 .unless(
                     () ->
                         wristAngle.get().getDegrees() < 90.0
-                            || shoulder.getAngle().getDegrees() < 60.0)
+                            || shoulder.getAngle().getDegrees() < 60.0
+                            || shoulder.isNearTarget())
                 .andThen(wrist.setTargetAngle(wristAngle)),
             elevator.setExtension(elevatorExtension)));
   }
