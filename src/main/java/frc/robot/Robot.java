@@ -471,7 +471,7 @@ public class Robot extends LoggedRobot {
                                           ? AutoAim.BLUE_REEF_CENTER
                                           : AutoAim.RED_REEF_CENTER)
                                   .getNorm()
-                              < 3.5
+                              < 3.0
                           && DriverStation.isAutonomous()),
           driver.leftTrigger(),
           driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
@@ -629,6 +629,9 @@ public class Robot extends LoggedRobot {
 
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoPreScore = false));
+
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
+        .onTrue(Commands.runOnce(() -> Autos.autoGroundIntake = false));
 
     new Trigger(
             () -> {

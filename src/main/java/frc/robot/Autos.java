@@ -170,10 +170,13 @@ public class Autos {
     final var groundTraj = routine.trajectory("LtoAGround");
 
     routine
-        .observe(steps.get("PLOtoL").done())
+        .observe(steps.get("PLOtoL").recentlyDone())
+        .and(() -> !manipulator.getSecondBeambreak() && !manipulator.getFirstBeambreak())
         .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)))
         .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
         .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
+    
+    routine.observe(groundTraj.done()).onTrue(Commands.runOnce(() -> autoGroundIntake = false).ignoringDisable(true));
 
     return routine.cmd().alongWith(Commands.print("auto :("));
   }
