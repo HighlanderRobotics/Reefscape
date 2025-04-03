@@ -167,13 +167,13 @@ public class Autos {
       runPath(routine, startPos, endPos, nextPos, steps);
     }
 
-    // final var groundTraj = routine.trajectory("LtoAGround");
+    final var groundTraj = routine.trajectory("LtoAGround");
 
-    // routine
-    //     .observe(steps.get("PLOtoL").done())
-    //     .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)))
-    //     .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
-    //     .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
+    routine
+        .observe(steps.get("PLOtoL").done())
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)))
+        .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
+        .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
 
     return routine.cmd().alongWith(Commands.print("auto :("));
   }
