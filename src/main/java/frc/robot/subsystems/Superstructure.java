@@ -521,7 +521,7 @@ public class Superstructure {
                 CoralTargets.getClosestTarget(pose.get())
                         .getTranslation()
                         .getDistance(pose.get().getTranslation())
-                    > 0.5)
+                    > 0.3)
         .debounce(0.15)
         .onTrue(forceState(SuperState.IDLE));
 
@@ -530,6 +530,12 @@ public class Superstructure {
         .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
         .and(killVisionIK)
+        .and(
+            () ->
+                CoralTargets.getClosestTarget(pose.get())
+                        .getTranslation()
+                        .getDistance(pose.get().getTranslation())
+                    > 0.3)
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
@@ -841,7 +847,12 @@ public class Superstructure {
             //         shoulder.getAngle().getDegrees()
             //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
             //             && wrist.getAngle().getDegrees() < 90.0)
-            .until(() -> shoulder.isNearTarget() && wrist.isNearTarget())
+            .until(
+                () ->
+                    shoulder.isNearTarget() && wrist.getAngle().getDegrees() < 90.0
+                        || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)
+                        || wrist.getAngle().getDegrees() - 115.0 > shoulder.getAngle().getDegrees()
+                            && wrist.isNearTarget())
             .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.150)),
         // extend elevator
         Commands.parallel(
