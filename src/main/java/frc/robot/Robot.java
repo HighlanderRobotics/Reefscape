@@ -457,7 +457,22 @@ public class Robot extends LoggedRobot {
           //           .debounce(0.08)
           //           .and(() -> swerve.hasFrontTags))
           ,
-          driver.rightTrigger().or(() -> DriverStation.isAutonomous()),
+          driver
+              .rightTrigger()
+              .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
+              .or(
+                  () ->
+                      swerve
+                                  .getPose()
+                                  .getTranslation()
+                                  .minus(
+                                      DriverStation.getAlliance().orElse(Alliance.Blue)
+                                              == Alliance.Blue
+                                          ? AutoAim.BLUE_REEF_CENTER
+                                          : AutoAim.RED_REEF_CENTER)
+                                  .getNorm()
+                              < 3.5
+                          && DriverStation.isAutonomous()),
           driver.leftTrigger(),
           driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
           driver
