@@ -521,7 +521,7 @@ public class Superstructure {
                 CoralTargets.getClosestTarget(pose.get())
                         .getTranslation()
                         .getDistance(pose.get().getTranslation())
-                    > 0.2)
+                    > 0.5)
         .debounce(0.15)
         .onTrue(forceState(SuperState.IDLE));
 
@@ -796,6 +796,10 @@ public class Superstructure {
     return extendWithClearance(() -> elevatorExtension, () -> shoulderAngle, () -> wristAngle);
   }
 
+  private boolean shouldntTuck() {
+    return wrist.getAngle().getDegrees() < 100.0 || elevator.getExtensionMeters() > 0.75;
+  }
+
   private Command extendWithClearance(
       DoubleSupplier elevatorExtension,
       Supplier<Rotation2d> shoulderAngle,
@@ -816,11 +820,11 @@ public class Superstructure {
                             shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                             shoulder.setTargetAngle(
                                 ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                            () -> wrist.getAngle().getDegrees() < 90.0)),
+                            this::shouldntTuck)),
                 Commands.either(
                     wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                    () -> wrist.getAngle().getDegrees() < 90.0),
+                    this::shouldntTuck),
                 elevator.hold())
             // .unless(
             //     () ->
@@ -834,11 +838,11 @@ public class Superstructure {
                 Commands.either(
                     shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                     shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                    () -> wrist.getAngle().getDegrees() < 90.0),
+                    this::shouldntTuck),
                 Commands.either(
                     wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                    () -> wrist.getAngle().getDegrees() < 90.0),
+                    this::shouldntTuck),
                 elevator.setExtension(elevatorExtension))
             .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08))
             .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),

@@ -603,6 +603,12 @@ public class Robot extends LoggedRobot {
             .setCurrent(60.0)
             .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
 
+    SmartDashboard.putData(
+        "Check Clear",
+        Commands.parallel(
+            shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
+            wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
