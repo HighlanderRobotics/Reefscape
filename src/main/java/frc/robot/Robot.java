@@ -182,7 +182,7 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private static ReefTarget currentTarget = ReefTarget.L1;
+  private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
@@ -435,7 +435,7 @@ public class Robot extends LoggedRobot {
                           })
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore && DriverStation.isAutonomousEnabled())
+              .or(() -> Autos.autoScore && DriverStation.isAutonomous())
           //   .or(
           //       new Trigger(
           //               () ->
@@ -457,11 +457,9 @@ public class Robot extends LoggedRobot {
           //           .debounce(0.08)
           //           .and(() -> swerve.hasFrontTags))
           ,
-          driver.rightTrigger().or(() -> Autos.autoPreScore && DriverStation.isAutonomousEnabled()),
+          driver.rightTrigger().or(() -> DriverStation.isAutonomous()),
           driver.leftTrigger(),
-          driver
-              .leftBumper()
-              .or(() -> Autos.autoGroundIntake && DriverStation.isAutonomousEnabled()),
+          driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
           driver
               .x()
               .and(driver.pov(-1).negate())
@@ -605,10 +603,10 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
-    new Trigger(() -> DriverStation.isEnabled())
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoScore = false));
 
-    new Trigger(() -> DriverStation.isEnabled())
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoPreScore = false));
 
     new Trigger(
