@@ -187,7 +187,7 @@ public class Robot extends LoggedRobot {
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
 
-  @AutoLogOutput private boolean killVisionIK = false;
+  @AutoLogOutput private boolean killVisionIK = true;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
@@ -490,9 +490,9 @@ public class Robot extends LoggedRobot {
           operator.rightBumper(),
           operator.leftBumper(),
           new Trigger(() -> killVisionIK)
-              //   .or(() -> currentTarget == ReefTarget.L4)
+              .or(() -> currentTarget == ReefTarget.L1)
               .or(() -> DriverStation.isAutonomous()),
-          () -> MathUtil.clamp(operator.getLeftY(), -1.0, 0.0));
+          () -> MathUtil.clamp(operator.getLeftY(), -1.0, 1.0));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
