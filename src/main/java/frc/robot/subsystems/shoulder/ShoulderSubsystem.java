@@ -100,8 +100,7 @@ public class ShoulderSubsystem extends SubsystemBase {
         () -> {
           io.setMotorPosition(target.get());
           setpoint = target.get();
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
+          Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
         });
   }
 

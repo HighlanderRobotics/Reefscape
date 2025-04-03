@@ -76,8 +76,7 @@ public class WristSubsystem extends SubsystemBase {
         () -> {
           io.setMotorPosition(target.get());
           setpoint = target.get();
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
+          Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
         });
   }
 

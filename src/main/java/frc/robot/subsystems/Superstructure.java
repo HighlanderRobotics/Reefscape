@@ -491,12 +491,38 @@ public class Superstructure {
             //                     pose.get(),
             //                     ExtensionKinematics.getExtensionForLevel(
             //                         reefTarget.get())))),
-            this.extendWithClearance(
+            Commands.either(
+                this.holdExtension(
+                    () ->
+                        killVisionIK.getAsBoolean()
+                            ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+                            : ExtensionKinematics.getPoseCompensatedExtension(
+                                pose.get(),
+                                ExtensionKinematics.getExtensionForLevel(reefTarget.get()))),
+                this.extendWithClearance(
+                    () ->
+                        killVisionIK.getAsBoolean()
+                            ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+                            : ExtensionKinematics.getPoseCompensatedExtension(
+                                pose.get(),
+                                ExtensionKinematics.getExtensionForLevel(reefTarget.get()))),
                 () ->
-                    killVisionIK.getAsBoolean()
-                        ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
-                        : ExtensionKinematics.getPoseCompensatedExtension(
-                            pose.get(), ExtensionKinematics.getExtensionForLevel(reefTarget.get())))
+                    elevator.isNearExtension(
+                            killVisionIK.getAsBoolean()
+                                ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+                                    .elevatorHeightMeters()
+                                : ExtensionKinematics.getPoseCompensatedExtension(
+                                        pose.get(),
+                                        ExtensionKinematics.getExtensionForLevel(reefTarget.get()))
+                                    .elevatorHeightMeters())
+                        && shoulder.isNearAngle(
+                            killVisionIK.getAsBoolean()
+                                ? ExtensionKinematics.getExtensionForLevel(reefTarget.get())
+                                    .shoulderAngle()
+                                : ExtensionKinematics.getPoseCompensatedExtension(
+                                        pose.get(),
+                                        ExtensionKinematics.getExtensionForLevel(reefTarget.get()))
+                                    .shoulderAngle()))
             // // End
             // () ->
             //     MathUtil.isNear(
@@ -888,6 +914,13 @@ public class Superstructure {
                                 > ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees())
                 .andThen(wrist.setTargetAngle(wristAngle)),
             elevator.setExtension(elevatorExtension)));
+  }
+
+  private Command holdExtension(Supplier<ExtensionState> state) {
+    return Commands.parallel(
+        elevator.setExtension(() -> state.get().elevatorHeightMeters()),
+        shoulder.setTargetAngle(() -> state.get().shoulderAngle()),
+        wrist.setTargetAngle(() -> state.get().wristAngle()));
   }
 
   private Command extendWithClearanceSlow(

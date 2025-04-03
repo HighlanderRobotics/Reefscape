@@ -132,8 +132,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         () -> {
           io.setTarget(meters.getAsDouble(), MAX_ACCELERATION);
           setpoint = meters.getAsDouble();
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Elevator/Setpoint", setpoint);
+          Logger.recordOutput("Elevator/Setpoint", setpoint);
         });
   }
 
