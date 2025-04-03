@@ -205,7 +205,7 @@ public class Superstructure {
                     ShoulderSubsystem.SHOULDER_HP_POS,
                     WristSubsystem.WRIST_HP_POS)
                 .repeatedly()) // )
-        .whileTrue(manipulator.intakeCoralAir(-6.0).repeatedly())
+        .whileTrue(manipulator.intakeCoralAir(-9.0).repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
@@ -715,8 +715,8 @@ public class Superstructure {
     // PRE_PROCESSOR logic
     stateTriggers
         .get(SuperState.PRE_PROCESSOR)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS))
+        .whileTrue(elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
+        .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_PROCESSOR_POS))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
@@ -725,7 +725,7 @@ public class Superstructure {
     // PRE_NET logic
     stateTriggers
         .get(SuperState.PRE_NET)
-        .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
+        .whileTrue(manipulator.setVoltage(3 * ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE))
         .whileTrue(
             Commands.parallel(
                 elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
@@ -751,11 +751,11 @@ public class Superstructure {
 
     stateTriggers
         .get(SuperState.SCORE_ALGAE_PROCESSOR)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
-        .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS))
-        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS))
-        .whileTrue(manipulator.setVoltage(-ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE))
-        .and(() -> stateTimer.hasElapsed(1.0))
+        .whileTrue(elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_PROCESSOR_EXTENSION))
+        .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS))
+        .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_PROCESSOR_POS))
+        .whileTrue(manipulator.setVoltage(-2.0))
+        .and(() -> stateTimer.hasElapsed(2.0))
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
@@ -902,12 +902,19 @@ public class Superstructure {
                     .until(
                         () ->
                             wrist.getAngle().getDegrees() < 90.0
-                                || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS))
-                    .andThen(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)),
+                                || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)
+                                || wrist.getAngle().getDegrees() - 115.0
+                                    > shoulder.getAngle().getDegrees())
+                    .andThen(
+                        Commands.either(
+                            shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                            shoulder.setTargetAngle(
+                                ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
+                            this::shouldntTuck)),
                 Commands.either(
                     wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                    () -> wrist.getAngle().getDegrees() < 90.0),
+                    this::shouldntTuck),
                 elevator.hold())
             // .unless(
             //     () ->
@@ -916,17 +923,24 @@ public class Superstructure {
             //             && wrist.getAngle().getDegrees() < 90.0)
             .until(
                 () ->
-                    shoulder.getAngle().getDegrees()
-                        < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()),
+                    shoulder.isNearTarget() && wrist.getAngle().getDegrees() < 90.0
+                        || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)
+                        || wrist.getAngle().getDegrees() - 115.0 > shoulder.getAngle().getDegrees()
+                            && wrist.isNearTarget())
+            .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.150)),
         // extend elevator
         Commands.parallel(
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                Commands.either(
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
+                    shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
+                    this::shouldntTuck),
                 Commands.either(
                     wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                    () -> wrist.getAngle().getDegrees() < 90.0),
+                    this::shouldntTuck),
                 elevator.setExtensionSlow(elevatorExtension))
-            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08)),
+            .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08))
+            .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
         // re-extend joints
         Commands.parallel(
             shoulder
@@ -947,7 +961,7 @@ public class Superstructure {
                             || shoulderAngle.get().getDegrees()
                                 > ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees())
                 .andThen(wrist.setTargetAngle(wristAngle)),
-            elevator.setExtension(elevatorExtension)));
+            elevator.setExtensionSlow(elevatorExtension)));
   }
 
   public SuperState getState() {

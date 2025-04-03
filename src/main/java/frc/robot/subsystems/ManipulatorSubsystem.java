@@ -130,7 +130,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public Command intakeCoralAir(double vel) {
     return Commands.sequence(
         setVelocity(vel).until(() -> secondBBInputs.get),
-        setVelocity(1.0).until(() -> !firstBBInputs.get),
+        setVelocity(0.25).until(() -> !firstBBInputs.get),
         jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 
@@ -144,7 +144,9 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
-        .until(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
+        .until(
+            new Trigger(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
+                .debounce(0.75))
         .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 

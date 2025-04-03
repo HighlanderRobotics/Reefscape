@@ -779,7 +779,10 @@ public class Robot extends LoggedRobot {
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
                                     && elevator.isNearTarget()
-                                    && shoulder.isNearTarget()),
+                                    && shoulder.isNearAngle(
+                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                                    && wrist.isNearAngle(
+                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
