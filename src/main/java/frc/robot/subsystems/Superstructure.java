@@ -911,12 +911,16 @@ public class Superstructure {
                     .andThen(shoulder.setTargetAngle(shoulderAngle)),
                 wrist
                     .hold()
-                    .until(new Trigger(() -> shoulder.isNearTarget()).debounce(0.040))
+                    .until(
+                        new Trigger(() -> shoulder.isNearAngle(shoulderAngle.get()))
+                            .debounce(0.040))
+                    .withTimeout(0.5)
                     .unless(
                         () ->
                             wristAngle.get().getDegrees() < 90.0
                                 || shoulderAngle.get().getDegrees()
-                                    > ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees())
+                                    > ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees()
+                                        + 5)
                     .andThen(wrist.setTargetAngle(wristAngle)),
                 elevator.setExtension(elevatorExtension)))
         .finallyDo(
