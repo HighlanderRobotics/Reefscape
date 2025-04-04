@@ -460,12 +460,11 @@ public class Superstructure {
         .get(SuperState.PRE_L4)
         .whileTrue(
             this.extendWithClearance(
-                    () ->
-                        killVisionIK.getAsBoolean()
-                            ? ExtensionKinematics.L4_EXTENSION
-                            : ExtensionKinematics.getPoseCompensatedExtension(
-                                pose.get(), ExtensionKinematics.L4_EXTENSION))
-                .withInterruptBehavior(InterruptionBehavior.kCancelIncoming))
+                () ->
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.L4_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.L4_EXTENSION)))
         .whileTrue(manipulator.jog(() -> 0.5 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
