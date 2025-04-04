@@ -612,10 +612,11 @@ public class Robot extends LoggedRobot {
     SmartDashboard.putData(
         "Manual Zero Extension",
         Commands.runOnce(
-            () -> {
-              elevator.resetExtension(0.0);
-              wrist.resetPosition(Rotation2d.k180deg);
-            }));
+                () -> {
+                  elevator.resetExtension(0.0);
+                  wrist.resetPosition(Rotation2d.k180deg);
+                })
+            .ignoringDisable(true));
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
