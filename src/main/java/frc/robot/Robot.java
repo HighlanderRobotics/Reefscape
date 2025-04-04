@@ -716,7 +716,7 @@ public class Robot extends LoggedRobot {
                             DriverStation.getAlliance()
                                 .map((a) -> a == Alliance.Blue ? Color.kBlue : Color.kRed)
                                 .orElse(Color.kWhite),
-                        () -> LEDSubsystem.PURPLE,
+                        () -> wrist.hasZeroed ? LEDSubsystem.PURPLE : Color.kOrange,
                         4,
                         1.0)
                     .until(() -> DriverStation.isEnabled()),
