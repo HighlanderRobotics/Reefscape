@@ -129,8 +129,10 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeCoralAir(double vel) {
     return Commands.sequence(
-        setVelocity(vel).until(() -> secondBBInputs.get),
-        setVoltage(0.5).until(() -> !firstBBInputs.get),
+        setVelocity(vel)
+            .until(() -> secondBBInputs.get)
+            .finallyDo(() -> io.setPosition(Rotation2d.fromRotations(0.63))),
+        setVoltage(0.25).until(() -> !firstBBInputs.get),
         jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 

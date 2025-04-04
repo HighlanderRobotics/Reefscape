@@ -205,7 +205,7 @@ public class Superstructure {
                     ShoulderSubsystem.SHOULDER_HP_POS,
                     WristSubsystem.WRIST_HP_POS)
                 .repeatedly()) // )
-        .whileTrue(manipulator.intakeCoralAir(-9.0).repeatedly())
+        .whileTrue(manipulator.intakeCoralAir(-7.0).repeatedly())
         .whileTrue(
             funnel.setVoltage(
                 () ->
