@@ -163,9 +163,45 @@ public class ExtensionKinematics {
     final LinearFilter wristFilter = LinearFilter.movingAverage(8);
     return Commands.runOnce(
             () -> {
-              elevatorFilter.reset();
-              shoulderFilter.reset();
-              wristFilter.reset();
+              elevatorFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters()
+                  },
+                  new double[0]);
+              shoulderFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations()
+                  },
+                  new double[0]);
+              wristFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations()
+                  },
+                  new double[0]);
             })
         .andThen(
             Commands.parallel(
