@@ -582,8 +582,10 @@ public class Superstructure {
     // ANTI_JAM logic
     stateTriggers
         .get(SuperState.ANTI_JAM)
-        .whileTrue(elevator.setExtension(ElevatorSubsystem.L2_EXTENSION_METERS))
-        .whileTrue(manipulator.setVelocity(10))
+        .whileTrue(elevator.hold())
+        .whileTrue(wrist.hold())
+        .whileTrue(shoulder.hold())
+        .whileTrue(manipulator.setVelocity(-10))
         .whileTrue(funnel.setVoltage(-10.0));
 
     stateTriggers
