@@ -902,12 +902,17 @@ public class Superstructure {
             Commands.parallel(
                 shoulder
                     .setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS)
-                    .unless(
+                    // .unless(
+                    //     () ->
+                    //         shouldntTuck()
+                    //             || shoulderAngle.get().getDegrees()
+                    //                 <
+                    // ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees())
+                    .until(
                         () ->
-                            shouldntTuck()
-                                || shoulderAngle.get().getDegrees()
-                                    < ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees())
-                    .until(() -> wrist.isNearTarget())
+                            wrist.isNearTarget()
+                                && (wrist.getAngle().getDegrees() < 120.0
+                                    || !elevator.isNearExtension(1.4, 0.25)))
                     .andThen(shoulder.setTargetAngle(shoulderAngle)),
                 wrist
                     .hold()
