@@ -334,7 +334,7 @@ public class Robot extends LoggedRobot {
                   12,
                   WristIOReal.getDefaultConfiguration()
                       .withSlot0(
-                          new Slot0Configs().withKP(1000.0).withKD(30.0).withKS(0.3).withKV(3.6))
+                          new Slot0Configs().withKP(1000.0).withKD(30.0).withKS(0.3).withKV(3.2))
                       .withMotionMagic(WristSubsystem.DEFAULT_MOTION_MAGIC)
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()

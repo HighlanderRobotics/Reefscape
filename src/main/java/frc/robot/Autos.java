@@ -147,7 +147,7 @@ public class Autos {
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "LO", "J", "PLO", "K", "PLO", "L", // "PLM", "A", "PLO" // each stop we are going to, in order
+      "LO", "J", "PLO", "K", "PLO", "L", "PLM", "A", "PLO" // each stop we are going to, in order
     }; // i don't love repeating the plos but ???
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
@@ -167,19 +167,23 @@ public class Autos {
       runPath(routine, startPos, endPos, nextPos, steps);
     }
 
-    final var groundTraj = routine.trajectory("LtoAGround");
+    // final var groundTraj = routine.trajectory("LtoAGround");
+
+    // routine
+    //     .observe(steps.get("PLOtoL").recentlyDone())
+    //     .onTrue(scoreInAuto(() -> steps.get("PLOtoL").getFinalPose().get()))
+    //     .and(() -> !manipulator.getSecondBeambreak() && !manipulator.getFirstBeambreak())
+    //     .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)))
+    //     .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
+    //     .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
+
+    // routine
+    //     .observe(groundTraj.done())
+    //     .onTrue(Commands.runOnce(() -> autoGroundIntake = false).ignoringDisable(true));
 
     routine
-        .observe(steps.get("PLOtoL").recentlyDone())
-        .onTrue(scoreInAuto(() -> steps.get("PLOtoL").getFinalPose().get()))
-        .and(() -> !manipulator.getSecondBeambreak() && !manipulator.getFirstBeambreak())
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)))
-        .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
-        .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
-
-    routine
-        .observe(groundTraj.done())
-        .onTrue(Commands.runOnce(() -> autoGroundIntake = false).ignoringDisable(true));
+        .observe(steps.get("LtoPLM").done())
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
 
     return routine.cmd().alongWith(Commands.print("auto :("));
   }
