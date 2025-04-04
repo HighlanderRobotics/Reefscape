@@ -471,7 +471,7 @@ public class Robot extends LoggedRobot {
                                           ? AutoAim.BLUE_REEF_CENTER
                                           : AutoAim.RED_REEF_CENTER)
                                   .getNorm()
-                              < 3.0
+                              < 3.25
                           && DriverStation.isAutonomous()),
           driver.leftTrigger(),
           driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
