@@ -609,6 +609,14 @@ public class Robot extends LoggedRobot {
             shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
             wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)));
 
+    SmartDashboard.putData(
+        "Manual Zero Extension",
+        Commands.runOnce(
+            () -> {
+              elevator.resetExtension(0.0);
+              wrist.resetPosition(Rotation2d.k180deg);
+            }));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));

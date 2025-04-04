@@ -144,4 +144,9 @@ public class WristSubsystem extends SubsystemBase {
               io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
             }));
   }
+
+  public void resetPosition(Rotation2d angle) {
+    io.resetEncoder(angle);
+    hasZeroed = true;
+  }
 }
