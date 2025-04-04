@@ -842,8 +842,10 @@ public class Superstructure {
     return extendWithClearance(() -> elevatorExtension, () -> shoulderAngle, () -> wristAngle);
   }
 
-  private boolean shouldntTuck() {
-    return wrist.getAngle().getDegrees() < 100.0 || elevator.getExtensionMeters() > 0.75;
+  private boolean shouldntTuck(Rotation2d shoulderAngle) {
+    return wrist.getAngle().getDegrees() < 100.0
+        || elevator.getExtensionMeters() > 0.75
+        || shoulderAngle.getDegrees() > 60.0;
   }
 
   private Command extendWithClearance(
@@ -866,11 +868,11 @@ public class Superstructure {
                                 shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                                 shoulder.setTargetAngle(
                                     ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                                this::shouldntTuck)),
+                                () -> shouldntTuck(shoulderAngle.get()))),
                     Commands.either(
                         wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                         wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                        this::shouldntTuck),
+                        () -> shouldntTuck(shoulderAngle.get())),
                     elevator.hold())
                 // .unless(
                 //     () ->
@@ -890,11 +892,11 @@ public class Superstructure {
                     Commands.either(
                         shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                         shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                        this::shouldntTuck),
+                        () -> shouldntTuck(shoulderAngle.get())),
                     Commands.either(
                         wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                         wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                        this::shouldntTuck),
+                        () -> shouldntTuck(shoulderAngle.get())),
                     elevator.setExtension(elevatorExtension))
                 .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08))
                 .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
@@ -963,11 +965,11 @@ public class Superstructure {
                             shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                             shoulder.setTargetAngle(
                                 ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                            this::shouldntTuck)),
+                            () -> shouldntTuck(shoulderAngle.get()))),
                 Commands.either(
                     wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                    this::shouldntTuck),
+                    () -> shouldntTuck(shoulderAngle.get())),
                 elevator.hold())
             // .unless(
             //     () ->
@@ -986,11 +988,11 @@ public class Superstructure {
                 Commands.either(
                     shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
                     shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                    this::shouldntTuck),
+                    () -> shouldntTuck(shoulderAngle.get())),
                 Commands.either(
                     wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
                     wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                    this::shouldntTuck),
+                    () -> shouldntTuck(shoulderAngle.get())),
                 elevator.setExtensionSlow(elevatorExtension))
             .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08))
             .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
@@ -1000,7 +1002,7 @@ public class Superstructure {
                 .setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS)
                 .unless(
                     () ->
-                        shouldntTuck()
+                        shouldntTuck(shoulderAngle.get())
                             || shoulderAngle.get().getDegrees()
                                 < ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees())
                 .until(() -> wrist.isNearTarget())
