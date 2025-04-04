@@ -884,7 +884,7 @@ public class Superstructure {
                             || wrist.getAngle().getDegrees() - 115.0
                                     > shoulder.getAngle().getDegrees()
                                 && wrist.isNearTarget())
-                .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.150)),
+                .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
             // extend elevator
             Commands.parallel(
                     Commands.either(
