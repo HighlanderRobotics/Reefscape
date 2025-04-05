@@ -790,8 +790,10 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.PRE_CLIMB)
         .whileTrue(
-            extendWithClearance(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION, ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS, WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
-            
+            extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(climber.setPosition(ClimberSubsystem.CLIMB_EXTENDED_POSITION))
         .onTrue(funnel.unlatch()) // !!
         .and(climbConfReq)
@@ -800,7 +802,10 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.CLIMB)
         .whileTrue(
-            extendWithClearance(ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION, ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS, WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
+            extendWithClearance(
+                ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION,
+                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS,
+                WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS))
         .whileTrue(
             climber
                 .setPositionSlow(1.35)
