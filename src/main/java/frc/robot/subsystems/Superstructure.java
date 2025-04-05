@@ -898,11 +898,13 @@ public class Superstructure {
                 //             && wrist.getAngle().getDegrees() < 90.0)
                 .until(
                     () ->
-                        (shoulder.isNearTarget() && (wrist.getAngle().getDegrees() < 90.0
-                            || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)))
+                        ((shoulder.isNearTarget()
+                                && (wrist.getAngle().getDegrees() < 90.0
+                                    || wrist.isNearAngle(
+                                        WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)))
                             || wrist.getAngle().getDegrees() - 115.0
                                     > shoulder.getAngle().getDegrees()
-                                && wrist.isNearTarget())
+                                && wrist.isNearTarget()) && elevatorExtension.getAsDouble() != ElevatorSubsystem.L4_EXTENSION_METERS)
                 .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
             // extend elevator
             Commands.parallel(
