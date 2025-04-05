@@ -225,7 +225,7 @@ public class Superstructure {
                             ? 5.0
                             : 0.0)))
         .and(manipulator::getFirstBeambreak)
-        .debounce(0.75)
+        .debounce(0.25)
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
     stateTriggers
