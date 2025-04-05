@@ -152,7 +152,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
                   io.setPosition(Rotation2d.fromRotations(0.63));
                   positionSetpoint = 0.63;
                 }),
-        setVoltage(0.25).until(() -> !firstBBInputs.get),
+        setVoltage(0.1).until(() -> !firstBBInputs.get),
         jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 
