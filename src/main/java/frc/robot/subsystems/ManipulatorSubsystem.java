@@ -81,7 +81,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     if (!firstBBInputs.get && secondBBInputs.get) {
       // Number calculated from coral length, may need tuning
-      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.63));
+      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(1.0));
       zeroTimer.reset();
     }
   }

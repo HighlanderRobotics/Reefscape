@@ -23,7 +23,7 @@ public class WristSubsystem extends SubsystemBase {
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
   public static final Rotation2d WRIST_READY_ALGAE = Rotation2d.fromDegrees(-10.0);
-  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(170.0);
+  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(165.0);
   public static final Rotation2d WRIST_CORAL_GROUND = Rotation2d.fromDegrees(0.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(-0.9);
   public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-10);
