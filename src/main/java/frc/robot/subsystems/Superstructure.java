@@ -336,7 +336,14 @@ public class Superstructure {
                 ElevatorSubsystem.HP_EXTENSION_METERS,
                 ShoulderSubsystem.SHOULDER_HP_POS,
                 WristSubsystem.WRIST_HP_POS))
-        .whileTrue(manipulator.hold());
+        .whileTrue(
+            manipulator
+                .hold()
+                .until(
+                    () ->
+                        shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_HP_POS)
+                            && wrist.isNearAngle(WristSubsystem.WRIST_HP_POS))
+                .andThen(manipulator.jog(ManipulatorSubsystem.JOG_POS)));
     // keep indexing to make sure its chilling
 
     stateTriggers
