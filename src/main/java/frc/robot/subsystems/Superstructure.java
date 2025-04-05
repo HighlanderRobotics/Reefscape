@@ -898,8 +898,8 @@ public class Superstructure {
                 //             && wrist.getAngle().getDegrees() < 90.0)
                 .until(
                     () ->
-                        shoulder.isNearTarget() && wrist.getAngle().getDegrees() < 90.0
-                            || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)
+                        (shoulder.isNearTarget() && (wrist.getAngle().getDegrees() < 90.0
+                            || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)))
                             || wrist.getAngle().getDegrees() - 115.0
                                     > shoulder.getAngle().getDegrees()
                                 && wrist.isNearTarget())
