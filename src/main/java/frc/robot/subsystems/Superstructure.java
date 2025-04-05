@@ -314,8 +314,8 @@ public class Superstructure {
                 .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly())
         .and(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak())
-        .debounce(0.060)
         .and(intakeCoralReq.negate())
+        .debounce(0.060)
         .onTrue(Commands.runOnce(() -> manipulator.resetPosition(0.5)))
         .onTrue(this.forceState(SuperState.READY_CORAL));
 
