@@ -313,8 +313,9 @@ public class Superstructure {
             Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
                 .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly().until(intakeCoralReq.negate()));
-    
-    stateTriggers.get(SuperState.INTAKE_CORAL_GROUND)
+
+    stateTriggers
+        .get(SuperState.INTAKE_CORAL_GROUND)
         .and(() -> manipulator.getSecondBeambreak() && manipulator.getFirstBeambreak())
         .and(intakeCoralReq.negate())
         .debounce(0.060)
@@ -324,7 +325,7 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.INTAKE_CORAL_GROUND)
         .and(intakeCoralReq.negate())
-        .and(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .and(() -> !manipulator.getFirstBeambreak() || !manipulator.getSecondBeambreak())
         .onTrue(this.forceState(SuperState.IDLE));
 
     // READY_CORAL logic
