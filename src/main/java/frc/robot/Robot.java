@@ -642,6 +642,14 @@ public class Robot extends LoggedRobot {
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoGroundIntake = false));
 
+    new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  wrist.resetPosition(Rotation2d.fromRadians(3.059));
+                  elevator.resetExtension(0.0);
+                }));
+
     new Trigger(
             () -> {
               var allianceChange = !DriverStation.getAlliance().equals(lastAlliance);
