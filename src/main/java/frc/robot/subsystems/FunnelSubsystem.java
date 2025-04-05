@@ -44,6 +44,10 @@ public class FunnelSubsystem extends RollerSubsystem {
     return currentFilterValue;
   }
 
+  public double getVoltage() {
+    return inputs.appliedVolts;
+  }
+
   /** DO NOT RUN IF YOU WANT TO SCORE MORE CORAL */
   public Command unlatch() {
     return this.runOnce(

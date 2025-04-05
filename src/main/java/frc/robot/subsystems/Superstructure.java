@@ -201,9 +201,9 @@ public class Superstructure {
             //     .until(() -> elevator.isNearExtension(Units.inchesToMeters(5.0)))
             //     .andThen(
             extendWithClearance(
-                    ElevatorSubsystem.HP_EXTENSION_METERS,
-                    ShoulderSubsystem.SHOULDER_HP_POS,
-                    WristSubsystem.WRIST_HP_POS)
+                    () -> ElevatorSubsystem.HP_EXTENSION_METERS,
+                    () -> ShoulderSubsystem.SHOULDER_HP_POS.plus(funnel.getVoltage() > 1.0 ? Rotation2d.fromDegrees(2.0) : Rotation2d.kZero),
+                    () -> WristSubsystem.WRIST_HP_POS)
                 .repeatedly()) // )
         .whileTrue(manipulator.intakeCoralAir(-7.0).repeatedly())
         .whileTrue(
