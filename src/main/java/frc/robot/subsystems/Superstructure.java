@@ -312,8 +312,10 @@ public class Superstructure {
         .whileTrue(
             Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
                 .andThen(Commands.runOnce(() -> shoulder.rezero())))
-        .whileTrue(manipulator.intakeCoral().repeatedly())
-        .and(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak())
+        .whileTrue(manipulator.intakeCoral().repeatedly().until(intakeCoralReq.negate()));
+    
+    stateTriggers.get(SuperState.INTAKE_CORAL_GROUND)
+        .and(() -> manipulator.getSecondBeambreak() && manipulator.getFirstBeambreak())
         .and(intakeCoralReq.negate())
         .debounce(0.060)
         .onTrue(Commands.runOnce(() -> manipulator.resetPosition(0.792)))
