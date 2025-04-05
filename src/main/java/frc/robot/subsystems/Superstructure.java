@@ -222,7 +222,7 @@ public class Superstructure {
                                         .min(Double::compare)
                                         .get()
                                     < 1.0)
-                            ? 3.0
+                            ? 1.0
                             : 0.0)))
         .and(manipulator::getFirstBeambreak)
         .debounce(0.25)
