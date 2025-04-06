@@ -933,6 +933,7 @@ public class Superstructure {
                             wrist.isNearTarget()
                                 && (wrist.getAngle().getDegrees() < 120.0
                                     || !elevator.isNearExtension(1.4, 0.25)))
+                    .withTimeout(1.0)
                     .andThen(shoulder.setTargetAngle(shoulderAngle)),
                 wrist
                     .hold()
