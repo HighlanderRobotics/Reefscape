@@ -54,7 +54,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   private static final MotionMagicConfigs DEFAULT_CONFIGS =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(4.0);
   private static final MotionMagicConfigs TOSS_CONFIGS =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.6).withMotionMagicAcceleration(4.0);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.5).withMotionMagicAcceleration(4.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
