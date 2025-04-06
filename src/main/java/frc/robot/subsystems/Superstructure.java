@@ -540,7 +540,10 @@ public class Superstructure {
             //         elevator.getExtensionMeters(), 0.0, Units.inchesToMeters(4.0))))
             )
         .and(() -> elevator.isNearTarget() && shoulder.isNearTarget() && wrist.isNearTarget())
-        .whileTrue(manipulator.setVelocity(() -> reefTarget.get().outtakeSpeed))
+        .onTrue(
+            manipulator
+                .setVelocity(() -> reefTarget.get().outtakeSpeed)
+                .until(() -> this.state != SuperState.READY_CORAL))
     // .and(() -> reefTarget.get() == ReefTarget.L1)
     // .whileTrue(elevator.setExtension(ElevatorSubsystem.L1_WHACK_CORAL_EXTENSION_METERS))
     // .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_WHACK_L1_POS))
