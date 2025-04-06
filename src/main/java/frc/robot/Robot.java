@@ -492,7 +492,7 @@ public class Robot extends LoggedRobot {
           new Trigger(() -> killVisionIK)
               .or(() -> currentTarget == ReefTarget.L1)
               .or(() -> DriverStation.isAutonomous()),
-          () -> MathUtil.clamp(operator.getLeftY(), -1.0, 1.0));
+          () -> MathUtil.clamp(-operator.getLeftY(), -0.5, 0.5));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
