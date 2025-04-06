@@ -122,7 +122,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngleSlow(final Rotation2d target) {
-    return setTargetAngle(() -> target);
+    return setTargetAngleSlow(() -> target);
   }
 
   public Command setVoltage(final double volts) {
