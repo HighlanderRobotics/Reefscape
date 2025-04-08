@@ -14,6 +14,7 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +65,7 @@ public class ExtensionPathing {
     final var l4TuckedOut =
         new ExtensionState(
             ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters(),
-            Rotation2d.fromDegrees(30.0),
+            Rotation2d.fromDegrees(25.0),
             Rotation2d.fromDegrees(120.0));
     graph.addNode(l4TuckedOut);
     graph.putEdge(l4Tucked, l4TuckedOut);
@@ -84,9 +85,10 @@ public class ExtensionPathing {
         new ExtensionState(
             ElevatorSubsystem.GROUND_EXTENSION_METERS,
             ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
-            Rotation2d.fromDegrees(45.0));
+            Rotation2d.fromDegrees(25.0));
     graph.addNode(coralGround);
     graph.putEdge(untucked, coralGround);
+    graph.putEdge(betweenTucked, coralGround);
   }
 
   private ExtensionPathing() {}
@@ -113,30 +115,53 @@ public class ExtensionPathing {
         .get();
   }
 
-  private static Pair<List<ExtensionState>, Double> search(
+  private record TotalMotion(double elevator, double shoulderRotations, double wristRotations) {
+    public TotalMotion plus(double elevator, double shoulderRotations, double wristRotations) {
+      return new TotalMotion(
+          this.elevator + elevator,
+          this.shoulderRotations + shoulderRotations,
+          this.wristRotations + wristRotations);
+    }
+  }
+
+  private static Pair<List<ExtensionState>, TotalMotion> search(
       ExtensionState current, ExtensionState target, Set<ExtensionState> visited) {
     if (current == target) {
       List<ExtensionState> result = new ArrayList<>();
       result.add(target);
-      return Pair.of(result, 0.0);
+      return Pair.of(result, new TotalMotion(0, 0, 0));
     }
 
     final var edges = Sets.difference(graph.successors(current), visited);
-    final List<Pair<List<ExtensionState>, Double>> result = new ArrayList<>();
+    final List<Pair<List<ExtensionState>, TotalMotion>> result = new ArrayList<>();
     for (var edge : edges) {
       final var path = search(edge, target, Sets.union(visited, Set.of(current)));
       if (path != null) result.add(path);
     }
     if (result.size() == 0) return null;
-    final var best = result.stream().min((a, b) -> (int) (a.getSecond() - b.getSecond())).get();
+    final var best =
+        result.stream()
+            .min(
+                Comparator.comparing(
+                        (Pair<List<ExtensionState>, TotalMotion> s) -> s.getSecond().elevator)
+                    .thenComparing((s) -> s.getSecond().wristRotations)
+                    .thenComparing((s) -> s.getSecond().shoulderRotations))
+            .get();
     final List<ExtensionState> newList = new ArrayList<>();
     newList.add(current);
     newList.addAll(best.getFirst());
     return Pair.of(
         newList,
         best.getSecond()
-            + Math.abs(
-                current.elevatorHeightMeters() - best.getFirst().get(0).elevatorHeightMeters()));
+            .plus(
+                Math.abs(
+                    current.elevatorHeightMeters() - best.getFirst().get(0).elevatorHeightMeters()),
+                Math.abs(
+                    current.shoulderAngle().getRotations()
+                        - best.getFirst().get(0).shoulderAngle().getRotations()),
+                Math.abs(
+                    current.wristAngle().getRotations()
+                        - best.getFirst().get(0).wristAngle().getRotations())));
   }
 
   public static List<ExtensionState> getPath(ExtensionState current, ExtensionState target) {
