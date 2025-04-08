@@ -17,6 +17,8 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Robot.AlgaeIntakeTarget;
+import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.FunnelSubsystem;
@@ -38,7 +40,8 @@ public class Autos {
 
   @AutoLogOutput public static boolean autoPreScore = true;
   @AutoLogOutput public static boolean autoScore = false; // TODO perhaps this should not be static
-  @AutoLogOutput public static boolean autoGroundIntake = false;
+  @AutoLogOutput public static boolean autoGroundCoralIntake = false;
+  @AutoLogOutput public static boolean autoAlgaeIntake = false;
 
   public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
     this.swerve = swerve;
@@ -104,7 +107,7 @@ public class Autos {
     return routine.cmd();
   }
 
-  public void runPath(
+  public void runCoralPath(
       AutoRoutine routine,
       String startPos,
       String endPos,
@@ -164,7 +167,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
 
     // final var groundTraj = routine.trajectory("LtoAGround");
@@ -212,7 +215,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
 
     routine
@@ -245,7 +248,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
     routine.observe(steps.get("PLItoB").done()).onTrue(scoreInAuto());
@@ -275,7 +278,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
     routine.observe(steps.get("PRItoA").done()).onTrue(scoreInAuto());
@@ -306,7 +309,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
     routine.observe(steps.get("PLOtoL").done()).onTrue(scoreInAuto());
@@ -409,5 +412,71 @@ public class Autos {
                     && (manipulator.getSecondBeambreak()))
         .whileTrue(Commands.run(() -> autoPreScore = true))
         .whileFalse(Commands.run(() -> autoPreScore = false));
+  }
+
+    public void runAlgaePath(
+      AutoRoutine routine,
+      String startPos,
+      String endPos,
+      String nextPos,
+      HashMap<String, AutoTrajectory> steps) {
+    routine
+        .observe(steps.get(startPos + "to" + endPos).done())
+        .onTrue(
+            Commands.sequence(
+                endPos.equals("CM") // TODO
+                    ? scoreAlgaeInAuto()
+                    : intakeAlgaeInAuto(
+                        steps.get(startPos + "to" + endPos).getFinalPose(),
+                        endPos.equals("AB") || endPos.equals("EF") || endPos.equals("IJ")
+                            ? AlgaeIntakeTarget.HIGH
+                            : AlgaeIntakeTarget
+                                .LOW), // TOOD just don't worry about it i don't like it either
+                steps.get(endPos + "to" + nextPos).cmd()));
+  }
+
+
+
+  public Command intakeAlgaeInAuto(Optional<Pose2d> pose, AlgaeIntakeTarget target) {
+    if (!pose.isPresent()) {
+      return Commands.none();
+    } else {
+      return Commands.sequence(
+          Commands.runOnce(
+              () -> {
+                autoAlgaeIntake = true;
+                Robot.setCurrentAlgaeIntakeTarget(target);
+              }),
+          Commands.waitUntil(() -> manipulator.hasAlgae())
+              .alongWith(
+                  Robot.isSimulation()
+                      ? Commands.runOnce(() -> manipulator.setHasAlgae(true))
+                      : Commands.none()),
+          Commands.runOnce(
+              () -> {
+                autoAlgaeIntake = false;
+              }));
+    }
+  }
+
+  public Command scoreAlgaeInAuto() {
+    return Commands.runOnce(
+            () -> {
+              autoScore = true;
+              Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
+            })
+        .andThen(
+            Commands.waitUntil(() -> !manipulator.hasAlgae())
+                .alongWith(
+                    Robot.isSimulation()
+                        ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
+                        : Commands.none())
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          autoScore = false;
+                          autoPreScore = false;
+                        })
+                    ));
   }
 }

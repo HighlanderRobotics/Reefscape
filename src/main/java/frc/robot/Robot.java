@@ -183,8 +183,8 @@ public class Robot extends LoggedRobot {
   }
 
   private static ReefTarget currentTarget = ReefTarget.L4;
-  private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
-  private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+  private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
 
   @AutoLogOutput private boolean killVisionIK = true;
@@ -474,7 +474,7 @@ public class Robot extends LoggedRobot {
                               < 3.25
                           && DriverStation.isAutonomous()),
           driver.leftTrigger(),
-          driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
+          driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous()),
           driver
               .x()
               .and(driver.pov(-1).negate())
@@ -640,7 +640,7 @@ public class Robot extends LoggedRobot {
         .onTrue(Commands.runOnce(() -> Autos.autoPreScore = false));
 
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
-        .onTrue(Commands.runOnce(() -> Autos.autoGroundIntake = false));
+        .onTrue(Commands.runOnce(() -> Autos.autoGroundCoralIntake = false));
 
     new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
         .onTrue(
@@ -1222,21 +1222,48 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
+    Logger.recordOutput("Autos/Coral Pre Score", Autos.autoPreScore);
+    Logger.recordOutput("Autos/Coral Score", Autos.autoScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
-    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "IK/Manipulator FK Pose",
-          ExtensionKinematics.getManipulatorPose(
-              swerve.getPose(), superstructure.getExtensionState()));
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "IK/Extension FK Pose",
-          ExtensionKinematics.solveFK(
-              new ExtensionState(
-                  elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
-    state = superstructure::getState;
+    Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
+  if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
+  if (Robot.ROBOT_TYPE != RobotType.REAL)
+    Logger.recordOutput(
+        "IK/Manipulator FK Pose",
+        ExtensionKinematics.getManipulatorPose(
+            swerve.getPose(), superstructure.getExtensionState()));
+  if (Robot.ROBOT_TYPE != RobotType.REAL)
+    Logger.recordOutput(
+        "IK/Extension FK Pose",
+        ExtensionKinematics.solveFK(
+            new ExtensionState(
+                elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
+  state = superstructure::getState;
+  }
+
+  public static void setCurrentCoralTarget(ReefTarget target) {
+    currentTarget = target;
+  }
+
+  public ReefTarget getCurrentCoralTarget() {
+    return currentTarget;
+  }
+
+  public static void setCurrentAlgaeIntakeTarget(AlgaeIntakeTarget target) {
+    algaeIntakeTarget = target;
+  }
+
+  public AlgaeIntakeTarget getCurrentAlgaeIntakeTarget() {
+    return algaeIntakeTarget;
+  }
+
+  public static void setCurrentAlgaeScoreTarget(AlgaeScoreTarget target) {
+    algaeScoreTarget = target;
+  }
+
+  public AlgaeScoreTarget getCurrentAlgaeScoreTarget() {
+    return algaeScoreTarget;
+
   }
 
   public static void setCurrentTarget(ReefTarget target) {
