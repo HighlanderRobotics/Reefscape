@@ -440,27 +440,27 @@ public class Robot extends LoggedRobot {
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore && DriverStation.isAutonomous())
-          //   .or(
-          //       new Trigger(
-          //               () ->
-          //                   AutoAim.isInToleranceCoral(
-          //                           swerve.getPose(),
-          //                           Units.inchesToMeters(1.0),
-          //                           Units.degreesToRadians(1.0))
-          //                       && MathUtil.isNear(
-          //                           0,
-          //                           Math.hypot(
-          //                               swerve.getVelocityRobotRelative().vxMetersPerSecond,
-          //                               swerve.getVelocityRobotRelative().vyMetersPerSecond),
-          //                           AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-          //                       && MathUtil.isNear(
-          //                           0.0,
-          //                           swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-          //                           3.0)
-          //                       && currentTarget != ReefTarget.L4)
-          //           .debounce(0.08)
-          //           .and(() -> swerve.hasFrontTags))
-          ,
+              .or(
+                  new Trigger(
+                          () ->
+                              AutoAim.isInToleranceCoral(
+                                      swerve.getPose(),
+                                      Units.inchesToMeters(1.0),
+                                      Units.degreesToRadians(1.0))
+                                  && MathUtil.isNear(
+                                      0,
+                                      Math.hypot(
+                                          swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                          swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                      AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                                  && MathUtil.isNear(
+                                      0.0,
+                                      swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+                                      3.0)
+                                  && currentTarget != ReefTarget.L4
+                                  && currentTarget != ReefTarget.L1)
+                      .debounce(0.08)
+                      .and(() -> swerve.hasFrontTags)),
           driver
               .rightTrigger()
               .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
