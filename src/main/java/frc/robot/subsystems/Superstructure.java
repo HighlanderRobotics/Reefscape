@@ -799,7 +799,16 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_PROCESSOR_POS))
         .whileTrue(manipulator.setVoltage(-2.0))
-        .and(() -> stateTimer.hasElapsed(2.0))
+        .and(
+            () ->
+                ChassisSpeeds.fromFieldRelativeSpeeds(
+                            chassisVel.get().vxMetersPerSecond,
+                            chassisVel.get().vyMetersPerSecond,
+                            chassisVel.get().omegaRadiansPerSecond,
+                            pose.get().getRotation())
+                        .vyMetersPerSecond
+                    < 0)
+        .debounce(0.5)
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
