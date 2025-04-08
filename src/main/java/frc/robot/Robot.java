@@ -447,8 +447,8 @@ public class Robot extends LoggedRobot {
                           () ->
                               AutoAim.isInToleranceCoral(
                                       swerve.getPose(),
-                                      Units.inchesToMeters(1.0),
-                                      Units.degreesToRadians(1.0))
+                                      Units.inchesToMeters(1.5),
+                                      Units.degreesToRadians(1.5))
                                   && MathUtil.isNear(
                                       0,
                                       Math.hypot(

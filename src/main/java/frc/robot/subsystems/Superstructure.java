@@ -23,8 +23,8 @@ import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
-import frc.robot.utils.autoaim.CoralTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
+import frc.robot.utils.autoaim.L1Targets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -416,6 +416,9 @@ public class Superstructure {
     // PRE_L{1-4} logic + -> SCORE_CORAL
     stateTriggers
         .get(SuperState.PRE_L1)
+        .and(
+            () ->
+                L1Targets.getNearestLine(pose.get()).getDistance(pose.get().getTranslation()) > 0.3)
         // .whileTrue(
         //     this.extendWithClearance(
         //         ElevatorSubsystem.L1_EXTENSION_METERS,
@@ -428,10 +431,21 @@ public class Superstructure {
                         ? ExtensionKinematics.L1_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L1_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + coralAdjust.getAsDouble()))
+        .whileTrue(manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + coralAdjust.getAsDouble()));
+
+    stateTriggers
+        .get(SuperState.PRE_L1)
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L1_POS))
+        .whileTrue(
+            this.extendWithClearance(
+                () ->
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.L1_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.L1_EXTENSION)))
+        .whileTrue(manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -569,10 +583,7 @@ public class Superstructure {
         .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
         .and(
             () ->
-                CoralTargets.getClosestTarget(pose.get())
-                        .getTranslation()
-                        .getDistance(pose.get().getTranslation())
-                    > 0.3)
+                L1Targets.getNearestLine(pose.get()).getDistance(pose.get().getTranslation()) > 0.3)
         .debounce(0.15)
         .onTrue(forceState(SuperState.IDLE));
 
@@ -583,10 +594,7 @@ public class Superstructure {
         .and(killVisionIK)
         .and(
             () ->
-                CoralTargets.getClosestTarget(pose.get())
-                        .getTranslation()
-                        .getDistance(pose.get().getTranslation())
-                    > 0.3)
+                L1Targets.getNearestLine(pose.get()).getDistance(pose.get().getTranslation()) > 0.3)
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers

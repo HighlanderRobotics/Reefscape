@@ -297,7 +297,7 @@ public class AutoAim {
                               .plus(
                                   ChassisSpeeds.fromRobotRelativeSpeeds(
                                           driverReqSpeedsRobotRelative, swerve.getRotation())
-                                      .times(1.2));
+                                      .times(1.5));
                   if (Robot.ROBOT_TYPE != RobotType.REAL)
                     Logger.recordOutput(
                         "AutoAim/Target Pose",
