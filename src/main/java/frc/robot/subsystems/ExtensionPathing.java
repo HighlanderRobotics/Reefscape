@@ -69,11 +69,16 @@ public class ExtensionPathing {
     graph.addNode(l4TuckedOut);
     graph.putEdge(l4Tucked, l4TuckedOut);
 
+    final var betweenTucked =
+        new ExtensionState(0.0, Rotation2d.fromDegrees(35.0), WristSubsystem.WRIST_CLEARANCE_POS);
+    graph.addNode(betweenTucked);
+    graph.putEdge(tucked, betweenTucked);
+
     final var untucked =
         new ExtensionState(
             0.0, ShoulderSubsystem.SHOULDER_CLEARANCE_POS, WristSubsystem.WRIST_CLEARANCE_POS);
     graph.addNode(untucked);
-    graph.putEdge(tucked, untucked);
+    graph.putEdge(betweenTucked, untucked);
 
     final var coralGround =
         new ExtensionState(
