@@ -1,9 +1,11 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -20,6 +22,7 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
+import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CoralTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
 import java.util.HashMap;
@@ -799,7 +802,20 @@ public class Superstructure {
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SCORE_PROCESSOR_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SCORE_PROCESSOR_POS))
         .whileTrue(manipulator.setVoltage(-2.0))
-        .and(() -> stateTimer.hasElapsed(2.0))
+        .and(
+            () ->
+                !MathUtil.isNear(
+                        pose.get().getX(),
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? AutoAim.BLUE_PROCESSOR_POS.getX()
+                            : AutoAim.RED_PROCESSOR_POS.getX(),
+                        0.5)
+                    || !MathUtil.isNear(
+                        pose.get().getY(),
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? AutoAim.BLUE_PROCESSOR_POS.getY()
+                            : AutoAim.RED_PROCESSOR_POS.getY(),
+                        0.5))
         .onTrue(this.forceState(SuperState.IDLE));
 
     stateTriggers
