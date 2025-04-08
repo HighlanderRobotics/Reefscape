@@ -303,7 +303,10 @@ public class Superstructure {
                     ElevatorSubsystem.GROUND_EXTENSION_METERS,
                     ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
                     WristSubsystem.WRIST_CORAL_GROUND)
-                .until(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS))
+                .until(
+                    () ->
+                        shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS)
+                            && wrist.isNearAngle(WristSubsystem.WRIST_CORAL_GROUND))
                 .andThen(
                     Commands.parallel(
                         shoulder.setVoltage(-1.0),
