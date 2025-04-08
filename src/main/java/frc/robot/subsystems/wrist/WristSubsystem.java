@@ -44,10 +44,10 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(-30.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(5);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(5);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(3);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(3);
 
   public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
@@ -128,6 +128,11 @@ public class WristSubsystem extends SubsystemBase {
 
   public boolean isNearAngle(Rotation2d target) {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
+  }
+
+  public boolean isNearAngle(Rotation2d target, Rotation2d tolerance) {
+    return MathUtil.isNear(
+        target.getDegrees(), inputs.position.getDegrees(), tolerance.getDegrees());
   }
 
   public Command currentZero(Supplier<ShoulderIOInputsAutoLogged> shoulderInputs) {
