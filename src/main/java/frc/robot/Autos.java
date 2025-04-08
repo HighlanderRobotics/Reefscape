@@ -140,6 +140,21 @@ public class Autos {
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
+  public void runGroundPath(AutoRoutine routine,
+  String startPos,
+  String endPos,
+  String nextPos,
+  HashMap<String, AutoTrajectory> steps) {
+    routine
+        .observe(
+            steps
+                .get(startPos + "to" + endPos).done())
+                .onTrue(Commands.sequence(
+                  scoreInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
+                  Commands.runOnce(() -> autoGroundIntake = true),
+                  steps.get(endPos + "to" + nextPos).cmd()));
+  }
+
   public Command LOtoJ() {
     final var routine = factory.newRoutine("LO to J");
     bindElevatorExtension(routine);
@@ -310,6 +325,23 @@ public class Autos {
     }
     // final path
     routine.observe(steps.get("PLOtoL").done()).onTrue(scoreInAuto());
+    return routine.cmd();
+  }
+
+  public Command LOtoA() { //2910
+    final var routine = factory.newRoutine("LO to A");
+    bindElevatorExtension(routine, 2.0);
+    HashMap<String, AutoTrajectory> steps =
+    new HashMap<String, AutoTrajectory>();
+    // lo a b4 b2 dealgae
+    routine
+        // run first path
+        .active()
+        .whileTrue(
+            Commands.sequence(routine.trajectory("LOtoA").resetOdometry(), routine.trajectory("LOtoA").cmd()));
+    runGroundPath(routine, "LO", "A", "B", steps);
+    
+    routine.observe(routine.trajectory("LOtoA").done()).onTrue(scoreInAuto());
     return routine.cmd();
   }
 
