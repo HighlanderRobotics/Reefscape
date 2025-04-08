@@ -806,7 +806,7 @@ public class Robot extends LoggedRobot {
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
-                        0.75)),
+                        1)),
                 Commands.waitUntil(
                         new Trigger(
                                 () ->

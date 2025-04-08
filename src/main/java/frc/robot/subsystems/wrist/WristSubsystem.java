@@ -39,9 +39,8 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(-20.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_RETRACT_POS =
       Rotation2d.fromDegrees(-20.0);
-  // Hard to tune this bc my vis doesn't have the new effector, but I think that another 10 degrees
-  // would be better
-  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(115);
+
+  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(105);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(-30.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
