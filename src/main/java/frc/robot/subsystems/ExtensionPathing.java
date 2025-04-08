@@ -55,6 +55,7 @@ public class ExtensionPathing {
             WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
     graph.addNode(l3Tucked);
     graph.putEdge(tucked, l3Tucked);
+    graph.putEdge(l3Tucked, l2Tucked);
     final var l4Tucked =
         new ExtensionState(
             ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters(),
@@ -62,6 +63,8 @@ public class ExtensionPathing {
             WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
     graph.addNode(l4Tucked);
     graph.putEdge(tucked, l4Tucked);
+    graph.putEdge(l4Tucked, l3Tucked);
+    graph.putEdge(l4Tucked, l2Tucked);
     final var l4TuckedOut =
         new ExtensionState(
             ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters(),
