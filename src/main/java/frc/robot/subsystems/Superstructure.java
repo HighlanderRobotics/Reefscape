@@ -889,12 +889,12 @@ public class Superstructure {
             .until(
                 () ->
                     elevator.isNearExtension(
-                            path.get().get(index.get()).elevatorHeightMeters(), 0.1)
+                            path.get().get(index.get()).elevatorHeightMeters(), 0.2)
                         && shoulder.isNearAngle(
                             path.get().get(index.get()).shoulderAngle(),
                             Rotation2d.fromDegrees(10.0))
                         && wrist.isNearAngle(
-                            path.get().get(index.get()).wristAngle(), Rotation2d.fromDegrees(10.0)))
+                            path.get().get(index.get()).wristAngle(), Rotation2d.fromDegrees(20.0)))
             .finallyDo(() -> index.set(index.get() + 1))
             .repeatedly()
             .until(() -> index.get() == path.get().size() - 1),
