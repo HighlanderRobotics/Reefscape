@@ -493,7 +493,7 @@ public class Autos {
               Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
             })
         .andThen(
-            Commands.waitUntil(() -> !manipulator.hasAlgae())
+            Commands.waitUntil(() -> !manipulator.hasAlgae()) //TODO maybe check state directly instead
                 .alongWith(
                     Robot.isSimulation()
                         ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
