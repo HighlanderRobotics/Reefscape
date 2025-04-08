@@ -3,7 +3,15 @@
  "version":1,
  "type":"Swerve",
  "variables":{
-  "expressions":{},
+  "expressions":{
+   "slow":{
+    "dimension":"LinVel",
+    "var":{
+     "exp":"1.25 m / s",
+     "val":1.25
+    }
+   }
+  },
   "poses":{
    "A":{
     "x":{

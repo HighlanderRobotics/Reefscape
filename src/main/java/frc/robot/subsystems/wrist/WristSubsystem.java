@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.subsystems.shoulder.ShoulderIOInputsAutoLogged;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
@@ -16,31 +17,36 @@ import org.littletonrobotics.junction.Logger;
 public class WristSubsystem extends SubsystemBase {
   public static final double WRIST_GEAR_RATIO = 4.0 * 4.0 * (64.0 / 34.0);
   // TODO: UPDATE WHEN CAD IS FINISHED
-  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(180.0);
+  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(220.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
-  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(180 - 49.519570 + 5);
+  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromRadians(1.451);
 
-  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(-30.0);
-  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(-23.0);
-  public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromDegrees(-50);
-  public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-50);
-  public static final Rotation2d WRIST_SCORE_L1_POS = Rotation2d.fromDegrees(-70);
+  public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
+  public static final Rotation2d WRIST_READY_ALGAE = Rotation2d.fromDegrees(-10.0);
+  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(178.0);
+  public static final Rotation2d WRIST_CORAL_GROUND = Rotation2d.fromDegrees(0.0);
+  public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(-0.9);
+  public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-10);
+  public static final Rotation2d WRIST_SCORE_L1_POS = ExtensionKinematics.L1_EXTENSION.wristAngle();
   public static final Rotation2d WRIST_WHACK_L1_POS = Rotation2d.fromDegrees(-70);
-  public static final Rotation2d WRIST_SCORE_L2_POS = Rotation2d.fromDegrees(-35);
-  public static final Rotation2d WRIST_SCORE_L3_POS = Rotation2d.fromDegrees(-35);
-  public static final Rotation2d WRIST_SCORE_L4_POS = Rotation2d.fromDegrees(-45);
-  public static final Rotation2d WRIST_CLEARANCE_POS = Rotation2d.fromDegrees(-50.0);
-  public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(-44.0);
+  public static final Rotation2d WRIST_SCORE_L2_POS = ExtensionKinematics.L2_EXTENSION.wristAngle();
+  public static final Rotation2d WRIST_SCORE_L3_POS = ExtensionKinematics.L3_EXTENSION.wristAngle();
+  public static final Rotation2d WRIST_SCORE_L4_POS = ExtensionKinematics.L4_EXTENSION.wristAngle();
+
+  public static final Rotation2d WRIST_CLEARANCE_POS = Rotation2d.fromDegrees(30.0);
+  public static final Rotation2d WRIST_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(170.0);
+
+  public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(-20.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_RETRACT_POS =
-      Rotation2d.fromDegrees(-44.0);
-  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(70);
-  public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = WRIST_RETRACTED_POS;
+      Rotation2d.fromDegrees(-20.0);
+  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(105);
+  public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(-30.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(6);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(5);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(4);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(4).withMotionMagicAcceleration(3);
 
   public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
@@ -70,8 +76,7 @@ public class WristSubsystem extends SubsystemBase {
         () -> {
           io.setMotorPosition(target.get());
           setpoint = target.get();
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
+          Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
         });
   }
 
@@ -104,6 +109,10 @@ public class WristSubsystem extends SubsystemBase {
         setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
   }
 
+  public Command setVoltage(final double volts) {
+    return this.run(() -> io.setMotorVoltage(volts));
+  }
+
   public Rotation2d getAngle() {
     return inputs.position;
   }
@@ -128,11 +137,16 @@ public class WristSubsystem extends SubsystemBase {
               System.out.println("Wrist Zeroing");
             }),
         this.run(() -> io.setMotorVoltage(-1.0))
-            .until(() -> Math.abs(currentFilter.calculate(inputs.statorCurrentAmps)) > 10.0),
+            .until(() -> Math.abs(currentFilter.calculate(inputs.statorCurrentAmps)) > 15.0),
         this.runOnce(
             () -> {
               hasZeroed = true;
               io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
             }));
+  }
+
+  public void resetPosition(Rotation2d angle) {
+    io.resetEncoder(angle);
+    hasZeroed = true;
   }
 }
