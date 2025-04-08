@@ -79,12 +79,12 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
 
-    if (firstBBInputs.get && !secondBBInputs.get) {
+    if (getFirstBeambreak() && !getSecondBeambreak()) {
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));
       zeroTimer.reset();
     }
 
-    if (!firstBBInputs.get && secondBBInputs.get) {
+    if (!getFirstBeambreak() && getSecondBeambreak()) {
       // Number calculated from coral length, may need tuning
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(1.0));
       zeroTimer.reset();
@@ -96,16 +96,16 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public Command index() {
     return Commands.sequence(
         setVelocity(9.0)
-            .until(() -> firstBBInputs.get || secondBBInputs.get)
-            .unless(() -> firstBBInputs.get),
-        setVelocity(3.0).until(() -> secondBBInputs.get).unless(() -> secondBBInputs.get),
+            .until(() -> getFirstBeambreak() || getSecondBeambreak())
+            .unless(() -> getFirstBeambreak()),
+        setVelocity(3.0).until(() -> getSecondBeambreak()).unless(() -> getSecondBeambreak()),
         setVelocity(-3.0)
-            .until(() -> firstBBInputs.get && !secondBBInputs.get)
+            .until(() -> getFirstBeambreak() && !getSecondBeambreak())
             .unless(() -> zeroTimer.get() < 0.25),
         // TODO tune timeout
         // Commands.runOnce(() -> io.resetEncoder(0.0)),
         Commands.run(() -> io.setPosition(Rotation2d.fromRotations(1.1)))
-            .until(() -> !firstBBInputs.get && !secondBBInputs.get));
+            .until(() -> !getFirstBeambreak() && !getSecondBeambreak()));
   } // TODO check if anything got lost in merge?
 
   public Command jog(double rotations) {
@@ -147,26 +147,26 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public Command intakeCoralAir(double vel) {
     return Commands.sequence(
         setVelocity(vel)
-            .until(() -> secondBBInputs.get)
+            .until(() -> getSecondBeambreak())
             .finallyDo(
                 () -> {
                   io.setPosition(Rotation2d.fromRotations(0.63));
                   positionSetpoint = 0.63;
                 }),
-        setVoltage(2.0).until(() -> !firstBBInputs.get),
-        jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
+        setVoltage(2.0).until(() -> !getFirstBeambreak()),
+        jog(CORAL_HOLD_POS).until(() -> !getSecondBeambreak() && !getFirstBeambreak()));
   }
 
   public Command intakeCoral(double vel) {
     return Commands.sequence(
-        setVelocity(vel).until(new Trigger(() -> secondBBInputs.get).debounce(0.5)),
+        setVelocity(vel).until(new Trigger(() -> getSecondBeambreak()).debounce(0.5)),
         Commands.runOnce(
             () -> {
               io.setPosition(Rotation2d.fromRotations(0.5));
               positionSetpoint = 0.5;
             }),
-        setVelocity(1.0).until(() -> !firstBBInputs.get),
-        jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
+        setVelocity(1.0).until(() -> !getFirstBeambreak()),
+        jog(CORAL_HOLD_POS).until(() -> !getSecondBeambreak() && !getFirstBeambreak()));
   }
 
   public Command intakeAlgae() {
