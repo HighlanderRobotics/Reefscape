@@ -79,7 +79,7 @@ public class ExtensionPathing {
         new ExtensionState(
             ElevatorSubsystem.GROUND_EXTENSION_METERS,
             ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
-            WristSubsystem.WRIST_CORAL_GROUND);
+            Rotation2d.fromDegrees(45.0));
     graph.addNode(coralGround);
     graph.putEdge(untucked, coralGround);
   }
