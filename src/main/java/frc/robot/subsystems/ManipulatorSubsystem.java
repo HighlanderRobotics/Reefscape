@@ -78,12 +78,12 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
 
-    if (firstBBInputs.get && !secondBBInputs.get) {
+    if (getFirstBeambreak() && !getSecondBeambreak()) {
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));
       zeroTimer.reset();
     }
 
-    if (!firstBBInputs.get && secondBBInputs.get) {
+    if (!getFirstBeambreak() && getSecondBeambreak()) {
       // Number calculated from coral length, may need tuning
       Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(1.0));
       zeroTimer.reset();
