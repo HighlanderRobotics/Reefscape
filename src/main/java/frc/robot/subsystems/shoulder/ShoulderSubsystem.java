@@ -29,7 +29,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double X_OFFSET_METERS = 0.1016254;
   public static final double Z_OFFSET_METERS = 0.207645;
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
-  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(55.0);
+  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(53.0);
   public static final Rotation2d SHOULDER_CORAL_GROUND_POS = Rotation2d.fromDegrees(8.0);
 
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(0.505);
@@ -49,12 +49,12 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(60.0);
   public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
-  public static final Rotation2d SHOULDER_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(45.0);
+  public static final Rotation2d SHOULDER_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(35.0);
 
   private static final MotionMagicConfigs DEFAULT_CONFIGS =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(4.0);
   private static final MotionMagicConfigs TOSS_CONFIGS =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.6).withMotionMagicAcceleration(4.0);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.5).withMotionMagicAcceleration(4.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
@@ -100,8 +100,7 @@ public class ShoulderSubsystem extends SubsystemBase {
         () -> {
           io.setMotorPosition(target.get());
           setpoint = target.get();
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
+          Logger.recordOutput("Carriage/Shoulder/Setpoint", setpoint);
         });
   }
 
@@ -123,7 +122,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   }
 
   public Command setTargetAngleSlow(final Rotation2d target) {
-    return setTargetAngle(() -> target);
+    return setTargetAngleSlow(() -> target);
   }
 
   public Command setVoltage(final double volts) {
@@ -134,6 +133,7 @@ public class ShoulderSubsystem extends SubsystemBase {
     return Commands.sequence(
         setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
   }
+
 
   public Rotation2d getAngle() {
     return inputs.position;

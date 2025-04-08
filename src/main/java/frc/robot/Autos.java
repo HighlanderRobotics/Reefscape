@@ -27,6 +27,7 @@ import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Autos {
@@ -35,9 +36,9 @@ public class Autos {
   private final FunnelSubsystem funnel;
   private final AutoFactory factory;
 
-  public static boolean autoPreScore = false;
-  public static boolean autoScore = false; // TODO perhaps this should not be static
-  public static boolean autoGroundIntake = false;
+  @AutoLogOutput public static boolean autoPreScore = true;
+  @AutoLogOutput public static boolean autoScore = false; // TODO perhaps this should not be static
+  @AutoLogOutput public static boolean autoGroundIntake = false;
 
   public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
     this.swerve = swerve;
@@ -142,6 +143,7 @@ public class Autos {
   public Command LOtoJ() {
     final var routine = factory.newRoutine("LO to J");
     bindElevatorExtension(routine);
+    routine.active().onTrue(Commands.print("Auto!"));
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -165,7 +167,19 @@ public class Autos {
       runPath(routine, startPos, endPos, nextPos, steps);
     }
 
-    final var groundTraj = routine.trajectory("LtoAGround");
+    // final var groundTraj = routine.trajectory("LtoAGround");
+
+    // routine
+    //     .observe(steps.get("PLOtoL").recentlyDone())
+    //     .onTrue(scoreInAuto(() -> steps.get("PLOtoL").getFinalPose().get()))
+    //     .and(() -> !manipulator.getSecondBeambreak() && !manipulator.getFirstBeambreak())
+    //     .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)))
+    //     .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
+    //     .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
+
+    // routine
+    //     .observe(groundTraj.done())
+    //     .onTrue(Commands.runOnce(() -> autoGroundIntake = false).ignoringDisable(true));
 
     routine
         .observe(steps.get("PLOtoL").done())
@@ -173,7 +187,7 @@ public class Autos {
         .onTrue(groundTraj.cmd().andThen(scoreInAuto(() -> groundTraj.getFinalPose().get())))
         .onTrue(Commands.runOnce(() -> autoGroundIntake = true));
 
-    return routine.cmd();
+    return routine.cmd().alongWith(Commands.print("auto :("));
   }
 
   public Command ROtoE() {

@@ -19,12 +19,12 @@ public class WristSubsystem extends SubsystemBase {
   // TODO: UPDATE WHEN CAD IS FINISHED
   public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(220.0);
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
-  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(101.0);
+  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromRadians(1.451);
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
   public static final Rotation2d WRIST_READY_ALGAE = Rotation2d.fromDegrees(-10.0);
-  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(170.0);
-  public static final Rotation2d WRIST_CORAL_GROUND = Rotation2d.fromDegrees(-5.5);
+  public static final Rotation2d WRIST_HP_POS = Rotation2d.fromDegrees(178.0);
+  public static final Rotation2d WRIST_CORAL_GROUND = Rotation2d.fromDegrees(0.0);
   public static final Rotation2d WRIST_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(-0.9);
   public static final Rotation2d WRIST_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(-10);
   public static final Rotation2d WRIST_SCORE_L1_POS = ExtensionKinematics.L1_EXTENSION.wristAngle();
@@ -76,8 +76,7 @@ public class WristSubsystem extends SubsystemBase {
         () -> {
           io.setMotorPosition(target.get());
           setpoint = target.get();
-          if (Robot.ROBOT_TYPE != RobotType.REAL)
-            Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
+          Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
         });
   }
 
@@ -110,6 +109,10 @@ public class WristSubsystem extends SubsystemBase {
         setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
   }
 
+  public Command setVoltage(final double volts) {
+    return this.run(() -> io.setMotorVoltage(volts));
+  }
+
   public Rotation2d getAngle() {
     return inputs.position;
   }
@@ -140,5 +143,10 @@ public class WristSubsystem extends SubsystemBase {
               hasZeroed = true;
               io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
             }));
+  }
+
+  public void resetPosition(Rotation2d angle) {
+    io.resetEncoder(angle);
+    hasZeroed = true;
   }
 }

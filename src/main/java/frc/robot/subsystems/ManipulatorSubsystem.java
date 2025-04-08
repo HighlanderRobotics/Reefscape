@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -25,12 +26,15 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
   public static final double CORAL_INTAKE_VELOCITY = -18.0;
+  public static final double JOG_POS = 0.75;
   public static final double ALGAE_INTAKE_VOLTAGE = 10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = 1.0;
   public static final double ALGAE_CURRENT_THRESHOLD = 6.0;
   public static final Transform2d IK_WRIST_TO_CORAL = ExtensionKinematics.IK_WRIST_TO_CORAL;
 
   public static final double CORAL_HOLD_POS = 0.5;
+
+  public static final double GEAR_RATIO = (58.0 / 10.0) * (24.0 / 18.0);
 
   private final BeambreakIO firstBBIO, secondBBIO;
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
@@ -44,6 +48,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private double currentFilterValue = 0.0;
 
   private Timer zeroTimer = new Timer();
+
+  private double positionSetpoint = 0.0;
 
   /** Creates a new Manipulator. */
   public ManipulatorSubsystem(RollerIO rollerIO, BeambreakIO firstBBIO, BeambreakIO secondBBIO) {
@@ -79,7 +85,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     if (!firstBBInputs.get && secondBBInputs.get) {
       // Number calculated from coral length, may need tuning
-      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.63));
+      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(1.0));
       zeroTimer.reset();
     }
   }
@@ -104,17 +110,29 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public Command jog(double rotations) {
     return Commands.sequence(
         // this.runOnce(() -> io.resetEncoder(0.0)),
-        this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations))));
+        this.run(
+            () -> {
+              io.setPosition(Rotation2d.fromRotations(rotations));
+              positionSetpoint = rotations;
+            }));
   }
 
   public Command jog(DoubleSupplier rotations) {
     return Commands.sequence(
         // this.runOnce(() -> io.resetEncoder(0.0)),
-        this.run(() -> io.setPosition(Rotation2d.fromRotations(rotations.getAsDouble()))));
+        this.run(
+            () -> {
+              io.setPosition(Rotation2d.fromRotations(rotations.getAsDouble()));
+              positionSetpoint = rotations.getAsDouble();
+            }));
   }
 
   public Command hold() {
-    return this.jog(inputs.positionRotations).until(() -> true).andThen(this.run(() -> {}));
+    return this.jog(() -> inputs.positionRotations)
+        .until(() -> true)
+        .andThen(this.run(() -> {}))
+        .until(() -> !MathUtil.isNear(positionSetpoint, inputs.positionRotations, 2.0))
+        .repeatedly();
   }
 
   public void resetPosition(final double rotations) {
@@ -127,27 +145,43 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeCoralAir(double vel) {
     return Commands.sequence(
-        setVelocity(vel).until(() -> secondBBInputs.get),
-        setVelocity(1.0).until(() -> !firstBBInputs.get),
+        setVelocity(vel)
+            .until(() -> secondBBInputs.get)
+            .finallyDo(
+                () -> {
+                  io.setPosition(Rotation2d.fromRotations(0.63));
+                  positionSetpoint = 0.63;
+                }),
+        setVoltage(2.0).until(() -> !firstBBInputs.get),
         jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 
   public Command intakeCoral(double vel) {
     return Commands.sequence(
         setVelocity(vel).until(new Trigger(() -> secondBBInputs.get).debounce(0.5)),
-        Commands.runOnce(() -> io.setPosition(Rotation2d.fromRotations(0.5))),
+        Commands.runOnce(
+            () -> {
+              io.setPosition(Rotation2d.fromRotations(0.5));
+              positionSetpoint = 0.5;
+            }),
         setVelocity(1.0).until(() -> !firstBBInputs.get),
         jog(CORAL_HOLD_POS).until(() -> !secondBBInputs.get && !firstBBInputs.get));
   }
 
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
-        .until(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
+        .until(
+            new Trigger(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
+                .debounce(0.75))
         .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
   public double getStatorCurrentAmps() {
     return currentFilterValue;
+  }
+
+  public double getTimeSinceZero() {
+    return zeroTimer.get();
   }
 
   public boolean getFirstBeambreak() {

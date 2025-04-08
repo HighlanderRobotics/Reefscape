@@ -44,7 +44,7 @@ public class ExtensionKinematics {
       new ExtensionState(0.68, Rotation2d.fromRadians(1.022), Rotation2d.fromRadians(2.427));
   public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final Pose2d L4_POSE =
-      new Pose2d(new Translation2d(0.37, 2.0), Rotation2d.fromDegrees(90.0));
+      new Pose2d(new Translation2d(0.25, 2.05), Rotation2d.fromDegrees(110.0));
   public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
@@ -158,14 +158,50 @@ public class ExtensionKinematics {
       ShoulderSubsystem shoulder,
       WristSubsystem wrist,
       Supplier<ExtensionState> target) {
-    final LinearFilter elevatorFilter = LinearFilter.movingAverage(5);
-    final LinearFilter shoulderFilter = LinearFilter.movingAverage(5);
-    final LinearFilter wristFilter = LinearFilter.movingAverage(5);
+    final LinearFilter elevatorFilter = LinearFilter.movingAverage(8);
+    final LinearFilter shoulderFilter = LinearFilter.movingAverage(8);
+    final LinearFilter wristFilter = LinearFilter.movingAverage(8);
     return Commands.runOnce(
             () -> {
-              elevatorFilter.reset();
-              shoulderFilter.reset();
-              wristFilter.reset();
+              elevatorFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters()
+                  },
+                  new double[0]);
+              shoulderFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations()
+                  },
+                  new double[0]);
+              wristFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations()
+                  },
+                  new double[0]);
             })
         .andThen(
             Commands.parallel(

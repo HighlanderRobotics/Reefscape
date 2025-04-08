@@ -18,6 +18,7 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -186,7 +187,7 @@ public class Robot extends LoggedRobot {
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
 
-  @AutoLogOutput private boolean killVisionIK = false;
+  @AutoLogOutput private boolean killVisionIK = true;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
@@ -304,14 +305,16 @@ public class Robot extends LoggedRobot {
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimitEnable(true)
-                              .withStatorCurrentLimit(60.0)
-                              .withSupplyCurrentLimit(20.0)
+                              .withStatorCurrentLimit(120.0)
+                              .withSupplyCurrentLimit(30.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
                           new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
-                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(5.8667))
-                      .withSlot0(new Slot0Configs().withKV(0.70).withKP(0.5))
-                      .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))
+                      .withFeedback(
+                          new FeedbackConfigs()
+                              .withSensorToMechanismRatio(ManipulatorSubsystem.GEAR_RATIO))
+                      .withSlot0(new Slot0Configs().withKV(0.928).withKP(0.5))
+                      .withSlot1(new Slot1Configs().withKP(7.5).withKD(0.5).withKS(0.39)))
               : new RollerIOSim(
                   0.01,
                   5.8677,
@@ -331,7 +334,7 @@ public class Robot extends LoggedRobot {
                   12,
                   WristIOReal.getDefaultConfiguration()
                       .withSlot0(
-                          new Slot0Configs().withKP(1000.0).withKD(10.0).withKS(0.3).withKV(3.6))
+                          new Slot0Configs().withKP(1000.0).withKD(30.0).withKS(0.3).withKV(3.2))
                       .withMotionMagic(WristSubsystem.DEFAULT_MOTION_MAGIC)
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
@@ -341,7 +344,11 @@ public class Robot extends LoggedRobot {
                               .withSupplyCurrentLimitEnable(true))
                       .withFeedback(
                           new FeedbackConfigs()
-                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
+                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO))
+                      .withSoftwareLimitSwitch(
+                          new SoftwareLimitSwitchConfigs()
+                              .withForwardSoftLimitEnable(true)
+                              .withForwardSoftLimitThreshold(0.5)))
               : new WristIOSim());
 
   private final FunnelSubsystem funnel =
@@ -428,7 +435,7 @@ public class Robot extends LoggedRobot {
                           })
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore && DriverStation.isAutonomousEnabled())
+              .or(() -> Autos.autoScore && DriverStation.isAutonomous())
           //   .or(
           //       new Trigger(
           //               () ->
@@ -450,11 +457,24 @@ public class Robot extends LoggedRobot {
           //           .debounce(0.08)
           //           .and(() -> swerve.hasFrontTags))
           ,
-          driver.rightTrigger().or(() -> Autos.autoPreScore && DriverStation.isAutonomousEnabled()),
-          driver.leftTrigger(),
           driver
-              .leftBumper()
-              .or(() -> Autos.autoGroundIntake && DriverStation.isAutonomousEnabled()),
+              .rightTrigger()
+              .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
+              .or(
+                  () ->
+                      swerve
+                                  .getPose()
+                                  .getTranslation()
+                                  .minus(
+                                      DriverStation.getAlliance().orElse(Alliance.Blue)
+                                              == Alliance.Blue
+                                          ? AutoAim.BLUE_REEF_CENTER
+                                          : AutoAim.RED_REEF_CENTER)
+                                  .getNorm()
+                              < 3.25
+                          && DriverStation.isAutonomous()),
+          driver.leftTrigger(),
+          driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
           driver
               .x()
               .and(driver.pov(-1).negate())
@@ -470,9 +490,9 @@ public class Robot extends LoggedRobot {
           operator.rightBumper(),
           operator.leftBumper(),
           new Trigger(() -> killVisionIK)
-              //   .or(() -> currentTarget == ReefTarget.L4)
+              .or(() -> currentTarget == ReefTarget.L1)
               .or(() -> DriverStation.isAutonomous()),
-          () -> MathUtil.clamp(operator.getLeftY(), -1.0, 0.0));
+          () -> MathUtil.clamp(-operator.getLeftY(), -0.5, 0.5));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -583,6 +603,21 @@ public class Robot extends LoggedRobot {
             .setCurrent(60.0)
             .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
 
+    SmartDashboard.putData(
+        "Check Clear",
+        Commands.parallel(
+            shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
+            wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)));
+
+    SmartDashboard.putData(
+        "Manual Zero Extension",
+        Commands.runOnce(
+                () -> {
+                  elevator.resetExtension(0.0);
+                  wrist.resetPosition(Rotation2d.k180deg);
+                })
+            .ignoringDisable(true));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
@@ -598,11 +633,22 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
-    new Trigger(() -> DriverStation.isEnabled())
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoScore = false));
 
-    new Trigger(() -> DriverStation.isEnabled())
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoPreScore = false));
+
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
+        .onTrue(Commands.runOnce(() -> Autos.autoGroundIntake = false));
+
+    new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  wrist.resetPosition(Rotation2d.fromRadians(3.059));
+                  elevator.resetExtension(0.0);
+                }));
 
     new Trigger(
             () -> {
@@ -678,7 +724,7 @@ public class Robot extends LoggedRobot {
                             DriverStation.getAlliance()
                                 .map((a) -> a == Alliance.Blue ? Color.kBlue : Color.kRed)
                                 .orElse(Color.kWhite),
-                        () -> LEDSubsystem.PURPLE,
+                        () -> wrist.hasZeroed ? LEDSubsystem.PURPLE : Color.kOrange,
                         4,
                         1.0)
                     .until(() -> DriverStation.isEnabled()),
@@ -752,7 +798,10 @@ public class Robot extends LoggedRobot {
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
                                     && elevator.isNearTarget()
-                                    && shoulder.isNearTarget()),
+                                    && shoulder.isNearAngle(
+                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                                    && wrist.isNearAngle(
+                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
