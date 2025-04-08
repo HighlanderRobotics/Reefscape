@@ -13,13 +13,17 @@ import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
-/** Add your docs here. */
 public class ExtensionPathing {
   public static final MutableGraph<ExtensionState> graph =
       GraphBuilder.undirected().allowsSelfLoops(true).build();
+  // TODO make this cache distances so we can do partial caches
+  private static final Map<Pair<ExtensionState, ExtensionState>, List<ExtensionState>> cache =
+      new HashMap<>();
 
   static {
     final var hp =
@@ -38,6 +42,12 @@ public class ExtensionPathing {
     final var l2 = ExtensionKinematics.L2_EXTENSION;
     graph.addNode(l2);
     graph.putEdge(tucked, l2);
+    final var l3 = ExtensionKinematics.L3_EXTENSION;
+    graph.addNode(l3);
+    graph.putEdge(tucked, l3);
+    final var l4 = ExtensionKinematics.L4_EXTENSION;
+    graph.addNode(l4);
+    graph.putEdge(tucked, l4);
 
     System.out.println(getPath(hp, new ExtensionState(0.5, l2.shoulderAngle(), l2.wristAngle())));
     System.out.println(List.of(hp, tucked, l2));
@@ -95,8 +105,12 @@ public class ExtensionPathing {
   public static List<ExtensionState> getPath(ExtensionState current, ExtensionState target) {
     final var nearestCurrent = getNearest(current);
     final var nearestTarget = getNearest(target);
-    final var path = search(nearestCurrent, nearestTarget, Set.of()).getFirst();
+    final var path =
+        cache.containsKey(Pair.of(nearestCurrent, nearestTarget))
+            ? cache.get(Pair.of(nearestCurrent, nearestTarget))
+            : search(nearestCurrent, nearestTarget, Set.of()).getFirst();
     path.add(target);
+    cache.putIfAbsent(Pair.of(nearestCurrent, nearestTarget), path);
     return path;
   }
 }
