@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
+import frc.robot.subsystems.ExtensionPathing;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
@@ -123,6 +124,9 @@ public class Robot extends LoggedRobot {
   public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
+  // for testing class loading
+  public static final ExtensionState test =
+      ExtensionPathing.getNearest(new ExtensionState(0.0, Rotation2d.kZero, Rotation2d.kZero));
 
   public static enum ReefTarget {
     L1(
