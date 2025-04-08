@@ -776,10 +776,11 @@ public class Superstructure {
         .whileTrue(
             Commands.parallel(
                 elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
+                // Make it initially extend to the full 90 degrees
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS),
                 wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE_NET));
