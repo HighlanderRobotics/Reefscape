@@ -81,14 +81,21 @@ public class ExtensionPathing {
     graph.addNode(untucked);
     graph.putEdge(betweenTucked, untucked);
 
+    final var preCoralGround =
+        new ExtensionState(
+            ElevatorSubsystem.GROUND_EXTENSION_METERS,
+            ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
+            Rotation2d.kCCW_90deg);
+    graph.addNode(preCoralGround);
+    graph.putEdge(tucked, preCoralGround);
+
     final var coralGround =
         new ExtensionState(
             ElevatorSubsystem.GROUND_EXTENSION_METERS,
             ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
             WristSubsystem.WRIST_CORAL_GROUND);
     graph.addNode(coralGround);
-    graph.putEdge(untucked, coralGround);
-    graph.putEdge(betweenTucked, coralGround);
+    graph.putEdge(preCoralGround, coralGround);
 
     final var retracted =
         new ExtensionState(
