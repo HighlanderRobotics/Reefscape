@@ -338,9 +338,11 @@ public class Autos {
         // run first path
         .active()
         .whileTrue(
-            Commands.sequence(routine.trajectory("LOtoA").resetOdometry(), routine.trajectory("LOtoA").cmd()));
+            Commands.sequence(routine.trajectory("LOtoA").resetOdometry(), routine.trajectory("LOtoA").cmd(), Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4))));
     runGroundPath(routine, "LO", "A", "B", steps);
-    
+    routine.observe(routine.trajectory("AtoB").done()).onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+    runGroundPath(routine, "A", "B", "B", steps);
+    //TODO dealgae...i think i'll merge the other one first
     routine.observe(routine.trajectory("LOtoA").done()).onTrue(scoreInAuto());
     return routine.cmd();
   }
