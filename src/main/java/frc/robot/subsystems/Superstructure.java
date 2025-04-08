@@ -886,7 +886,15 @@ public class Superstructure {
                           elevatorExtension.getAsDouble(), shoulderAngle.get(), wristAngle.get())));
             }),
         holdExtension(() -> path.get().get(index.get()))
-            .until(() -> elevator.isNearTarget() && shoulder.isNearTarget() && wrist.isNearTarget())
+            .until(
+                () ->
+                    elevator.isNearExtension(
+                            path.get().get(index.get()).elevatorHeightMeters(), 0.1)
+                        && shoulder.isNearAngle(
+                            path.get().get(index.get()).shoulderAngle(),
+                            Rotation2d.fromDegrees(10.0))
+                        && wrist.isNearAngle(
+                            path.get().get(index.get()).wristAngle(), Rotation2d.fromDegrees(10.0)))
             .finallyDo(() -> index.set(index.get() + 1))
             .repeatedly()
             .until(() -> index.get() == path.get().size() - 1),

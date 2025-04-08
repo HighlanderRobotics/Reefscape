@@ -759,9 +759,9 @@ public class Robot extends LoggedRobot {
 
     manipulator.setDefaultCommand(manipulator.hold());
 
-    shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
+    shoulder.setDefaultCommand(shoulder.hold());
 
-    wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
+    wrist.setDefaultCommand(wrist.hold());
 
     funnel.setDefaultCommand(funnel.setVoltage(0.0));
 

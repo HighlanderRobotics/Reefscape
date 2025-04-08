@@ -150,6 +150,11 @@ public class ShoulderSubsystem extends SubsystemBase {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
   }
 
+  public boolean isNearAngle(Rotation2d target, Rotation2d tolerance) {
+    return MathUtil.isNear(
+        target.getDegrees(), inputs.position.getDegrees(), tolerance.getDegrees());
+  }
+
   public ShoulderIOInputsAutoLogged getInputs() {
     return inputs;
   }

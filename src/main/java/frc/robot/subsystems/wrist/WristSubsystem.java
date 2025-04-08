@@ -129,6 +129,11 @@ public class WristSubsystem extends SubsystemBase {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
   }
 
+  public boolean isNearAngle(Rotation2d target, Rotation2d tolerance) {
+    return MathUtil.isNear(
+        target.getDegrees(), inputs.position.getDegrees(), tolerance.getDegrees());
+  }
+
   public Command currentZero(Supplier<ShoulderIOInputsAutoLogged> shoulderInputs) {
     return Commands.sequence(
         this.runOnce(
