@@ -23,7 +23,10 @@ import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.CoralTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -870,91 +873,27 @@ public class Superstructure {
       DoubleSupplier elevatorExtension,
       Supplier<Rotation2d> shoulderAngle,
       Supplier<Rotation2d> wristAngle) {
+    final AtomicReference<List<ExtensionState>> path = new AtomicReference<>();
+    final AtomicInteger index = new AtomicInteger(0);
     return Commands.sequence(
-            // Retract shoulder + wrist
-            Commands.parallel(
-                    shoulder
-                        .run(() -> {})
-                        .until(
-                            () ->
-                                wrist.getAngle().getDegrees() < 90.0
-                                    || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)
-                                    || wrist.getAngle().getDegrees() - 115.0
-                                        > shoulder.getAngle().getDegrees())
-                        .andThen(
-                            Commands.either(
-                                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                                shoulder.setTargetAngle(
-                                    ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                                () -> shouldntTuck(shoulderAngle.get()))),
-                    Commands.either(
-                        wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
-                        wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                        () -> shouldntTuck(shoulderAngle.get())),
-                    elevator.hold())
-                // .unless(
-                //     () ->
-                //         shoulder.getAngle().getDegrees()
-                //                 < ShoulderSubsystem.SHOULDER_CLEARANCE_POS.getDegrees()
-                //             && wrist.getAngle().getDegrees() < 90.0)
-                .until(
-                    () ->
-                        shoulder.isNearTarget() && wrist.getAngle().getDegrees() < 90.0
-                            || wrist.isNearAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)
-                            || wrist.getAngle().getDegrees() - 115.0
-                                    > shoulder.getAngle().getDegrees()
-                                && wrist.isNearTarget())
-                .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
-            // extend elevator
-            Commands.parallel(
-                    Commands.either(
-                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS),
-                        shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-                        () -> shouldntTuck(shoulderAngle.get())),
-                    Commands.either(
-                        wrist.setTargetAngle(WristSubsystem.WRIST_CLEARANCE_POS),
-                        wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS),
-                        () -> shouldntTuck(shoulderAngle.get())),
-                    elevator.setExtension(elevatorExtension))
-                .until(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.08))
-                .unless(() -> elevator.isNearExtension(elevatorExtension.getAsDouble(), 0.080)),
-            // re-extend joints
-            Commands.parallel(
-                shoulder
-                    .setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS)
-                    // .unless(
-                    //     () ->
-                    //         shouldntTuck()
-                    //             || shoulderAngle.get().getDegrees()
-                    //                 <
-                    // ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees())
-                    .until(
-                        () ->
-                            wrist.isNearTarget()
-                                && (wrist.getAngle().getDegrees() < 120.0
-                                    || !elevator.isNearExtension(1.4, 0.25)))
-                    .withTimeout(1.0)
-                    .andThen(shoulder.setTargetAngle(shoulderAngle)),
-                wrist
-                    .hold()
-                    .until(
-                        new Trigger(() -> shoulder.isNearAngle(shoulderAngle.get()))
-                            .debounce(0.040))
-                    .withTimeout(0.5)
-                    .unless(
-                        () ->
-                            wristAngle.get().getDegrees() < 90.0
-                                || shoulderAngle.get().getDegrees()
-                                    > ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS.getDegrees()
-                                        + 5)
-                    .andThen(wrist.setTargetAngle(wristAngle)),
-                elevator.setExtension(elevatorExtension)))
-        .finallyDo(
-            (interrupted) -> {
-              if (interrupted) {
-                System.out.println("interrupted clearance extend");
-              }
-            });
+        Commands.runOnce(
+            () -> {
+              index.set(0);
+              path.set(
+                  ExtensionPathing.getPath(
+                      getExtensionState(),
+                      new ExtensionState(
+                          elevatorExtension.getAsDouble(), shoulderAngle.get(), wristAngle.get())));
+            }),
+        holdExtension(() -> path.get().get(index.get()))
+            .until(() -> elevator.isNearTarget() && shoulder.isNearTarget() && wrist.isNearTarget())
+            .finallyDo(() -> index.set(index.get() + 1))
+            .repeatedly()
+            .until(() -> index.get() == path.get().size() - 1),
+        holdExtension(
+            () ->
+                new ExtensionState(
+                    elevatorExtension.getAsDouble(), shoulderAngle.get(), wristAngle.get())));
   }
 
   private Command holdExtension(Supplier<ExtensionState> state) {

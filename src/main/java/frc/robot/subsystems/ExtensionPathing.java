@@ -8,6 +8,7 @@ import com.google.common.collect.Sets;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
@@ -39,19 +40,34 @@ public class ExtensionPathing {
             WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
     graph.addNode(tucked);
     graph.putEdge(hp, tucked);
-    final var l2 = ExtensionKinematics.L2_EXTENSION;
-    graph.addNode(l2);
-    graph.putEdge(tucked, l2);
-    final var l3 = ExtensionKinematics.L3_EXTENSION;
-    graph.addNode(l3);
-    graph.putEdge(tucked, l3);
-    final var l4 = ExtensionKinematics.L4_EXTENSION;
-    graph.addNode(l4);
-    graph.putEdge(tucked, l4);
-
-    System.out.println(getPath(hp, new ExtensionState(0.5, l2.shoulderAngle(), l2.wristAngle())));
-    System.out.println(List.of(hp, tucked, l2));
-    assert getPath(hp, tucked) == List.of(tucked);
+    final var l2Tucked =
+        new ExtensionState(
+            ExtensionKinematics.L2_EXTENSION.elevatorHeightMeters(),
+            ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS,
+            WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
+    graph.addNode(l2Tucked);
+    graph.putEdge(tucked, l2Tucked);
+    final var l3Tucked =
+        new ExtensionState(
+            ExtensionKinematics.L3_EXTENSION.elevatorHeightMeters(),
+            ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS,
+            WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
+    graph.addNode(l3Tucked);
+    graph.putEdge(tucked, l3Tucked);
+    final var l4Tucked =
+        new ExtensionState(
+            ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters(),
+            ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS,
+            WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
+    graph.addNode(l4Tucked);
+    graph.putEdge(tucked, l4Tucked);
+    final var l4TuckedOut =
+        new ExtensionState(
+            ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters(),
+            Rotation2d.fromDegrees(30.0),
+            Rotation2d.fromDegrees(120.0));
+    graph.addNode(l4TuckedOut);
+    graph.putEdge(l4Tucked, l4TuckedOut);
   }
 
   private ExtensionPathing() {}
@@ -81,7 +97,9 @@ public class ExtensionPathing {
   private static Pair<List<ExtensionState>, Double> search(
       ExtensionState current, ExtensionState target, Set<ExtensionState> visited) {
     if (current == target) {
-      return Pair.of(List.of(target), 0.0);
+      List<ExtensionState> result = new ArrayList<>();
+      result.add(target);
+      return Pair.of(result, 0.0);
     }
 
     final var edges = Sets.difference(graph.successors(current), visited);
