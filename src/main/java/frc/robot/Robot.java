@@ -622,6 +622,60 @@ public class Robot extends LoggedRobot {
                 })
             .ignoringDisable(true));
 
+    System.out.println("Node Count " + ExtensionPathing.graph.nodes().size());
+
+    SmartDashboard.putData(
+        "Traverse Extension Graph",
+        superstructure
+            .extendWithClearance(
+                () ->
+                    new ExtensionState(
+                        ElevatorSubsystem.HP_EXTENSION_METERS,
+                        ShoulderSubsystem.SHOULDER_HP_POS,
+                        WristSubsystem.WRIST_HP_POS))
+            .until(
+                () ->
+                    elevator.isNearExtension(ElevatorSubsystem.HP_EXTENSION_METERS)
+                        && shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_HP_POS)
+                        && wrist.isNearAngle(WristSubsystem.WRIST_HP_POS))
+            .andThen(
+                Commands.sequence(
+                    ExtensionPathing.graph.nodes().stream()
+                        .map(
+                            (node) ->
+                                superstructure
+                                    .extendWithClearance(() -> node)
+                                    .alongWith(
+                                        Commands.print("Traversing to " + node),
+                                        Commands.runOnce(
+                                            () -> Logger.recordOutput("Traversal Target", node)))
+                                    .until(
+                                        () ->
+                                            elevator.isNearExtension(node.elevatorHeightMeters())
+                                                && shoulder.isNearAngle(node.shoulderAngle())
+                                                && wrist.isNearAngle(node.wristAngle()))
+                                    .finallyDo(() -> System.out.println("done"))
+                                    .andThen(
+                                        Commands.waitSeconds(0.5),
+                                        superstructure
+                                            .extendWithClearance(
+                                                () ->
+                                                    new ExtensionState(
+                                                        ElevatorSubsystem.HP_EXTENSION_METERS,
+                                                        ShoulderSubsystem.SHOULDER_HP_POS,
+                                                        WristSubsystem.WRIST_HP_POS))
+                                            .alongWith(Commands.print("Retracting"))
+                                            .until(
+                                                () ->
+                                                    elevator.isNearExtension(
+                                                            ElevatorSubsystem.HP_EXTENSION_METERS)
+                                                        && shoulder.isNearAngle(
+                                                            ShoulderSubsystem.SHOULDER_HP_POS)
+                                                        && wrist.isNearAngle(
+                                                            WristSubsystem.WRIST_HP_POS)),
+                                        Commands.waitSeconds(0.5)))
+                        .toArray(Command[]::new))));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
