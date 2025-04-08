@@ -66,18 +66,22 @@ public class RollerIOSim implements RollerIO {
 
   @Override
   public void setPosition(Rotation2d rot) {
-    // TODO Actually simulate
+    setVelocity(0.0);
+    // i cba to impl this properly rn
+    resetEncoder(rot.getRotations());
   }
 
   @Override
   public void resetEncoder(double position) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'resetEncoder'");
+    motorSim.setAngle(position);
   }
 
   @Override
   public void setCurrent(double amps) {
-    // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'setCurrent'");
+    setVoltage(
+        DCMotor.getKrakenX60Foc(1)
+            .getVoltage(
+                DCMotor.getKrakenX60Foc(1).getTorque(amps),
+                motorSim.getAngularVelocityRadPerSec()));
   }
 }

@@ -24,31 +24,35 @@ import frc.robot.utils.autoaim.CoralTargets;
 import java.util.function.Supplier;
 
 public class ExtensionKinematics {
+
+  // These need to be here bc their main constants arent loaded when we need the constants in this
+  // class
+  private static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
+  static final Transform2d IK_WRIST_TO_CORAL =
+      new Transform2d(
+          Units.inchesToMeters(12.0), Units.inchesToMeters(-6.842), Rotation2d.fromDegrees(0.0));
+  private static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
+
   // Not super accurate bc of whack
-  public static final ExtensionState L1_EXTENSION =
-      new ExtensionState(
-          ElevatorSubsystem.L1_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_L1_POS,
-          WristSubsystem.WRIST_SCORE_L1_POS);
-  public static final Pose2d L1_POSE = solveFK(L1_EXTENSION);
+  public static final Pose2d L1_POSE =
+      new Pose2d(0.26, 0.4, Rotation2d.fromDegrees(15.0)); // solveFK(L1_EXTENSION);
+  public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
   public static final ExtensionState L2_EXTENSION =
       new ExtensionState(
-          ElevatorSubsystem.L2_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_POS,
-          WristSubsystem.WRIST_SCORE_L2_POS);
+          0.23 + Units.inchesToMeters(1.5),
+          Rotation2d.fromRadians(0.569).plus(Rotation2d.fromDegrees(20)),
+          Rotation2d.fromRadians(2.447));
   public static final Pose2d L2_POSE = solveFK(L2_EXTENSION);
   public static final ExtensionState L3_EXTENSION =
       new ExtensionState(
-          ElevatorSubsystem.L3_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_POS,
-          WristSubsystem.WRIST_SCORE_L3_POS);
+          0.60 + Units.inchesToMeters(2.0),
+          Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(3)),
+          Rotation2d.fromRadians(2.427));
   public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
-  public static final ExtensionState L4_EXTENSION =
-      new ExtensionState(
-          ElevatorSubsystem.L4_EXTENSION_METERS,
-          ShoulderSubsystem.SHOULDER_SCORE_L4_POS,
-          WristSubsystem.WRIST_SCORE_L4_POS);
-  public static final Pose2d L4_POSE = solveFK(L4_EXTENSION);
+  public static final Pose2d L4_POSE =
+      new Pose2d(new Translation2d(0.23, 2.05), Rotation2d.fromDegrees(110.0));
+
+  public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
       new ExtensionState(
@@ -75,9 +79,9 @@ public class ExtensionKinematics {
    */
   public static ExtensionState solveIK(Pose2d target) {
     // Offset wrist pose from target
-    final var wristPose = target.transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL.inverse());
+    final var wristPose = target.transformBy(IK_WRIST_TO_CORAL.inverse());
     // Find shoulder angle from needed horizontal extension
-    var shoulderAngle = Math.acos(wristPose.getX() / ShoulderSubsystem.ARM_LENGTH_METERS);
+    var shoulderAngle = Math.acos(wristPose.getX() / ARM_LENGTH_METERS);
     // Set angle to horizontal if we can't reach
     if (Double.isNaN(shoulderAngle)) shoulderAngle = 0.0;
     // Elevator goes to remaining needed height
@@ -86,16 +90,13 @@ public class ExtensionKinematics {
             .getTranslation()
             .minus(
                 new Translation2d(
-                    ShoulderSubsystem.ARM_LENGTH_METERS * Math.cos(shoulderAngle),
-                    ShoulderSubsystem.ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
+                    ARM_LENGTH_METERS * Math.cos(shoulderAngle),
+                    ARM_LENGTH_METERS * Math.sin(shoulderAngle)))
             .getY();
     // If we're extending higher than we can reach, prioritize matching Z instead of X
-    if (elevatorHeight > ElevatorSubsystem.MAX_EXTENSION_METERS) {
-      elevatorHeight = ElevatorSubsystem.MAX_EXTENSION_METERS;
-      shoulderAngle =
-          Math.asin(
-              (target.getY() - ElevatorSubsystem.MAX_EXTENSION_METERS)
-                  / ShoulderSubsystem.ARM_LENGTH_METERS);
+    if (elevatorHeight > MAX_EXTENSION_METERS) {
+      elevatorHeight = MAX_EXTENSION_METERS - Units.inchesToMeters(1.0);
+      shoulderAngle = Math.asin((wristPose.getY() - MAX_EXTENSION_METERS) / ARM_LENGTH_METERS);
       // Limit shoulder angle
       if (Double.isNaN(shoulderAngle) || shoulderAngle > Units.degreesToRadians(85.0)) {
         shoulderAngle = Units.degreesToRadians(85.0);
@@ -105,16 +106,15 @@ public class ExtensionKinematics {
     return new ExtensionState(
         MathUtil.clamp(elevatorHeight, 0.0, ElevatorSubsystem.MAX_EXTENSION_METERS),
         Rotation2d.fromRadians(shoulderAngle),
-        Rotation2d.fromDegrees(MathUtil.clamp(wristPose.getRotation().getDegrees(), -45.0, 45.0)));
+        Rotation2d.fromDegrees(MathUtil.clamp(wristPose.getRotation().getDegrees(), -45.0, 120.0)));
   }
 
   public static Pose2d solveFK(ExtensionState state) {
     return new Pose2d(
-            state.shoulderAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-            state.elevatorHeightMeters()
-                + state.shoulderAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS,
+            state.shoulderAngle().getCos() * ARM_LENGTH_METERS,
+            state.elevatorHeightMeters() + state.shoulderAngle().getSin() * ARM_LENGTH_METERS,
             state.wristAngle())
-        .transformBy(ManipulatorSubsystem.IK_WRIST_TO_CORAL);
+        .transformBy(IK_WRIST_TO_CORAL);
   }
 
   public static ExtensionState getPoseCompensatedExtension(Pose2d pose, ExtensionState target) {
@@ -165,14 +165,50 @@ public class ExtensionKinematics {
       ShoulderSubsystem shoulder,
       WristSubsystem wrist,
       Supplier<ExtensionState> target) {
-    final LinearFilter elevatorFilter = LinearFilter.movingAverage(5);
-    final LinearFilter shoulderFilter = LinearFilter.movingAverage(5);
-    final LinearFilter wristFilter = LinearFilter.movingAverage(5);
+    final LinearFilter elevatorFilter = LinearFilter.movingAverage(8);
+    final LinearFilter shoulderFilter = LinearFilter.movingAverage(8);
+    final LinearFilter wristFilter = LinearFilter.movingAverage(8);
     return Commands.runOnce(
             () -> {
-              elevatorFilter.reset();
-              shoulderFilter.reset();
-              wristFilter.reset();
+              elevatorFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters(),
+                    elevator.getExtensionMeters()
+                  },
+                  new double[0]);
+              shoulderFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations(),
+                    shoulder.getAngle().getRotations()
+                  },
+                  new double[0]);
+              wristFilter.reset(
+                  new double[] {
+                    // i hate java surely theres a better way to do this
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations(),
+                    wrist.getAngle().getRotations()
+                  },
+                  new double[0]);
             })
         .andThen(
             Commands.parallel(

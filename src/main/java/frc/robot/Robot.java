@@ -18,6 +18,7 @@ import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.signals.InvertedValue;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -48,6 +49,7 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
+import frc.robot.subsystems.ExtensionPathing;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
@@ -124,24 +126,29 @@ public class Robot extends LoggedRobot {
   public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
+  // for testing class loading
+  public static final ExtensionState test =
+      ExtensionPathing.getNearest(new ExtensionState(0.0, Rotation2d.kZero, Rotation2d.kZero));
 
   public static enum ReefTarget {
     L1(
         ElevatorSubsystem.L1_EXTENSION_METERS,
-        12.0,
+        3.0,
         WristSubsystem.WRIST_SCORE_L1_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L2(
         ElevatorSubsystem.L2_EXTENSION_METERS,
+        -15.0,
         WristSubsystem.WRIST_SCORE_L2_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L3(
         ElevatorSubsystem.L3_EXTENSION_METERS,
+        -15.0,
         WristSubsystem.WRIST_SCORE_L3_POS,
         ShoulderSubsystem.SHOULDER_SCORE_POS),
     L4(
         ElevatorSubsystem.L4_EXTENSION_METERS,
-        20.0,
+        -20.0,
         WristSubsystem.WRIST_SCORE_L4_POS,
         ShoulderSubsystem.SHOULDER_SCORE_L4_POS);
 
@@ -184,8 +191,9 @@ public class Robot extends LoggedRobot {
   private static ReefTarget currentTarget = ReefTarget.L4;
   private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  private boolean leftHandedTarget = false;
 
-  @AutoLogOutput private boolean killVisionIK = false;
+  @AutoLogOutput private boolean killVisionIK = true;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
@@ -286,7 +294,9 @@ public class Robot extends LoggedRobot {
               },
           PhoenixOdometryThread.getInstance(),
           swerveDriveSimulation,
-          new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
+          ROBOT_TYPE != RobotType.SIM
+              ? new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants())
+              : new VisionIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
 
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
@@ -301,19 +311,20 @@ public class Robot extends LoggedRobot {
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimitEnable(true)
-                              .withStatorCurrentLimit(60.0)
-                              .withSupplyCurrentLimit(20.0)
+                              .withStatorCurrentLimit(120.0)
+                              .withSupplyCurrentLimit(30.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
-                          new MotorOutputConfigs()
-                              .withInverted(InvertedValue.CounterClockwise_Positive))
-                      .withFeedback(new FeedbackConfigs().withSensorToMechanismRatio(2))
-                      .withSlot0(new Slot0Configs().withKV(0.24).withKP(0.5))
-                      .withSlot1(new Slot1Configs().withKP(20).withKD(0.1).withKS(0.27)))
+                          new MotorOutputConfigs().withInverted(InvertedValue.Clockwise_Positive))
+                      .withFeedback(
+                          new FeedbackConfigs()
+                              .withSensorToMechanismRatio(ManipulatorSubsystem.GEAR_RATIO))
+                      .withSlot0(new Slot0Configs().withKV(0.928).withKP(0.5))
+                      .withSlot1(new Slot1Configs().withKP(7.5).withKD(0.5).withKS(0.39)))
               : new RollerIOSim(
                   0.01,
-                  2,
-                  new SimpleMotorFeedforward(0.0, 0.24),
+                  5.8677,
+                  new SimpleMotorFeedforward(0.0, 0.7),
                   new ProfiledPIDController(
                       0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(15, 1))),
           new BeambreakIOReal(1, true),
@@ -329,17 +340,21 @@ public class Robot extends LoggedRobot {
                   12,
                   WristIOReal.getDefaultConfiguration()
                       .withSlot0(
-                          new Slot0Configs().withKP(1000.0).withKD(5.0).withKS(0.3).withKV(3.6))
+                          new Slot0Configs().withKP(1000.0).withKD(30.0).withKS(0.3).withKV(3.2))
                       .withMotionMagic(WristSubsystem.DEFAULT_MOTION_MAGIC)
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
-                              .withStatorCurrentLimit(30.0)
+                              .withStatorCurrentLimit(50.0)
                               .withStatorCurrentLimitEnable(true)
                               .withSupplyCurrentLimit(20.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withFeedback(
                           new FeedbackConfigs()
-                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO)))
+                              .withSensorToMechanismRatio(WristSubsystem.WRIST_GEAR_RATIO))
+                      .withSoftwareLimitSwitch(
+                          new SoftwareLimitSwitchConfigs()
+                              .withForwardSoftLimitEnable(true)
+                              .withForwardSoftLimitThreshold(0.5)))
               : new WristIOSim());
 
   private final FunnelSubsystem funnel =
@@ -426,7 +441,7 @@ public class Robot extends LoggedRobot {
                           })
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore)
+              .or(() -> Autos.autoScore && DriverStation.isAutonomous())
           //   .or(
           //       new Trigger(
           //               () ->
@@ -448,8 +463,24 @@ public class Robot extends LoggedRobot {
           //           .debounce(0.08)
           //           .and(() -> swerve.hasFrontTags))
           ,
-          driver.rightTrigger().or(() -> Autos.autoPreScore),
+          driver
+              .rightTrigger()
+              .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
+              .or(
+                  () ->
+                      swerve
+                                  .getPose()
+                                  .getTranslation()
+                                  .minus(
+                                      DriverStation.getAlliance().orElse(Alliance.Blue)
+                                              == Alliance.Blue
+                                          ? AutoAim.BLUE_REEF_CENTER
+                                          : AutoAim.RED_REEF_CENTER)
+                                  .getNorm()
+                              < 3.25
+                          && DriverStation.isAutonomous()),
           driver.leftTrigger(),
+          driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
           driver
               .x()
               .and(driver.pov(-1).negate())
@@ -465,9 +496,9 @@ public class Robot extends LoggedRobot {
           operator.rightBumper(),
           operator.leftBumper(),
           new Trigger(() -> killVisionIK)
-              .or(() -> currentTarget == ReefTarget.L4)
+              .or(() -> currentTarget == ReefTarget.L1)
               .or(() -> DriverStation.isAutonomous()),
-          () -> MathUtil.clamp(operator.getLeftY(), -1.0, 0.0));
+          () -> MathUtil.clamp(-operator.getLeftY(), -0.5, 0.5));
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -578,6 +609,75 @@ public class Robot extends LoggedRobot {
             .setCurrent(60.0)
             .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
 
+    SmartDashboard.putData(
+        "Check Clear",
+        Commands.parallel(
+            shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
+            wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)));
+
+    SmartDashboard.putData(
+        "Manual Zero Extension",
+        Commands.runOnce(
+                () -> {
+                  elevator.resetExtension(0.0);
+                  wrist.resetPosition(Rotation2d.k180deg);
+                })
+            .ignoringDisable(true));
+
+    System.out.println("Node Count " + ExtensionPathing.graph.nodes().size());
+
+    SmartDashboard.putData(
+        "Traverse Extension Graph",
+        superstructure
+            .extendWithClearance(
+                () ->
+                    new ExtensionState(
+                        ElevatorSubsystem.HP_EXTENSION_METERS,
+                        ShoulderSubsystem.SHOULDER_HP_POS,
+                        WristSubsystem.WRIST_HP_POS))
+            .until(
+                () ->
+                    elevator.isNearExtension(ElevatorSubsystem.HP_EXTENSION_METERS)
+                        && shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_HP_POS)
+                        && wrist.isNearAngle(WristSubsystem.WRIST_HP_POS))
+            .andThen(
+                Commands.sequence(
+                    ExtensionPathing.graph.nodes().stream()
+                        .map(
+                            (node) ->
+                                superstructure
+                                    .extendWithClearance(() -> node)
+                                    .alongWith(
+                                        Commands.print("Traversing to " + node),
+                                        Commands.runOnce(
+                                            () -> Logger.recordOutput("Traversal Target", node)))
+                                    .until(
+                                        () ->
+                                            elevator.isNearExtension(node.elevatorHeightMeters())
+                                                && shoulder.isNearAngle(node.shoulderAngle())
+                                                && wrist.isNearAngle(node.wristAngle()))
+                                    .finallyDo(() -> System.out.println("done"))
+                                    .andThen(
+                                        Commands.waitSeconds(0.5),
+                                        superstructure
+                                            .extendWithClearance(
+                                                () ->
+                                                    new ExtensionState(
+                                                        ElevatorSubsystem.HP_EXTENSION_METERS,
+                                                        ShoulderSubsystem.SHOULDER_HP_POS,
+                                                        WristSubsystem.WRIST_HP_POS))
+                                            .alongWith(Commands.print("Retracting"))
+                                            .until(
+                                                () ->
+                                                    elevator.isNearExtension(
+                                                            ElevatorSubsystem.HP_EXTENSION_METERS)
+                                                        && shoulder.isNearAngle(
+                                                            ShoulderSubsystem.SHOULDER_HP_POS)
+                                                        && wrist.isNearAngle(
+                                                            WristSubsystem.WRIST_HP_POS)),
+                                        Commands.waitSeconds(0.5)))
+                        .toArray(Command[]::new))));
+
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
         .whileTrue(Commands.defer(() -> autoChooser.get().asProxy(), Set.of()));
@@ -593,11 +693,22 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
-    new Trigger(() -> DriverStation.isEnabled())
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoScore = false));
 
-    new Trigger(() -> DriverStation.isEnabled())
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoPreScore = false));
+
+    new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
+        .onTrue(Commands.runOnce(() -> Autos.autoGroundIntake = false));
+
+    new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  wrist.resetPosition(Rotation2d.fromRadians(3.059));
+                  elevator.resetExtension(0.0);
+                }));
 
     new Trigger(
             () -> {
@@ -648,11 +759,11 @@ public class Robot extends LoggedRobot {
                 elevator.setVoltage(0.0))
             .withName("Elevator Default Command"));
 
-    manipulator.setDefaultCommand(manipulator.index());
+    manipulator.setDefaultCommand(manipulator.hold());
 
-    shoulder.setDefaultCommand(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_RETRACTED_POS));
+    shoulder.setDefaultCommand(shoulder.hold());
 
-    wrist.setDefaultCommand(wrist.setTargetAngle(WristSubsystem.WRIST_RETRACTED_POS));
+    wrist.setDefaultCommand(wrist.hold());
 
     funnel.setDefaultCommand(funnel.setVoltage(0.0));
 
@@ -673,7 +784,7 @@ public class Robot extends LoggedRobot {
                             DriverStation.getAlliance()
                                 .map((a) -> a == Alliance.Blue ? Color.kBlue : Color.kRed)
                                 .orElse(Color.kWhite),
-                        () -> LEDSubsystem.PURPLE,
+                        () -> wrist.hasZeroed ? LEDSubsystem.PURPLE : Color.kOrange,
                         4,
                         1.0)
                     .until(() -> DriverStation.isEnabled()),
@@ -744,7 +855,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.INTAKE_ALGAE_HIGH
@@ -775,11 +885,14 @@ public class Robot extends LoggedRobot {
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
                                     && elevator.isNearTarget()
-                                    && shoulder.isNearTarget()),
+                                    && shoulder.isNearAngle(
+                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                                    && wrist.isNearAngle(
+                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
-                        0.75)),
+                        1)),
                 Commands.waitUntil(
                         new Trigger(
                                 () ->
@@ -849,7 +962,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.PRE_CLIMB
@@ -867,7 +979,6 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
@@ -967,6 +1078,9 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
+    operator.povLeft().onTrue(Commands.runOnce(() -> leftHandedTarget = true));
+    operator.povRight().onTrue(Commands.runOnce(() -> leftHandedTarget = false));
+
     operator
         .back()
         .and(operator.start())
@@ -1019,6 +1133,15 @@ public class Robot extends LoggedRobot {
           Stream.of(AlgaeIntakeTargets.values())
               .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
               .toArray(Pose2d[]::new));
+
+    Logger.recordOutput("IK/L1 FK Pose", ExtensionKinematics.L1_POSE);
+    System.out.println("ExtensionKinematics.L1_POSE: " + ExtensionKinematics.L1_POSE);
+    Logger.recordOutput("IK/L2 FK Pose", ExtensionKinematics.L2_POSE);
+    System.out.println("ExtensionKinematics.L2_POSE: " + ExtensionKinematics.L2_POSE);
+    Logger.recordOutput("IK/L3 FK Pose", ExtensionKinematics.L3_POSE);
+    System.out.println("ExtensionKinematics.L3_POSE: " + ExtensionKinematics.L3_POSE);
+    Logger.recordOutput("IK/L4 FK Pose", ExtensionKinematics.L4_POSE);
+    System.out.println("ExtensionKinematics.L4_POSE: " + ExtensionKinematics.L4_POSE);
   }
 
   private void addAutos() {
@@ -1100,12 +1223,15 @@ public class Robot extends LoggedRobot {
                   0, -Units.degreesToRadians(2.794042) - shoulder.getAngle().getRadians(), 0.0)),
           new Pose3d( // Manipulator
               new Translation3d(
-                  ShoulderSubsystem.X_OFFSET_METERS
-                      + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                  0,
-                  elevator.getExtensionMeters()
-                      + ShoulderSubsystem.Z_OFFSET_METERS
-                      + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+                      ShoulderSubsystem.X_OFFSET_METERS
+                          + shoulder.getAngle().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                      0,
+                      elevator.getExtensionMeters()
+                          + ShoulderSubsystem.Z_OFFSET_METERS
+                          + shoulder.getAngle().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                  .plus(
+                      new Translation3d(Units.inchesToMeters(1.0), 0.0, Units.inchesToMeters(-8.0))
+                          .rotateBy(new Rotation3d(0.0, -wrist.getAngle().getRadians(), 0.0))),
               new Rotation3d(0, wrist.getAngle().getRadians(), Math.PI))
         });
 
@@ -1128,12 +1254,16 @@ public class Robot extends LoggedRobot {
                     0.0)),
             new Pose3d( // Manipulator
                 new Translation3d(
-                    ShoulderSubsystem.X_OFFSET_METERS
-                        + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
-                    0,
-                    elevator.getSetpoint()
-                        + ShoulderSubsystem.Z_OFFSET_METERS
-                        + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS),
+                        ShoulderSubsystem.X_OFFSET_METERS
+                            + shoulder.getSetpoint().getCos() * ShoulderSubsystem.ARM_LENGTH_METERS,
+                        0,
+                        elevator.getSetpoint()
+                            + ShoulderSubsystem.Z_OFFSET_METERS
+                            + shoulder.getSetpoint().getSin() * ShoulderSubsystem.ARM_LENGTH_METERS)
+                    .plus(
+                        new Translation3d(
+                                Units.inchesToMeters(1.0), 0.0, Units.inchesToMeters(-8.0))
+                            .rotateBy(new Rotation3d(0.0, -wrist.getAngle().getRadians(), 0.0))),
                 new Rotation3d(0, wrist.getSetpoint().getRadians(), Math.PI))
           });
 
@@ -1189,9 +1319,15 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
-          "Manipulator FK Pose",
+          "IK/Manipulator FK Pose",
           ExtensionKinematics.getManipulatorPose(
               swerve.getPose(), superstructure.getExtensionState()));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "IK/Extension FK Pose",
+          ExtensionKinematics.solveFK(
+              new ExtensionState(
+                  elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
     state = superstructure::getState;
   }
 

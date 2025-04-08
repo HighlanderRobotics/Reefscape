@@ -4,6 +4,7 @@ import choreo.util.ChoreoAllianceFlipUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.util.Units;
 import frc.robot.Robot;
 import frc.robot.Robot.AlgaeIntakeTarget;
 import java.util.Arrays;
@@ -55,7 +56,8 @@ public enum AlgaeIntakeTargets {
   }
 
   public static Pose2d getOffsetLocation(Pose2d original) {
-    return original.transformBy(new Transform2d((-0.3), 0, Rotation2d.kZero));
+    return original.transformBy(
+        new Transform2d((-0.3 - Units.inchesToMeters(6)), 0, Rotation2d.kZero));
   }
 
   /** Gets the closest offset target to the given pose. */

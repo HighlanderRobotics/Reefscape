@@ -28,7 +28,7 @@ public class ShoulderIOSim implements ShoulderIO {
 
   private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 0.0, 0.0); // 1.31085, 0.278);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(100.0, 0.0, 6.0, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(80.0, 0.0, 6.0, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   private double appliedVoltage = 0.0;
 

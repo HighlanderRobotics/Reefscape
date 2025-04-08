@@ -68,6 +68,6 @@ public class ClimberIOSim implements ClimberIO {
 
   @Override
   public void setPosition(double position, double vel) {
-    setPosition(position);
+    // We dont simulate the climber really so im gonna ignore this
   }
 }
