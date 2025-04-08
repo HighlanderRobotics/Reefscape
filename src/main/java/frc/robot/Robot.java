@@ -1065,6 +1065,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 L Inside", autos.LItoK());
     autoChooser.addOption("4.5 R Inside", autos.RItoD());
     autoChooser.addOption("Push Auto", autos.PMtoPL());
+    autoChooser.addDefaultOption("Algae auto", autos.CMtoGH());
   }
 
   /** Scales a joystick value for teleop driving */
@@ -1225,20 +1226,20 @@ public class Robot extends LoggedRobot {
     Logger.recordOutput("Autos/Coral Pre Score", Autos.autoPreScore);
     Logger.recordOutput("Autos/Coral Score", Autos.autoScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
-    Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
-  if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
-  if (Robot.ROBOT_TYPE != RobotType.REAL)
-    Logger.recordOutput(
-        "IK/Manipulator FK Pose",
-        ExtensionKinematics.getManipulatorPose(
-            swerve.getPose(), superstructure.getExtensionState()));
-  if (Robot.ROBOT_TYPE != RobotType.REAL)
-    Logger.recordOutput(
-        "IK/Extension FK Pose",
-        ExtensionKinematics.solveFK(
-            new ExtensionState(
-                elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
-  state = superstructure::getState;
+      Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "IK/Manipulator FK Pose",
+          ExtensionKinematics.getManipulatorPose(
+              swerve.getPose(), superstructure.getExtensionState()));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "IK/Extension FK Pose",
+          ExtensionKinematics.solveFK(
+              new ExtensionState(
+                  elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
+    state = superstructure::getState;
   }
 
   public static void setCurrentCoralTarget(ReefTarget target) {
@@ -1263,7 +1264,6 @@ public class Robot extends LoggedRobot {
 
   public AlgaeScoreTarget getCurrentAlgaeScoreTarget() {
     return algaeScoreTarget;
-
   }
 
   public static void setCurrentTarget(ReefTarget target) {

@@ -20,6 +20,7 @@ import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class ManipulatorSubsystem extends RollerSubsystem {
@@ -42,7 +43,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   private boolean bb1 = false;
   private boolean bb2 = false;
-  private boolean hasAlgae = false;
+  @AutoLogOutput private boolean hasAlgae = false;
 
   private LinearFilter currentFilter = LinearFilter.movingAverage(20);
   private double currentFilterValue = 0.0;

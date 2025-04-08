@@ -123,7 +123,7 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
-                    ? intakeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
+                    ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
                     : Commands.sequence(
                         endPos.length() == 1
                             ? scoreCoralInAuto(
@@ -334,16 +334,23 @@ public class Autos {
         .active()
         .whileTrue(
             Commands.sequence(steps.get("CMtoGH").resetOdometry(), steps.get("CMtoGH").cmd()));
-    scoreCoralInAuto(() -> steps.get("CMtoGH").getFinalPose().get());
-    intakeAlgaeInAuto(() -> steps.get("CMtoGH").getFinalPose());
 
-    for (int i = 1; i < stops.length - 2; i++) {
+    routine
+        .observe(steps.get("CMtoGH").done())
+        .onTrue(
+            Commands.sequence(
+                scoreCoralInAuto(() -> steps.get("CMtoGH").getFinalPose().get()),
+                intakeAlgaeInAuto(() -> steps.get("CMtoGH").getFinalPose())));
+
+    for (int i = 0; i < stops.length - 2; i++) {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
       runAlgaePath(routine, startPos, endPos, nextPos, steps);
     }
-    routine.observe(steps.get("NItoEF").done()).onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
+    routine
+        .observe(steps.get("NItoEF").done())
+        .onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
     return routine.cmd();
   }
 
@@ -393,7 +400,7 @@ public class Autos {
                 new Constraints(1.5, 2.0)));
   }
 
-  public Command intakeInAuto(Supplier<Optional<Pose2d>> pose) {
+  public Command intakeCoralInAuto(Supplier<Optional<Pose2d>> pose) {
     if (!pose.get().isPresent()) {
       return Commands.none();
     } else {
@@ -440,7 +447,7 @@ public class Autos {
         .whileFalse(Commands.run(() -> autoPreScore = false));
   }
 
-    public void runAlgaePath(
+  public void runAlgaePath(
       AutoRoutine routine,
       String startPos,
       String endPos,
@@ -452,8 +459,7 @@ public class Autos {
             Commands.sequence(
                 endPos.equals("NI")
                     ? scoreAlgaeInAuto()
-                    : intakeAlgaeInAuto(
-                        () -> steps.get(startPos + "to" + endPos).getFinalPose()),
+                    : intakeAlgaeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose()),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -465,7 +471,8 @@ public class Autos {
           Commands.runOnce(
               () -> {
                 autoAlgaeIntake = true;
-                Robot.setCurrentAlgaeIntakeTarget(AlgaeIntakeTargets.getClosestTarget(pose.get().get()).height); //are you serios
+                Robot.setCurrentAlgaeIntakeTarget(
+                    AlgaeIntakeTargets.getClosestTarget(pose.get().get()).height); // are you serios
               }),
           Commands.waitUntil(() -> manipulator.hasAlgae())
               .alongWith(
@@ -496,7 +503,6 @@ public class Autos {
                         () -> {
                           autoScore = false;
                           autoPreScore = false;
-                        })
-                    ));
+                        })));
   }
 }
