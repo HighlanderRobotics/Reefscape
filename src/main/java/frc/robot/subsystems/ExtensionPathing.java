@@ -96,6 +96,10 @@ public class ExtensionPathing {
     graph.addNode(retracted);
     graph.putEdge(untucked, retracted);
     graph.putEdge(betweenTucked, retracted);
+
+    final var l1 = ExtensionKinematics.L1_EXTENSION;
+    graph.addNode(l1);
+    graph.putEdge(l1, betweenTucked);
   }
 
   private ExtensionPathing() {}
