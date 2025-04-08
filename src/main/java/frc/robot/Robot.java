@@ -25,6 +25,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -79,6 +80,7 @@ import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
+import frc.robot.utils.autoaim.L1Targets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -805,7 +807,7 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(() -> superstructure.stateIsCoralAlike())
+        .and(() -> superstructure.stateIsCoralAlike() && currentTarget != ReefTarget.L1)
         .whileTrue(
             Commands.parallel(
                 AutoAim.autoAimWithIntermediatePose(
@@ -825,6 +827,32 @@ public class Robot extends LoggedRobot {
                         AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && currentTarget == ReefTarget.L1)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.alignToLine(
+                    swerve,
+                    () ->
+                        modifyJoystick(driver.getLeftY())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                    () ->
+                        modifyJoystick(driver.getLeftX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                    () -> L1Targets.getNearestLine(swerve.getPose())),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve.getPose(),
+                                new Pose2d(
+                                    L1Targets.getNearestLine(swerve.getPose())
+                                        .nearest(swerve.getPose().getTranslation()),
+                                    L1Targets.getNearestLine(swerve.getPose()).getRotation())))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
     driver
         .rightBumper()
         .and(
@@ -1093,6 +1121,12 @@ public class Robot extends LoggedRobot {
           Stream.of(CageTargets.values())
               .map((target) -> target.getLocation())
               .toArray(Pose2d[]::new));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
+          "AutoAim/Targets/L1",
+          Stream.of(L1Targets.values())
+              .map((target) -> L1Targets.getRobotTargetLine(target.line))
+              .toArray(Rectangle2d[]::new));
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
           "AutoAim/Targets/Algae",
