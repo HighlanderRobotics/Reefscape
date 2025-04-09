@@ -734,7 +734,12 @@ public class Robot extends LoggedRobot {
 
     new Trigger(() -> DriverStation.isAutonomousEnabled())
         .onTrue(
-            Commands.runOnce(() -> swerve.setCurrentLimits(new CurrentLimitsConfigs()))
+            Commands.runOnce(
+                    () ->
+                        swerve.setCurrentLimits(
+                            new CurrentLimitsConfigs()
+                                .withStatorCurrentLimitEnable(false)
+                                .withSupplyCurrentLimitEnable(false)))
                 .ignoringDisable(true))
         .onFalse(
             Commands.runOnce(
