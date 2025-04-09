@@ -110,6 +110,22 @@ public class ExtensionPathing {
     final var l1 = ExtensionKinematics.L1_EXTENSION;
     graph.addNode(l1);
     graph.putEdge(l1, betweenTucked);
+
+    final var algaeLow =
+        new ExtensionState(
+            ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+    graph.addNode(algaeLow);
+    graph.putEdge(untucked, algaeLow);
+
+    final var algaeHigh =
+        new ExtensionState(
+            ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+    graph.addNode(algaeHigh);
+    graph.putEdge(untucked, algaeHigh);
   }
 
   private ExtensionPathing() {}
