@@ -45,7 +45,7 @@ public class ShoulderSubsystem extends SubsystemBase {
       ExtensionKinematics.L1_EXTENSION.shoulderAngle();
   public static final Rotation2d SHOULDER_SCORE_L4_POS =
       ExtensionKinematics.L4_EXTENSION.shoulderAngle();
-  public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(40);
+  public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(30);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(60.0);
   public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
@@ -157,5 +157,9 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public ShoulderIOInputsAutoLogged getInputs() {
     return inputs;
+  }
+
+  public double getVelocity() {
+    return inputs.angularVelocityRPS;
   }
 }

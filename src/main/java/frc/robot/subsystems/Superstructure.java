@@ -791,10 +791,10 @@ public class Superstructure {
             Commands.parallel(
                 elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
                 // Make it initially extend to the full 90 degrees
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS),
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
                 wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE_NET));
@@ -802,7 +802,11 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_ALGAE_NET)
         .onTrue(Commands.runOnce(() -> stateTimer.reset()))
-        .whileTrue(manipulator.setVoltage(-13.0))
+        .whileTrue(
+            manipulator
+                .hold()
+                .until(() -> shoulder.getVelocity() > 0.4)
+                .andThen(manipulator.setVoltage(-13.0)))
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
