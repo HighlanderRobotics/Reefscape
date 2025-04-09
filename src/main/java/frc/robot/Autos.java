@@ -465,14 +465,14 @@ public class Autos {
               ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
-          // AutoAim.translateToPose(
-          //         swerve,
-          //         () -> pose.get().get(),
-          //         () ->
-          //             ChassisSpeeds.fromRobotRelativeSpeeds(
-          //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
-          swerve
-              .driveVoltage(() -> new ChassisSpeeds(-0.0, 0.0, 0.0))
+          AutoAim.translateToPose(
+                  swerve,
+                  () -> pose.get().get(),
+                  () ->
+                      ChassisSpeeds.fromRobotRelativeSpeeds(
+                          new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
+              // swerve
+              //     .driveVoltage(() -> new ChassisSpeeds(-0.0, 0.0, 0.0))
               .until(
                   () ->
                       manipulator.getSecondBeambreak()
