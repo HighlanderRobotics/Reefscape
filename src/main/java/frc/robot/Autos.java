@@ -134,7 +134,7 @@ public class Autos {
                 .get(startPos + "to" + endPos)
                 .atTime(
                     steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
-                        - (endPos.length() == 1 ? 0.1 : 0.0)))
+                        - (endPos.length() == 1 ? 0.3 : 0.0)))
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
@@ -431,7 +431,7 @@ public class Autos {
                                     0.0,
                                     swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
                                     3.0))
-                    .debounce(0.10)),
+                    .debounce(0.06)),
             Commands.print("Scoring!"),
             Commands.runOnce(
                 () -> {
@@ -482,7 +482,7 @@ public class Autos {
   }
 
   public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 3.5); // TODO tune
+    bindElevatorExtension(routine, 3.75); // TODO tune
   }
 
   public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {

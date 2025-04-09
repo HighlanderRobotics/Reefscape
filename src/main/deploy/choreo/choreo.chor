@@ -7,8 +7,15 @@
    "slow":{
     "dimension":"LinVel",
     "var":{
-     "exp":"1.25 m / s",
-     "val":1.25
+     "exp":"1.15 m / s",
+     "val":1.15
+    }
+   },
+   "slowaccel":{
+    "dimension":"LinAcc",
+    "var":{
+     "exp":"1.5 m / s ^ 2",
+     "val":1.5
     }
    }
   },

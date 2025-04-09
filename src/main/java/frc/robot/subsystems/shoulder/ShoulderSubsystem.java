@@ -52,7 +52,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(35.0);
 
   private static final MotionMagicConfigs DEFAULT_CONFIGS =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(4.0);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(6.0);
   private static final MotionMagicConfigs TOSS_CONFIGS =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.5).withMotionMagicAcceleration(4.0);
 
