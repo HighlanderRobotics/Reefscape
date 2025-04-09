@@ -22,7 +22,10 @@ import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CoralTargets;
@@ -37,16 +40,28 @@ public class Autos {
   private final ManipulatorSubsystem manipulator;
   private final FunnelSubsystem funnel;
   private final AutoFactory factory;
+  private final ElevatorSubsystem elevator;
+  private final ShoulderSubsystem shoulder;
+  private final WristSubsystem wrist;
 
   @AutoLogOutput public static boolean autoPreScore = true;
   @AutoLogOutput public static boolean autoScore = false; // TODO perhaps this should not be static
   @AutoLogOutput public static boolean autoGroundCoralIntake = false;
   @AutoLogOutput public static boolean autoAlgaeIntake = false;
 
-  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
+  public Autos(
+      SwerveSubsystem swerve,
+      ManipulatorSubsystem manipulator,
+      FunnelSubsystem funnel,
+      ElevatorSubsystem elevator,
+      ShoulderSubsystem shoulder,
+      WristSubsystem wrist) {
     this.swerve = swerve;
     this.manipulator = manipulator;
     this.funnel = funnel;
+    this.elevator = elevator;
+    this.shoulder = shoulder;
+    this.wrist = wrist;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -322,7 +337,7 @@ public class Autos {
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
-      "CM", "GH", "NI", "IJ", "NI", "EF" // each stop we are going to, in order
+      "CM", "G", "GH", "NI", "IJ", "NI", "EF" // each stop we are going to, in order
     };
     for (int i = 0; i < stops.length - 1; i++) {
       String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
@@ -332,25 +347,66 @@ public class Autos {
     routine
         // run first path
         .active()
-        .whileTrue(
-            Commands.sequence(steps.get("CMtoGH").resetOdometry(), steps.get("CMtoGH").cmd()));
+        .whileTrue(Commands.sequence(steps.get("CMtoG").resetOdometry(), steps.get("CMtoG").cmd()));
 
     routine
-        .observe(steps.get("CMtoGH").done())
+        .observe(steps.get("CMtoG").done())
+        .onTrue(Commands.sequence(scoreCoralInAuto(() -> steps.get("CMtoG").getFinalPose().get())));
+    routine
+        .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .onTrue(
             Commands.sequence(
-                scoreCoralInAuto(() -> steps.get("CMtoGH").getFinalPose().get()),
-                intakeAlgaeInAuto(() -> steps.get("CMtoGH").getFinalPose())));
-
-    for (int i = 0; i < stops.length - 2; i++) {
-      String startPos = stops[i];
-      String endPos = stops[i + 1];
-      String nextPos = stops[i + 2];
-      runAlgaePath(routine, startPos, endPos, nextPos, steps);
-    }
-    routine
-        .observe(steps.get("NItoEF").done())
-        .onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
+                    swerve.driveTeleop(() -> new ChassisSpeeds(-0.3, 0, 0)).withTimeout(0.2),
+                    Commands.runOnce(
+                        () -> {
+                          autoAlgaeIntake = true;
+                          Robot.setCurrentAlgaeIntakeTarget(
+                              AlgaeIntakeTargets.getClosestTarget(
+                                      steps.get("CMtoG").getFinalPose().get())
+                                  .height);
+                        }),
+                    AutoAim.translateToPose(
+                            swerve,
+                            () ->
+                                AlgaeIntakeTargets.getOffsetLocation(
+                                    AlgaeIntakeTargets.getClosestTargetPose(
+                                        steps.get("CMtoG").getFinalPose().get())))
+                        .until(
+                            () ->
+                                AutoAim.isInTolerance(
+                                        swerve.getPose(),
+                                        AlgaeIntakeTargets.getOffsetLocation(
+                                            AlgaeIntakeTargets.getClosestTargetPose(
+                                                swerve.getPose())),
+                                        swerve.getVelocityFieldRelative(),
+                                        Units.inchesToMeters(1.0),
+                                        Units.degreesToRadians(1.0))
+                                    && elevator.isNearTarget()
+                                    && shoulder.isNearAngle(
+                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                                    && wrist.isNearAngle(
+                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
+                    AutoAim.approachAlgae(
+                            swerve,
+                            () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                            1)
+                        .withTimeout(2))
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          autoAlgaeIntake = false;
+                        }),
+                    steps.get("GHtoNI").cmd()));
+    routine.observe(steps.get("GHtoNI").done()).onTrue(scoreAlgaeInAuto());
+    // for (int i = 0; i < stops.length - 2; i++) {
+    //   String startPos = stops[i];
+    //   String endPos = stops[i + 1];
+    //   String nextPos = stops[i + 2];
+    //   runAlgaePath(routine, startPos, endPos, nextPos, steps);
+    // }
+    // routine
+    //     .observe(steps.get("NItoEF").done())
+    //     .onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
     return routine.cmd();
   }
 
@@ -397,7 +453,7 @@ public class Autos {
                 swerve,
                 () -> CoralTargets.getClosestTarget(trajEndPose.get()),
                 ChassisSpeeds::new,
-                new Constraints(1.5, 2.0)));
+                new Constraints(1.5, 1.0)));
   }
 
   public Command intakeCoralInAuto(Supplier<Optional<Pose2d>> pose) {
@@ -493,7 +549,8 @@ public class Autos {
               Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
             })
         .andThen(
-            Commands.waitUntil(() -> !manipulator.hasAlgae()) //TODO maybe check state directly instead
+            Commands.waitUntil(
+                    () -> !manipulator.hasAlgae()) // TODO maybe check state directly instead
                 .alongWith(
                     Robot.isSimulation()
                         ? Commands.runOnce(() -> manipulator.setHasAlgae(false))

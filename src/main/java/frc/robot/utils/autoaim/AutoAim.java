@@ -147,13 +147,13 @@ public class AutoAim {
                                           cachedTarget[0].getRotation().getRadians())
                                       + headingController.getSetpoint().velocity)
                               .plus(speedsModifier.get());
-                  if (Robot.ROBOT_TYPE != RobotType.REAL)
-                    Logger.recordOutput(
-                        "AutoAim/Target Pose",
-                        new Pose2d(
-                            vxController.getSetpoint().position,
-                            vyController.getSetpoint().position,
-                            Rotation2d.fromRadians(headingController.getSetpoint().position)));
+                  // if (Robot.ROBOT_TYPE != RobotType.REAL)
+                  Logger.recordOutput(
+                      "AutoAim/Target Pose",
+                      new Pose2d(
+                          vxController.getSetpoint().position,
+                          vyController.getSetpoint().position,
+                          Rotation2d.fromRadians(headingController.getSetpoint().position)));
                   if (Robot.ROBOT_TYPE != RobotType.REAL)
                     Logger.recordOutput("AutoAim/Target Speeds", speeds);
                   return speeds;

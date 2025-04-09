@@ -477,7 +477,7 @@ public class Robot extends LoggedRobot {
                                   .getNorm()
                               < 3.25
                           && DriverStation.isAutonomous()),
-          driver.leftTrigger(),
+          driver.leftTrigger().or(() -> Autos.autoAlgaeIntake && DriverStation.isAutonomous()),
           driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous()),
           driver
               .x()
@@ -592,7 +592,7 @@ public class Robot extends LoggedRobot {
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
 
-    autos = new Autos(swerve, manipulator, funnel);
+    autos = new Autos(swerve, manipulator, funnel, elevator, shoulder, wrist);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
 
     SmartDashboard.putData(
