@@ -17,11 +17,16 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem;
+import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
@@ -35,15 +40,28 @@ public class Autos {
   private final ManipulatorSubsystem manipulator;
   private final FunnelSubsystem funnel;
   private final AutoFactory factory;
+  private final ElevatorSubsystem elevator;
+  private final ShoulderSubsystem shoulder;
+  private final WristSubsystem wrist;
 
   @AutoLogOutput public static boolean autoPreScore = true;
   @AutoLogOutput public static boolean autoScore = false; // TODO perhaps this should not be static
-  @AutoLogOutput public static boolean autoGroundIntake = false;
+  @AutoLogOutput public static boolean autoGroundCoralIntake = false;
+  @AutoLogOutput public static boolean autoAlgaeIntake = false;
 
-  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
+  public Autos(
+      SwerveSubsystem swerve,
+      ManipulatorSubsystem manipulator,
+      FunnelSubsystem funnel,
+      ElevatorSubsystem elevator,
+      ShoulderSubsystem shoulder,
+      WristSubsystem wrist) {
     this.swerve = swerve;
     this.manipulator = manipulator;
     this.funnel = funnel;
+    this.elevator = elevator;
+    this.shoulder = shoulder;
+    this.wrist = wrist;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -91,7 +109,7 @@ public class Autos {
     final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
     bindElevatorExtension(routine);
-    routine.observe(traj.done()).onTrue(scoreInAuto());
+    routine.observe(traj.done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
@@ -100,11 +118,11 @@ public class Autos {
     final var traj = routine.trajectory("RMtoG");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
     bindElevatorExtension(routine);
-    routine.observe(traj.done()).onTrue(scoreInAuto());
+    routine.observe(traj.done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
-  public void runPath(
+  public void runCoralPath(
       AutoRoutine routine,
       String startPos,
       String endPos,
@@ -120,10 +138,10 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
-                    ? intakeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
+                    ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
                     : Commands.sequence(
                         endPos.length() == 1
-                            ? scoreInAuto(
+                            ? scoreCoralInAuto(
                                 () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
                             : AutoAim.translateToPose(
                                     swerve,
@@ -164,7 +182,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
 
     // final var groundTraj = routine.trajectory("LtoAGround");
@@ -212,7 +230,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
 
     routine
@@ -245,10 +263,10 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLItoB").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PLItoB").done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
@@ -275,10 +293,10 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PRItoA").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PRItoA").done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
@@ -306,14 +324,93 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLOtoL").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PLOtoL").done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
-  public Command scoreInAuto(Supplier<Pose2d> trajEndPose) {
+  public Command CMtoGH() {
+    final var routine = factory.newRoutine("CM to GH");
+    bindElevatorExtension(routine, 2.0);
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "CM", "G", "GH", "NI", "IJ", "NI", "EF" // each stop we are going to, in order
+    };
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(Commands.sequence(steps.get("CMtoG").resetOdometry(), steps.get("CMtoG").cmd()));
+
+    routine
+        .observe(steps.get("CMtoG").done())
+        .onTrue(Commands.sequence(scoreCoralInAuto(() -> steps.get("CMtoG").getFinalPose().get())));
+    routine
+        .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .onTrue(
+            Commands.sequence(
+                    swerve.driveTeleop(() -> new ChassisSpeeds(-0.3, 0, 0)).withTimeout(0.2),
+                    Commands.runOnce(
+                        () -> {
+                          autoAlgaeIntake = true;
+                          Robot.setCurrentAlgaeIntakeTarget(
+                              AlgaeIntakeTargets.getClosestTarget(
+                                      steps.get("CMtoG").getFinalPose().get())
+                                  .height);
+                        }),
+                    AutoAim.translateToPose(
+                            swerve,
+                            () ->
+                                AlgaeIntakeTargets.getOffsetLocation(
+                                    AlgaeIntakeTargets.getClosestTargetPose(
+                                        steps.get("CMtoG").getFinalPose().get())))
+                        .until(
+                            () ->
+                                AutoAim.isInTolerance(
+                                        swerve.getPose(),
+                                        AlgaeIntakeTargets.getOffsetLocation(
+                                            AlgaeIntakeTargets.getClosestTargetPose(
+                                                swerve.getPose())),
+                                        swerve.getVelocityFieldRelative(),
+                                        Units.inchesToMeters(1.0),
+                                        Units.degreesToRadians(1.0))
+                                    && elevator.isNearTarget()
+                                    && shoulder.isNearAngle(
+                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                                    && wrist.isNearAngle(
+                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
+                    AutoAim.approachAlgae(
+                            swerve,
+                            () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                            1)
+                        .withTimeout(2))
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          autoAlgaeIntake = false;
+                        }),
+                    steps.get("GHtoNI").cmd()));
+    routine.observe(steps.get("GHtoNI").done()).onTrue(scoreAlgaeInAuto());
+    // for (int i = 0; i < stops.length - 2; i++) {
+    //   String startPos = stops[i];
+    //   String endPos = stops[i + 1];
+    //   String nextPos = stops[i + 2];
+    //   runAlgaePath(routine, startPos, endPos, nextPos, steps);
+    // }
+    // routine
+    //     .observe(steps.get("NItoEF").done())
+    //     .onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
+    return routine.cmd();
+  }
+
+  public Command scoreCoralInAuto(Supplier<Pose2d> trajEndPose) {
     return Commands.sequence(
             Commands.waitUntil(
                 new Trigger(
@@ -356,15 +453,10 @@ public class Autos {
                 swerve,
                 () -> CoralTargets.getClosestTarget(trajEndPose.get()),
                 ChassisSpeeds::new,
-                new Constraints(1.5, 2.0)));
+                new Constraints(1.5, 1.0)));
   }
 
-  // TODO: REMOVE THIS OVERLOAD
-  public Command scoreInAuto() {
-    return scoreInAuto(() -> swerve.getPose());
-  }
-
-  public Command intakeInAuto(Supplier<Optional<Pose2d>> pose) {
+  public Command intakeCoralInAuto(Supplier<Optional<Pose2d>> pose) {
     if (!pose.get().isPresent()) {
       return Commands.none();
     } else {
@@ -409,5 +501,65 @@ public class Autos {
                     && (manipulator.getSecondBeambreak()))
         .whileTrue(Commands.run(() -> autoPreScore = true))
         .whileFalse(Commands.run(() -> autoPreScore = false));
+  }
+
+  public void runAlgaePath(
+      AutoRoutine routine,
+      String startPos,
+      String endPos,
+      String nextPos,
+      HashMap<String, AutoTrajectory> steps) {
+    routine
+        .observe(steps.get(startPos + "to" + endPos).done())
+        .onTrue(
+            Commands.sequence(
+                endPos.equals("NI")
+                    ? scoreAlgaeInAuto()
+                    : intakeAlgaeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose()),
+                steps.get(endPos + "to" + nextPos).cmd()));
+  }
+
+  public Command intakeAlgaeInAuto(Supplier<Optional<Pose2d>> pose) {
+    if (!pose.get().isPresent()) {
+      return Commands.none();
+    } else {
+      return Commands.sequence(
+          Commands.runOnce(
+              () -> {
+                autoAlgaeIntake = true;
+                Robot.setCurrentAlgaeIntakeTarget(
+                    AlgaeIntakeTargets.getClosestTarget(pose.get().get()).height); // are you serios
+              }),
+          Commands.waitUntil(() -> manipulator.hasAlgae())
+              .alongWith(
+                  Robot.isSimulation()
+                      ? Commands.runOnce(() -> manipulator.setHasAlgae(true))
+                      : Commands.none()),
+          Commands.runOnce(
+              () -> {
+                autoAlgaeIntake = false;
+              }));
+    }
+  }
+
+  public Command scoreAlgaeInAuto() {
+    return Commands.runOnce(
+            () -> {
+              autoScore = true;
+              Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
+            })
+        .andThen(
+            Commands.waitUntil(
+                    () -> !manipulator.hasAlgae()) // TODO maybe check state directly instead
+                .alongWith(
+                    Robot.isSimulation()
+                        ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
+                        : Commands.none())
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          autoScore = false;
+                          autoPreScore = false;
+                        })));
   }
 }

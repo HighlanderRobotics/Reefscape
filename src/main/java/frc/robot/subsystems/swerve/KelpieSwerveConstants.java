@@ -251,9 +251,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(-30))),
             FRONT_LEFT_CAMERA_MATRIX,
             FRONT_LEFT_DIST_COEFFS);
-    return new VisionConstants[] {
-      backLeftCamConstants, frontRightCamConstants, frontLeftCamConstants
-    };
+    return new VisionConstants[] {frontRightCamConstants, frontLeftCamConstants};
   }
 
   @Override

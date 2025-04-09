@@ -14,12 +14,14 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class ManipulatorSubsystem extends RollerSubsystem {
@@ -42,7 +44,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   private boolean bb1 = false;
   private boolean bb2 = false;
-  private boolean hasAlgae = false;
+  @AutoLogOutput private boolean hasAlgae = false;
 
   private LinearFilter currentFilter = LinearFilter.movingAverage(20);
   private double currentFilterValue = 0.0;
@@ -205,6 +207,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public boolean hasAlgae() {
-    return hasAlgae;
+    return hasAlgae || Robot.state.get() == SuperState.READY_ALGAE;
   }
 }
