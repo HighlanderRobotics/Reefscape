@@ -135,6 +135,10 @@ public class ExtensionPathing {
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
     graph.addNode(algaeHigh);
     graph.putEdge(untucked, algaeHigh);
+    graph.putEdge(algaeLow, algaeHigh);
+
+    graph.putEdge(l4TuckedOut, algaeHigh);
+    graph.putEdge(l4TuckedOut, algaeLow);
   }
 
   private ExtensionPathing() {}
