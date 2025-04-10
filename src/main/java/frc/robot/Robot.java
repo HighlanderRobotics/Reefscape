@@ -320,7 +320,7 @@ public class Robot extends LoggedRobot {
                           new FeedbackConfigs()
                               .withSensorToMechanismRatio(ManipulatorSubsystem.GEAR_RATIO))
                       .withSlot0(new Slot0Configs().withKV(0.928).withKP(0.5))
-                      .withSlot1(new Slot1Configs().withKP(7.5).withKD(0.5).withKS(0.39)))
+                      .withSlot1(new Slot1Configs().withKP(7.5).withKD(0.5).withKS(0.5)))
               : new RollerIOSim(
                   0.01,
                   5.8677,

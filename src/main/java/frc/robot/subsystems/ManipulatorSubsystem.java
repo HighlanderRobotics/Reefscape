@@ -34,7 +34,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double ALGAE_CURRENT_THRESHOLD = 6.0;
   public static final Transform2d IK_WRIST_TO_CORAL = ExtensionKinematics.IK_WRIST_TO_CORAL;
 
-  public static final double CORAL_HOLD_POS = 0.45;
+  public static final double CORAL_HOLD_POS = 0.6;
 
   public static final double GEAR_RATIO = (58.0 / 10.0) * (24.0 / 18.0);
 
