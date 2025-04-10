@@ -736,7 +736,9 @@ public class Superstructure {
                         > 0.3
                     || (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
                         || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK))
-        .onTrue(this.forceState(SuperState.READY_ALGAE));
+        .onTrue(
+            this.forceState(SuperState.READY_ALGAE)
+                .alongWith(Commands.runOnce(() -> manipulator.setHasAlgae(true)))); // gahahaha
 
     // READY_ALGAE logic
     stateTriggers
@@ -823,7 +825,9 @@ public class Superstructure {
         .and(() -> stateTimer.hasElapsed(0.5))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS))
         .and(() -> stateTimer.hasElapsed(1.0))
-        .onTrue(forceState(SuperState.IDLE));
+        .onTrue(
+            forceState(SuperState.IDLE)
+                .alongWith(Commands.runOnce(() -> manipulator.setHasAlgae(false))));
 
     stateTriggers
         .get(SuperState.SCORE_ALGAE_PROCESSOR)

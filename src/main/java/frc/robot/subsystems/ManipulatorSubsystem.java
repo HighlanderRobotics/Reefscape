@@ -14,7 +14,6 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
-import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
@@ -206,7 +205,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     hasAlgae = state;
   }
 
-  public boolean hasAlgae() {
-    return hasAlgae || Robot.state.get() == SuperState.READY_ALGAE;
+  public boolean hasAlgae() { // TODO icky
+    return hasAlgae;
   }
 }

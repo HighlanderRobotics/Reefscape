@@ -108,7 +108,7 @@ public class Autos {
     final var routine = factory.newRoutine("LM to H");
     final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     routine.observe(traj.done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
@@ -117,7 +117,7 @@ public class Autos {
     final var routine = factory.newRoutine("RM to G");
     final var traj = routine.trajectory("RMtoG");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     routine.observe(traj.done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
@@ -160,7 +160,7 @@ public class Autos {
 
   public Command LOtoJ() {
     final var routine = factory.newRoutine("LO to J");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     routine.active().onTrue(Commands.print("Auto!"));
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
@@ -208,7 +208,7 @@ public class Autos {
 
   public Command ROtoE() {
     final var routine = factory.newRoutine("RO to E");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -242,7 +242,7 @@ public class Autos {
 
   public Command LItoK() {
     final var routine = factory.newRoutine("LI to K");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -272,7 +272,7 @@ public class Autos {
 
   public Command RItoD() {
     final var routine = factory.newRoutine("RI to D");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -302,7 +302,7 @@ public class Autos {
 
   public Command PMtoPL() {
     final var routine = factory.newRoutine("PM to PL");
-    bindElevatorExtension(routine, 2.0);
+    bindCoralElevatorExtension(routine, 2.0);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -331,9 +331,10 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command CMtoGH() {
+  public Command CMtoGH() { // algae path
     final var routine = factory.newRoutine("CM to GH");
-    bindElevatorExtension(routine, 2.0);
+    bindCoralElevatorExtension(routine, 2.0);
+    bindAlgaeElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -397,7 +398,11 @@ public class Autos {
                           autoAlgaeIntake = false;
                         }),
                     steps.get("GHtoNI").cmd()));
-    routine.observe(steps.get("GHtoNI").done()).onTrue(scoreAlgaeInAuto());
+    routine.observe(steps.get("GHtoNI").done()).onTrue(
+      // Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
+      scoreAlgaeInAuto());
+    // routine.observe(steps.get("NItoIJ").done()).; //TODO cancel into autoalign
+
     // for (int i = 0; i < stops.length - 2; i++) {
     //   String startPos = stops[i];
     //   String endPos = stops[i + 1];
@@ -481,11 +486,11 @@ public class Autos {
     }
   }
 
-  public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 3.75); // TODO tune
+  public void bindCoralElevatorExtension(AutoRoutine routine) {
+    bindCoralElevatorExtension(routine, 3.75); // TODO tune
   }
 
-  public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {
+  public void bindCoralElevatorExtension(AutoRoutine routine, double toleranceMeters) {
     routine
         .observe(
             () ->
@@ -503,63 +508,100 @@ public class Autos {
         .whileFalse(Commands.run(() -> autoPreScore = false));
   }
 
-  public void runAlgaePath(
-      AutoRoutine routine,
-      String startPos,
-      String endPos,
-      String nextPos,
-      HashMap<String, AutoTrajectory> steps) {
+  public void bindAlgaeElevatorExtension(AutoRoutine routine, double toleranceMeters) {
     routine
-        .observe(steps.get(startPos + "to" + endPos).done())
-        .onTrue(
-            Commands.sequence(
-                endPos.equals("NI")
-                    ? scoreAlgaeInAuto()
-                    : intakeAlgaeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose()),
-                steps.get(endPos + "to" + nextPos).cmd()));
+        .observe(
+            () ->
+                MathUtil.isNear(
+                    DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                        ? AutoAim.BLUE_NET_X
+                        : AutoAim.RED_NET_X,
+                    swerve.getPose().getX(),
+                    toleranceMeters))
+        .whileTrue(Commands.run(() -> autoPreScore = true))
+        .whileFalse(Commands.run(() -> autoPreScore = false));
   }
 
-  public Command intakeAlgaeInAuto(Supplier<Optional<Pose2d>> pose) {
-    if (!pose.get().isPresent()) {
-      return Commands.none();
-    } else {
-      return Commands.sequence(
-          Commands.runOnce(
-              () -> {
-                autoAlgaeIntake = true;
-                Robot.setCurrentAlgaeIntakeTarget(
-                    AlgaeIntakeTargets.getClosestTarget(pose.get().get()).height); // are you serios
-              }),
-          Commands.waitUntil(() -> manipulator.hasAlgae())
-              .alongWith(
-                  Robot.isSimulation()
-                      ? Commands.runOnce(() -> manipulator.setHasAlgae(true))
-                      : Commands.none()),
-          Commands.runOnce(
-              () -> {
-                autoAlgaeIntake = false;
-              }));
-    }
+  public void bindAlgaeElevatorExtension(AutoRoutine routine) {
+    bindAlgaeElevatorExtension(routine, 0.2); // TODO tune - is the coral one still requiring atp??
   }
 
-  public Command scoreAlgaeInAuto() {
-    return Commands.runOnce(
+  public Command scoreAlgaeInAuto() { // oh good lord
+    return Commands.sequence(
+        Commands.waitUntil(
+            new Trigger(
+                    () ->
+                        MathUtil.isNear(
+                                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                    ? AutoAim.BLUE_NET_X
+                                    : AutoAim.RED_NET_X,
+                                swerve.getPose().getX(),
+                                Units.inchesToMeters(1.0))
+                            && MathUtil.isNear(
+                                0,
+                                Math.hypot(
+                                    swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                    swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                            && MathUtil.isNear(
+                                0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0))
+                .debounce(0.06)), // TODO
+        Commands.runOnce(
             () -> {
-              autoScore = true;
               Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
-            })
-        .andThen(
-            Commands.waitUntil(
-                    () -> !manipulator.hasAlgae()) // TODO maybe check state directly instead
-                .alongWith(
-                    Robot.isSimulation()
-                        ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
-                        : Commands.none())
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          autoScore = false;
-                          autoPreScore = false;
-                        })));
+              autoScore = true;
+            }),
+        Commands.waitUntil(() -> manipulator.hasAlgae())
+            .alongWith(
+                Robot.isSimulation()
+                    ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
+                    : Commands.none())
+            .andThen(
+                Commands.runOnce(
+                    () -> {
+                      autoScore = false;
+                      autoPreScore = false;
+                    })));
   }
+  // public void runAlgaePath(
+  //     AutoRoutine routine,
+  //     String startPos,
+  //     String endPos,
+  //     String nextPos,
+  //     HashMap<String, AutoTrajectory> steps) {
+  //   routine
+  //       .observe(steps.get(startPos + "to" + endPos).done())
+  //       .onTrue(
+  //           Commands.sequence(
+  //               endPos.equals("NI")
+  //                   ? scoreAlgaeInAuto()
+  //                   : intakeAlgaeInAuto(() -> steps.get(startPos + "to" +
+  // endPos).getFinalPose()),
+  //               steps.get(endPos + "to" + nextPos).cmd()));
+  // }
+
+  // public Command intakeAlgaeInAuto(Supplier<Optional<Pose2d>> pose) {
+  //   if (!pose.get().isPresent()) {
+  //     return Commands.none();
+  //   } else {
+  //     return Commands.sequence(
+  //         Commands.runOnce(
+  //             () -> {
+  //               autoAlgaeIntake = true;
+  //               Robot.setCurrentAlgaeIntakeTarget(
+  //                   AlgaeIntakeTargets.getClosestTarget(pose.get().get()).height); // are you
+  // serios
+  //             }),
+  //         Commands.waitUntil(() -> manipulator.hasAlgae())
+  //             .alongWith(
+  //                 Robot.isSimulation()
+  //                     ? Commands.runOnce(() -> manipulator.setHasAlgae(true))
+  //                     : Commands.none()),
+  //         Commands.runOnce(
+  //             () -> {
+  //               autoAlgaeIntake = false;
+  //             }));
+  //   }
+  // }
+
 }
