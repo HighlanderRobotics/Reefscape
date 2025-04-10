@@ -1044,6 +1044,9 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
                 }));
+    driver
+        .x()
+        .onTrue(Commands.runOnce(() -> shoulder.rezero()).ignoringDisable(true));
 
     operator
         .a()
