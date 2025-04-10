@@ -398,9 +398,11 @@ public class Autos {
                           autoAlgaeIntake = false;
                         }),
                     steps.get("GHtoNI").cmd()));
-    routine.observe(steps.get("GHtoNI").done()).onTrue(
-      // Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
-      scoreAlgaeInAuto());
+    routine
+        .observe(steps.get("GHtoNI").done())
+        .onTrue(
+            // Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
+            scoreAlgaeInAuto());
     // routine.observe(steps.get("NItoIJ").done()).; //TODO cancel into autoalign
 
     // for (int i = 0; i < stops.length - 2; i++) {

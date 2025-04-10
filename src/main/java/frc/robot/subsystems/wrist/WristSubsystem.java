@@ -40,7 +40,8 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_INTAKE_ALGAE_REEF_RETRACT_POS =
       Rotation2d.fromDegrees(-20.0);
 
-  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(100);
+  public static final Rotation2d WRIST_SHOOT_NET_POS = Rotation2d.fromDegrees(110);
+  public static final Rotation2d WRIST_PRE_NET_POS = Rotation2d.fromDegrees(100);
   public static final Rotation2d WRIST_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(-30.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
