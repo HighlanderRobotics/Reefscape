@@ -9,6 +9,7 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
@@ -357,7 +358,7 @@ public class Autos {
         .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .onTrue(
             Commands.sequence(
-                    swerve.driveTeleop(() -> new ChassisSpeeds(-0.3, 0, 0)).withTimeout(0.2),
+                    swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2),
                     Commands.runOnce(
                         () -> {
                           autoAlgaeIntake = true;
@@ -391,7 +392,7 @@ public class Autos {
                             swerve,
                             () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
                             1)
-                        .withTimeout(2))
+                        .withTimeout(0.5))
                 .andThen(
                     Commands.runOnce(
                         () -> {
@@ -402,7 +403,40 @@ public class Autos {
         .observe(steps.get("GHtoNI").done())
         .onTrue(
             // Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
-            scoreAlgaeInAuto());
+            Commands.sequence(
+                AutoAim.translateToXCoord(
+                        swerve,
+                        () ->
+                            Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
+                                    > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
+                                ? AutoAim.RED_NET_X
+                                : AutoAim.BLUE_NET_X,
+                        () -> 0,
+                        () ->
+                            (Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
+                                        > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
+                                    ? Rotation2d.kZero
+                                    : Rotation2d.k180deg)
+                                .plus(Rotation2d.fromDegrees(20.0)))
+                    .until(
+                        () ->
+                            (MathUtil.isNear(
+                                    DriverStation.getAlliance().get() == Alliance.Blue
+                                        ? AutoAim.BLUE_NET_X
+                                        : AutoAim.RED_NET_X,
+                                    swerve.getPose().getX(),
+                                    Units.inchesToMeters(1))
+                                && MathUtil.isNear(
+                                    DriverStation.getAlliance().get() == Alliance.Blue
+                                        ? Rotation2d.k180deg
+                                            .plus(Rotation2d.fromDegrees(20.0))
+                                            .getRadians()
+                                        : Rotation2d.kZero
+                                            .plus(Rotation2d.fromDegrees(20.0))
+                                            .getRadians(),
+                                    swerve.getPose().getRotation().getRadians(),
+                                    AutoAim.ROTATION_TOLERANCE_RADIANS))),
+                scoreAlgaeInAuto()));
     // routine.observe(steps.get("NItoIJ").done()).; //TODO cancel into autoalign
 
     // for (int i = 0; i < stops.length - 2; i++) {
@@ -515,11 +549,12 @@ public class Autos {
         .observe(
             () ->
                 MathUtil.isNear(
-                    DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                        ? AutoAim.BLUE_NET_X
-                        : AutoAim.RED_NET_X,
-                    swerve.getPose().getX(),
-                    toleranceMeters))
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? AutoAim.BLUE_NET_X
+                            : AutoAim.RED_NET_X,
+                        swerve.getPose().getX(),
+                        toleranceMeters)
+                    && (manipulator.hasAlgae()))
         .whileTrue(Commands.run(() -> autoPreScore = true))
         .whileFalse(Commands.run(() -> autoPreScore = false));
   }
@@ -532,22 +567,23 @@ public class Autos {
     return Commands.sequence(
         Commands.waitUntil(
             new Trigger(
-                    () ->
-                        MathUtil.isNear(
-                                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                                    ? AutoAim.BLUE_NET_X
-                                    : AutoAim.RED_NET_X,
-                                swerve.getPose().getX(),
-                                Units.inchesToMeters(1.0))
-                            && MathUtil.isNear(
-                                0,
-                                Math.hypot(
-                                    swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                                    swerve.getVelocityRobotRelative().vyMetersPerSecond),
-                                AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-                            && MathUtil.isNear(
-                                0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0))
-                .debounce(0.06)), // TODO
+                () ->
+                    MathUtil.isNear(
+                            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                ? AutoAim.BLUE_NET_X
+                                : AutoAim.RED_NET_X,
+                            swerve.getPose().getX(),
+                            Units.inchesToMeters(3.0))
+                        && MathUtil.isNear(
+                            0,
+                            Math.hypot(
+                                swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                            AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                        && MathUtil.isNear(
+                            0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0))
+            // .debounce(0.06)), // TODO
+            ),
         Commands.runOnce(
             () -> {
               Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
