@@ -807,7 +807,10 @@ public class Superstructure {
         .whileTrue(
             manipulator
                 .hold()
-                .until(() -> shoulder.getVelocity() > 0.4)
+                .until(
+                    () ->
+                        shoulder.getVelocity()
+                            > ShoulderSubsystem.TOSS_CONFIGS.MotionMagicCruiseVelocity - 0.1)
                 .andThen(manipulator.setVoltage(-13.0)))
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))

@@ -51,10 +51,10 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
   public static final Rotation2d SHOULDER_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(35.0);
 
-  private static final MotionMagicConfigs DEFAULT_CONFIGS =
+  public static final MotionMagicConfigs DEFAULT_CONFIGS =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(6.0);
-  private static final MotionMagicConfigs TOSS_CONFIGS =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.5).withMotionMagicAcceleration(4.0);
+  public static final MotionMagicConfigs TOSS_CONFIGS =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.3).withMotionMagicAcceleration(4.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
