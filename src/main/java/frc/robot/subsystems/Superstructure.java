@@ -304,19 +304,21 @@ public class Superstructure {
         .whileTrue(
             extendWithClearance(
                     ElevatorSubsystem.GROUND_EXTENSION_METERS,
-                    ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
-                    WristSubsystem.WRIST_CORAL_GROUND)
-                .until(
-                    () ->
-                        shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS)
-                            && wrist.isNearAngle(WristSubsystem.WRIST_CORAL_GROUND))
+                    Rotation2d.fromDegrees(35.0),
+                    WristSubsystem.WRIST_CLEARANCE_POS)
+                .until(() -> elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS))
                 .andThen(
                     Commands.parallel(
-                        shoulder.setVoltage(-1.0),
+                        shoulder
+                            .setVoltage(-10.0)
+                            .until(() -> shoulder.getAngle().getDegrees() < 10.0)
+                            .andThen(shoulder.setVoltage(-1.0)),
                         elevator.setExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS),
                         wrist
                             .setTargetAngle(WristSubsystem.WRIST_CORAL_GROUND)
-                            .until(wrist::isNearTarget)
+                            .until(
+                                () ->
+                                    wrist.isNearTarget() && shoulder.getAngle().getDegrees() < 10.0)
                             .andThen(wrist.setVoltage(-1.0)))))
         .whileTrue(
             Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
