@@ -126,7 +126,7 @@ public class ExtensionPathing {
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
     graph.addNode(algaeLow);
-    graph.putEdge(untucked, algaeLow);
+    graph.putEdge(betweenTucked, algaeLow);
 
     final var algaeHigh =
         new ExtensionState(
@@ -134,11 +134,11 @@ public class ExtensionPathing {
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
     graph.addNode(algaeHigh);
-    graph.putEdge(untucked, algaeHigh);
+    graph.putEdge(betweenTucked, algaeHigh);
     graph.putEdge(algaeLow, algaeHigh);
 
-    graph.putEdge(l4TuckedOut, algaeHigh);
-    graph.putEdge(l4TuckedOut, algaeLow);
+    graph.putEdge(l4Tucked, algaeHigh);
+    graph.putEdge(l4Tucked, algaeLow);
   }
 
   private ExtensionPathing() {}
@@ -193,6 +193,8 @@ public class ExtensionPathing {
         result.stream()
             .min(
                 Comparator.comparing(
+                        (Pair<List<ExtensionState>, TotalMotion> s) -> s.getFirst().size())
+                    .thenComparing(
                         (Pair<List<ExtensionState>, TotalMotion> s) -> s.getSecond().elevator)
                     .thenComparing((s) -> s.getSecond().wristRotations)
                     .thenComparing((s) -> s.getSecond().shoulderRotations))
