@@ -111,6 +111,15 @@ public class ExtensionPathing {
     graph.addNode(l1);
     graph.putEdge(l1, betweenTucked);
 
+    final var algaeGround =
+        new ExtensionState(
+            ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS,
+            WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS);
+    graph.addNode(algaeGround);
+    graph.putEdge(algaeGround, betweenTucked);
+    graph.putEdge(algaeGround, untucked);
+
     final var algaeLow =
         new ExtensionState(
             ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
