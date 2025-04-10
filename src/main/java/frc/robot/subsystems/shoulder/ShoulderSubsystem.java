@@ -32,7 +32,8 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(53.0);
   public static final Rotation2d SHOULDER_CORAL_GROUND_POS = Rotation2d.fromDegrees(8.0);
 
-  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(0.505).plus(Rotation2d.fromDegrees(5.0));
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS =
+      Rotation2d.fromRadians(0.505).plus(Rotation2d.fromDegrees(2.0));
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(30.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(45.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS =
@@ -54,7 +55,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final MotionMagicConfigs DEFAULT_CONFIGS =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(6.0);
   public static final MotionMagicConfigs TOSS_CONFIGS =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.3).withMotionMagicAcceleration(4.0);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.35).withMotionMagicAcceleration(4.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
