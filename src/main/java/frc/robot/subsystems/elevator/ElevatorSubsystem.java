@@ -56,7 +56,9 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double INTAKE_ALGAE_LOW_EXTENSION = Units.inchesToMeters(20.0);
   public static final double INTAKE_ALGAE_HIGH_EXTENSION = Units.inchesToMeters(35.0);
 
-  public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(61.5);
+  // 1 inch high (maybe not needed?)
+  public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(62.5);
+
   public static final double ALGAE_PROCESSOR_EXTENSION = 0.01;
 
   public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);

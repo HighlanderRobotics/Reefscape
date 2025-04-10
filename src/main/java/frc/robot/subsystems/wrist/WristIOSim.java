@@ -27,7 +27,7 @@ public class WristIOSim implements WristIO {
 
   private final ArmFeedforward feedforward = new ArmFeedforward(0.0, 1.0, 0.0);
   private final ProfiledPIDController pid =
-      new ProfiledPIDController(30.0, 0.0, 0.1, new TrapezoidProfile.Constraints(10.0, 10.0));
+      new ProfiledPIDController(50.0, 0.0, 0.1, new TrapezoidProfile.Constraints(10.0, 10.0));
 
   private double appliedVoltage = 0.0;
 

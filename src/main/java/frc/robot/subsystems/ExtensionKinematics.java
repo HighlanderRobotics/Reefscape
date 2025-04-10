@@ -38,13 +38,20 @@ public class ExtensionKinematics {
       new Pose2d(0.26, 0.4, Rotation2d.fromDegrees(15.0)); // solveFK(L1_EXTENSION);
   public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
   public static final ExtensionState L2_EXTENSION =
-      new ExtensionState(0.33, Rotation2d.fromRadians(0.569), Rotation2d.fromRadians(2.447));
+      new ExtensionState(
+          0.23 + Units.inchesToMeters(1.5),
+          Rotation2d.fromRadians(0.569).plus(Rotation2d.fromDegrees(20)),
+          Rotation2d.fromRadians(2.447));
   public static final Pose2d L2_POSE = solveFK(L2_EXTENSION);
   public static final ExtensionState L3_EXTENSION =
-      new ExtensionState(0.68, Rotation2d.fromRadians(1.022), Rotation2d.fromRadians(2.427));
+      new ExtensionState(
+          0.60 + Units.inchesToMeters(2.0),
+          Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(3)),
+          Rotation2d.fromRadians(2.427));
   public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final Pose2d L4_POSE =
-      new Pose2d(new Translation2d(0.25, 2.05), Rotation2d.fromDegrees(110.0));
+      new Pose2d(new Translation2d(0.23, 2.05), Rotation2d.fromDegrees(110.0));
+
   public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
   public static final ExtensionState LOW_ALGAE_EXTENSION =
