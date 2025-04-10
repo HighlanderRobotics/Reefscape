@@ -381,7 +381,7 @@ public class Autos {
                                             AlgaeIntakeTargets.getClosestTargetPose(
                                                 swerve.getPose())),
                                         swerve.getVelocityFieldRelative(),
-                                        Units.inchesToMeters(1.0),
+                                        Units.inchesToMeters(0.5),
                                         Units.degreesToRadians(1.0))
                                     && elevator.isNearTarget()
                                     && shoulder.isNearAngle(
@@ -404,20 +404,22 @@ public class Autos {
         .onTrue(
             // Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
             Commands.sequence(
-                AutoAim.translateToXCoord(
-                        swerve,
-                        () ->
-                            Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
-                                    > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
-                                ? AutoAim.RED_NET_X
-                                : AutoAim.BLUE_NET_X,
-                        () -> 0,
-                        () ->
-                            (Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
-                                        > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
-                                    ? Rotation2d.kZero
-                                    : Rotation2d.k180deg)
-                                .plus(Rotation2d.fromDegrees(20.0)))
+                // AutoAim.translateToXCoord(
+                //         swerve,
+                //         () ->
+                //             DriverStation.getAlliance().get() == Alliance.Blue
+                //                 ? AutoAim.BLUE_NET_X
+                //                 : AutoAim.RED_NET_X,
+                //         () -> 0,
+                //         () ->
+                //             DriverStation.getAlliance().get() == Alliance.Blue
+                //                 ? Rotation2d.k180deg
+                //                 : Rotation2d.kZero.plus(Rotation2d.fromDegrees(20.0)))
+                AutoAim.translateToPose(swerve,
+                () -> new Pose2d(DriverStation.getAlliance().get() == Alliance.Blue
+                                ? AutoAim.BLUE_NET_X
+                                : AutoAim.RED_NET_X,
+                                ))
                     .until(
                         () ->
                             (MathUtil.isNear(
@@ -425,17 +427,17 @@ public class Autos {
                                         ? AutoAim.BLUE_NET_X
                                         : AutoAim.RED_NET_X,
                                     swerve.getPose().getX(),
-                                    Units.inchesToMeters(1))
+                                    Units.inchesToMeters(5))
                                 && MathUtil.isNear(
                                     DriverStation.getAlliance().get() == Alliance.Blue
                                         ? Rotation2d.k180deg
                                             .plus(Rotation2d.fromDegrees(20.0))
-                                            .getRadians()
+                                            .getDegrees()
                                         : Rotation2d.kZero
                                             .plus(Rotation2d.fromDegrees(20.0))
-                                            .getRadians(),
-                                    swerve.getPose().getRotation().getRadians(),
-                                    AutoAim.ROTATION_TOLERANCE_RADIANS))),
+                                            .getDegrees(),
+                                    swerve.getPose().getRotation().getDegrees(),
+                                    5.0))),
                 scoreAlgaeInAuto()));
     // routine.observe(steps.get("NItoIJ").done()).; //TODO cancel into autoalign
 
@@ -589,7 +591,7 @@ public class Autos {
               Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
               autoScore = true;
             }),
-        Commands.waitUntil(() -> manipulator.hasAlgae())
+        Commands.waitUntil(() -> !manipulator.hasAlgae())
             .alongWith(
                 Robot.isSimulation()
                     ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
