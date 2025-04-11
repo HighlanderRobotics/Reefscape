@@ -33,7 +33,7 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final Rotation2d SHOULDER_CORAL_GROUND_POS = Rotation2d.fromDegrees(8.0);
 
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS =
-      Rotation2d.fromRadians(0.505).plus(Rotation2d.fromDegrees(-1.0));
+      Rotation2d.fromRadians(0.505).plus(Rotation2d.fromDegrees(-5.0));
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(30.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(45.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS =
