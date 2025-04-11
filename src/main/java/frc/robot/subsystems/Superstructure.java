@@ -103,6 +103,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Force Funnel Req")
   private final Trigger forceFunnelReq;
 
+  @AutoLogOutput(key = "Superstructure/Force Funnel Req")
+  private final Trigger forceIndexReq;
+
   @AutoLogOutput(key = "Superstructure/Kill Vision and IK")
   private final Trigger killVisionIK;
 
@@ -146,6 +149,7 @@ public class Superstructure {
       Trigger homeReq,
       Trigger revFunnelReq,
       Trigger forceFunnelReq,
+      Trigger forceIndexReq,
       Trigger killVisionIK,
       DoubleSupplier coralAdjust) {
     this.elevator = elevator;
@@ -178,6 +182,8 @@ public class Superstructure {
     this.revFunnelReq = revFunnelReq;
     this.forceFunnelReq = forceFunnelReq;
 
+    this.forceIndexReq = forceIndexReq;
+
     this.killVisionIK = killVisionIK;
 
     this.coralAdjust = coralAdjust;
@@ -197,6 +203,10 @@ public class Superstructure {
   }
 
   private void configureStateTransitionCommands() {
+    // Prob a better way to impl this
+    // Vaughn says he wants this available anytime
+    forceIndexReq.whileTrue(manipulator.setVelocity(1.0));
+
     stateTriggers
         .get(SuperState.IDLE)
         .whileTrue(

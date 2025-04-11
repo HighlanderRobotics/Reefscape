@@ -495,6 +495,7 @@ public class Robot extends LoggedRobot {
           driver.start(),
           operator.rightBumper(),
           operator.leftBumper(),
+          operator.povDown(),
           new Trigger(() -> killVisionIK)
               .or(() -> currentTarget == ReefTarget.L1)
               .or(() -> DriverStation.isAutonomous()),
