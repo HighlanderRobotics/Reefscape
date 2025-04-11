@@ -320,9 +320,6 @@ public class Superstructure {
                                 () ->
                                     wrist.isNearTarget() && shoulder.getAngle().getDegrees() < 10.0)
                             .andThen(wrist.setVoltage(-1.0)))))
-        .whileTrue(
-            Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
-                .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly().until(intakeCoralReq.negate()));
 
     stateTriggers
