@@ -25,6 +25,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -79,6 +80,7 @@ import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CageTargets;
 import frc.robot.utils.autoaim.CoralTargets;
+import frc.robot.utils.autoaim.L1Targets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -186,9 +188,9 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private static ReefTarget currentTarget = ReefTarget.L1;
-  private AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
-  private AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  private static ReefTarget currentTarget = ReefTarget.L4;
+  private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+  private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
 
   @AutoLogOutput private boolean killVisionIK = true;
@@ -309,7 +311,7 @@ public class Robot extends LoggedRobot {
                       .withCurrentLimits(
                           new CurrentLimitsConfigs()
                               .withStatorCurrentLimitEnable(true)
-                              .withStatorCurrentLimit(120.0)
+                              .withStatorCurrentLimit(80.0)
                               .withSupplyCurrentLimit(30.0)
                               .withSupplyCurrentLimitEnable(true))
                       .withMotorOutput(
@@ -318,7 +320,7 @@ public class Robot extends LoggedRobot {
                           new FeedbackConfigs()
                               .withSensorToMechanismRatio(ManipulatorSubsystem.GEAR_RATIO))
                       .withSlot0(new Slot0Configs().withKV(0.928).withKP(0.5))
-                      .withSlot1(new Slot1Configs().withKP(7.5).withKD(0.5).withKS(0.39)))
+                      .withSlot1(new Slot1Configs().withKP(7.5).withKD(0.5).withKS(0.5)))
               : new RollerIOSim(
                   0.01,
                   5.8677,
@@ -440,27 +442,27 @@ public class Robot extends LoggedRobot {
                       .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore && DriverStation.isAutonomous())
-          //   .or(
-          //       new Trigger(
-          //               () ->
-          //                   AutoAim.isInToleranceCoral(
-          //                           swerve.getPose(),
-          //                           Units.inchesToMeters(1.0),
-          //                           Units.degreesToRadians(1.0))
-          //                       && MathUtil.isNear(
-          //                           0,
-          //                           Math.hypot(
-          //                               swerve.getVelocityRobotRelative().vxMetersPerSecond,
-          //                               swerve.getVelocityRobotRelative().vyMetersPerSecond),
-          //                           AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-          //                       && MathUtil.isNear(
-          //                           0.0,
-          //                           swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-          //                           3.0)
-          //                       && currentTarget != ReefTarget.L4)
-          //           .debounce(0.08)
-          //           .and(() -> swerve.hasFrontTags))
-          ,
+              .or(
+                  new Trigger(
+                          () ->
+                              AutoAim.isInToleranceCoral(
+                                      swerve.getPose(),
+                                      Units.inchesToMeters(1.5),
+                                      Units.degreesToRadians(1.5))
+                                  && MathUtil.isNear(
+                                      0,
+                                      Math.hypot(
+                                          swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                          swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                      AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                                  && MathUtil.isNear(
+                                      0.0,
+                                      swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+                                      3.0)
+                                  && currentTarget != ReefTarget.L4
+                                  && currentTarget != ReefTarget.L1)
+                      .debounce(0.08)
+                      .and(() -> swerve.hasFrontTags)),
           driver
               .rightTrigger()
               .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
@@ -477,8 +479,8 @@ public class Robot extends LoggedRobot {
                                   .getNorm()
                               < 3.25
                           && DriverStation.isAutonomous()),
-          driver.leftTrigger(),
-          driver.leftBumper().or(() -> Autos.autoGroundIntake && DriverStation.isAutonomous()),
+          driver.leftTrigger().or(() -> Autos.autoAlgaeIntake && DriverStation.isAutonomous()),
+          driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous()),
           driver
               .x()
               .and(driver.pov(-1).negate())
@@ -493,6 +495,7 @@ public class Robot extends LoggedRobot {
           driver.start(),
           operator.rightBumper(),
           operator.leftBumper(),
+          operator.povDown(),
           new Trigger(() -> killVisionIK)
               .or(() -> currentTarget == ReefTarget.L1)
               .or(() -> DriverStation.isAutonomous()),
@@ -592,7 +595,7 @@ public class Robot extends LoggedRobot {
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
 
-    autos = new Autos(swerve, manipulator, funnel);
+    autos = new Autos(swerve, manipulator, funnel, elevator, shoulder, wrist);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
 
     SmartDashboard.putData(
@@ -698,7 +701,7 @@ public class Robot extends LoggedRobot {
         .onTrue(Commands.runOnce(() -> Autos.autoPreScore = false));
 
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
-        .onTrue(Commands.runOnce(() -> Autos.autoGroundIntake = false));
+        .onTrue(Commands.runOnce(() -> Autos.autoGroundCoralIntake = false));
 
     new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
         .onTrue(
@@ -732,7 +735,12 @@ public class Robot extends LoggedRobot {
 
     new Trigger(() -> DriverStation.isAutonomousEnabled())
         .onTrue(
-            Commands.runOnce(() -> swerve.setCurrentLimits(new CurrentLimitsConfigs()))
+            Commands.runOnce(
+                    () ->
+                        swerve.setCurrentLimits(
+                            new CurrentLimitsConfigs()
+                                .withStatorCurrentLimitEnable(false)
+                                .withSupplyCurrentLimitEnable(false)))
                 .ignoringDisable(true))
         .onFalse(
             Commands.runOnce(
@@ -804,7 +812,8 @@ public class Robot extends LoggedRobot {
 
     driver
         .rightBumper()
-        .and(() -> superstructure.stateIsCoralAlike())
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && currentTarget != ReefTarget.L1)
         .whileTrue(
             Commands.parallel(
                 AutoAim.autoAimWithIntermediatePose(
@@ -824,6 +833,32 @@ public class Robot extends LoggedRobot {
                         AutoAim.INITIAL_REEF_KEEPOFF_DISTANCE_METERS, 0.0, Rotation2d.kZero)),
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && currentTarget == ReefTarget.L1)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.alignToLine(
+                    swerve,
+                    () ->
+                        modifyJoystick(driver.getLeftY())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                    () ->
+                        modifyJoystick(driver.getLeftX())
+                            * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+                    () -> L1Targets.getNearestLine(swerve.getPose())),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInTolerance(
+                                swerve.getPose(),
+                                new Pose2d(
+                                    L1Targets.getNearestLine(swerve.getPose())
+                                        .nearest(swerve.getPose().getTranslation()),
+                                    L1Targets.getNearestLine(swerve.getPose()).getRotation())))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
     driver
         .rightBumper()
         .and(
@@ -966,10 +1001,11 @@ public class Robot extends LoggedRobot {
                         modifyJoystick(driver.getLeftX())
                             * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
                     () ->
-                        Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
-                                > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
-                            ? Rotation2d.kZero
-                            : Rotation2d.k180deg),
+                        (Math.abs(swerve.getPose().getX() - AutoAim.BLUE_NET_X)
+                                    > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
+                                ? Rotation2d.kZero
+                                : Rotation2d.k180deg)
+                            .plus(Rotation2d.fromDegrees(30.0))),
                 Commands.waitUntil(
                         () -> {
                           final var diff =
@@ -1007,6 +1043,7 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
                 }));
+    driver.x().onTrue(Commands.runOnce(() -> shoulder.rezero()).ignoringDisable(true));
 
     operator
         .a()
@@ -1092,6 +1129,12 @@ public class Robot extends LoggedRobot {
               .toArray(Pose2d[]::new));
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(
+          "AutoAim/Targets/L1",
+          Stream.of(L1Targets.values())
+              .map((target) -> L1Targets.getRobotTargetLine(target.line))
+              .toArray(Rectangle2d[]::new));
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput(
           "AutoAim/Targets/Algae",
           Stream.of(AlgaeIntakeTargets.values())
               .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
@@ -1120,6 +1163,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 L Inside", autos.LItoK());
     autoChooser.addOption("4.5 R Inside", autos.RItoD());
     autoChooser.addOption("Push Auto", autos.PMtoPL());
+    autoChooser.addDefaultOption("Algae auto", autos.CMtoGH());
   }
 
   /** Scales a joystick value for teleop driving */
@@ -1277,6 +1321,8 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
+    Logger.recordOutput("Autos/Coral Pre Score", Autos.autoPreScore);
+    Logger.recordOutput("Autos/Coral Score", Autos.autoScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
@@ -1292,6 +1338,30 @@ public class Robot extends LoggedRobot {
               new ExtensionState(
                   elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
     state = superstructure::getState;
+  }
+
+  public static void setCurrentCoralTarget(ReefTarget target) {
+    currentTarget = target;
+  }
+
+  public ReefTarget getCurrentCoralTarget() {
+    return currentTarget;
+  }
+
+  public static void setCurrentAlgaeIntakeTarget(AlgaeIntakeTarget target) {
+    algaeIntakeTarget = target;
+  }
+
+  public AlgaeIntakeTarget getCurrentAlgaeIntakeTarget() {
+    return algaeIntakeTarget;
+  }
+
+  public static void setCurrentAlgaeScoreTarget(AlgaeScoreTarget target) {
+    algaeScoreTarget = target;
+  }
+
+  public AlgaeScoreTarget getCurrentAlgaeScoreTarget() {
+    return algaeScoreTarget;
   }
 
   public static void setCurrentTarget(ReefTarget target) {

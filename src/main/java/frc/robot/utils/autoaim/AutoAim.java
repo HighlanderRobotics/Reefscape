@@ -5,6 +5,7 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -38,6 +39,8 @@ public class AutoAim {
   public static Pose2d BLUE_PROCESSOR_POS = new Pose2d(5.973, 0, Rotation2d.fromDegrees(270));
   public static Pose2d RED_PROCESSOR_POS = ChoreoAllianceFlipUtil.flip(BLUE_PROCESSOR_POS);
   public static List<Pose2d> PROCESSOR_POSES = List.of(BLUE_PROCESSOR_POS, RED_PROCESSOR_POS);
+
+  public static final double L1_TROUGH_WIDTH_METERS = 0.935;
 
   public static final double TRANSLATION_TOLERANCE_METERS = Units.inchesToMeters(2.0);
   public static final double ROTATION_TOLERANCE_RADIANS = Units.degreesToRadians(2.0);
@@ -110,7 +113,7 @@ public class AutoAim {
         new ProfiledPIDController(
             10.0,
             0.01,
-            0.02,
+            0.04,
             new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
     return Commands.runOnce(
             () -> {
@@ -147,13 +150,13 @@ public class AutoAim {
                                           cachedTarget[0].getRotation().getRadians())
                                       + headingController.getSetpoint().velocity)
                               .plus(speedsModifier.get());
-                  if (Robot.ROBOT_TYPE != RobotType.REAL)
-                    Logger.recordOutput(
-                        "AutoAim/Target Pose",
-                        new Pose2d(
-                            vxController.getSetpoint().position,
-                            vyController.getSetpoint().position,
-                            Rotation2d.fromRadians(headingController.getSetpoint().position)));
+                  // if (Robot.ROBOT_TYPE != RobotType.REAL)
+                  Logger.recordOutput(
+                      "AutoAim/Target Pose",
+                      new Pose2d(
+                          vxController.getSetpoint().position,
+                          vyController.getSetpoint().position,
+                          Rotation2d.fromRadians(headingController.getSetpoint().position)));
                   if (Robot.ROBOT_TYPE != RobotType.REAL)
                     Logger.recordOutput("AutoAim/Target Speeds", speeds);
                   return speeds;
@@ -216,6 +219,91 @@ public class AutoAim {
                         new Pose2d(
                             vxController.getSetpoint().position,
                             0,
+                            Rotation2d.fromRadians(headingController.getSetpoint().position)));
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput("AutoAim/Target Speeds", speeds);
+                  return speeds;
+                }));
+  }
+
+  public static Command alignToLine(
+      SwerveSubsystem swerve,
+      DoubleSupplier xVel,
+      DoubleSupplier yVel,
+      Supplier<Rectangle2d> line) {
+    final Pose2d cachedTarget[] = {new Pose2d()};
+    final ProfiledPIDController headingController =
+        // assume we can accelerate to max in 2/3 of a second
+        new ProfiledPIDController(
+            Robot.ROBOT_HARDWARE.swerveConstants.getHeadingVelocityKP(),
+            0.0,
+            0.0,
+            new TrapezoidProfile.Constraints(MAX_ANGULAR_SPEED, MAX_ANGULAR_ACCELERATION));
+    headingController.enableContinuousInput(-Math.PI, Math.PI);
+    final ProfiledPIDController vxController =
+        new ProfiledPIDController(
+            10.0,
+            0.01,
+            0.02,
+            new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+    final ProfiledPIDController vyController =
+        new ProfiledPIDController(
+            10.0,
+            0.01,
+            0.02,
+            new TrapezoidProfile.Constraints(MAX_AUTOAIM_SPEED, MAX_AUTOAIM_ACCELERATION));
+    return Commands.runOnce(
+            () -> {
+              cachedTarget[0] =
+                  new Pose2d(
+                      line.get().nearest(swerve.getPose().getTranslation()),
+                      line.get().getRotation());
+              if (Robot.ROBOT_TYPE != RobotType.REAL)
+                Logger.recordOutput("AutoAim/Cached Target", cachedTarget[0]);
+              headingController.reset(swerve.getPose().getRotation().getRadians(), 0.0);
+              vxController.reset(swerve.getPose().getX(), 0.0);
+              vyController.reset(swerve.getPose().getY(), 0.0);
+            })
+        .andThen(
+            swerve.driveVelocityFieldRelative(
+                () -> {
+                  Supplier<Pose2d> target =
+                      () ->
+                          new Pose2d(
+                              line.get().nearest(swerve.getPose().getTranslation()),
+                              line.get().getRotation());
+                  final var diff = swerve.getPose().minus(target.get());
+                  var driverReqSpeedsRobotRelative =
+                      ChassisSpeeds.fromFieldRelativeSpeeds(
+                          xVel.getAsDouble(), yVel.getAsDouble(), 0.0, swerve.getRotation());
+                  driverReqSpeedsRobotRelative.vxMetersPerSecond = 0;
+                  final var speeds =
+                      MathUtil.isNear(0.0, diff.getX(), Units.inchesToMeters(0.25))
+                              && MathUtil.isNear(0.0, diff.getY(), Units.inchesToMeters(0.25))
+                              && MathUtil.isNear(0.0, diff.getRotation().getDegrees(), 0.5)
+                          ? new ChassisSpeeds()
+                          : new ChassisSpeeds(
+                                  vxController.calculate(
+                                          swerve.getPose().getX(), target.get().getX())
+                                      + vxController.getSetpoint().velocity,
+                                  // Use the inputted y velocity target
+                                  vyController.calculate(
+                                          swerve.getPose().getY(), target.get().getY())
+                                      + vyController.getSetpoint().velocity,
+                                  headingController.calculate(
+                                          swerve.getPose().getRotation().getRadians(),
+                                          target.get().getRotation().getRadians())
+                                      + headingController.getSetpoint().velocity)
+                              .plus(
+                                  ChassisSpeeds.fromRobotRelativeSpeeds(
+                                          driverReqSpeedsRobotRelative, swerve.getRotation())
+                                      .times(1.5));
+                  if (Robot.ROBOT_TYPE != RobotType.REAL)
+                    Logger.recordOutput(
+                        "AutoAim/Target Pose",
+                        new Pose2d(
+                            vxController.getSetpoint().position,
+                            vyController.getSetpoint().position,
                             Rotation2d.fromRadians(headingController.getSetpoint().position)));
                   if (Robot.ROBOT_TYPE != RobotType.REAL)
                     Logger.recordOutput("AutoAim/Target Speeds", speeds);

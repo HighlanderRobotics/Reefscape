@@ -23,8 +23,8 @@ import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
-import frc.robot.utils.autoaim.CoralTargets;
 import frc.robot.utils.autoaim.HumanPlayerTargets;
+import frc.robot.utils.autoaim.L1Targets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -103,6 +103,9 @@ public class Superstructure {
   @AutoLogOutput(key = "Superstructure/Force Funnel Req")
   private final Trigger forceFunnelReq;
 
+  @AutoLogOutput(key = "Superstructure/Force Funnel Req")
+  private final Trigger forceIndexReq;
+
   @AutoLogOutput(key = "Superstructure/Kill Vision and IK")
   private final Trigger killVisionIK;
 
@@ -146,6 +149,7 @@ public class Superstructure {
       Trigger homeReq,
       Trigger revFunnelReq,
       Trigger forceFunnelReq,
+      Trigger forceIndexReq,
       Trigger killVisionIK,
       DoubleSupplier coralAdjust) {
     this.elevator = elevator;
@@ -178,6 +182,8 @@ public class Superstructure {
     this.revFunnelReq = revFunnelReq;
     this.forceFunnelReq = forceFunnelReq;
 
+    this.forceIndexReq = forceIndexReq;
+
     this.killVisionIK = killVisionIK;
 
     this.coralAdjust = coralAdjust;
@@ -197,6 +203,10 @@ public class Superstructure {
   }
 
   private void configureStateTransitionCommands() {
+    // Prob a better way to impl this
+    // Vaughn says he wants this available anytime
+    forceIndexReq.whileTrue(manipulator.setVelocity(1.0));
+
     stateTriggers
         .get(SuperState.IDLE)
         .whileTrue(
@@ -304,23 +314,22 @@ public class Superstructure {
         .whileTrue(
             extendWithClearance(
                     ElevatorSubsystem.GROUND_EXTENSION_METERS,
-                    ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS,
-                    WristSubsystem.WRIST_CORAL_GROUND)
-                .until(
-                    () ->
-                        shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS)
-                            && wrist.isNearAngle(WristSubsystem.WRIST_CORAL_GROUND))
+                    Rotation2d.fromDegrees(35.0),
+                    WristSubsystem.WRIST_CLEARANCE_POS)
+                .until(() -> elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS))
                 .andThen(
                     Commands.parallel(
-                        shoulder.setVoltage(-1.0),
+                        shoulder
+                            .setVoltage(-10.0)
+                            .until(() -> shoulder.getAngle().getDegrees() < 10.0)
+                            .andThen(shoulder.setVoltage(-1.0)),
                         elevator.setExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS),
                         wrist
                             .setTargetAngle(WristSubsystem.WRIST_CORAL_GROUND)
-                            .until(wrist::isNearTarget)
+                            .until(
+                                () ->
+                                    wrist.isNearTarget() && shoulder.getAngle().getDegrees() < 10.0)
                             .andThen(wrist.setVoltage(-1.0)))))
-        .whileTrue(
-            Commands.waitUntil(() -> shoulder.getAngle().getDegrees() < 20.0)
-                .andThen(Commands.runOnce(() -> shoulder.rezero())))
         .whileTrue(manipulator.intakeCoral().repeatedly().until(intakeCoralReq.negate()));
 
     stateTriggers
@@ -416,6 +425,9 @@ public class Superstructure {
     // PRE_L{1-4} logic + -> SCORE_CORAL
     stateTriggers
         .get(SuperState.PRE_L1)
+        .and(
+            () ->
+                L1Targets.getNearestLine(pose.get()).getDistance(pose.get().getTranslation()) > 0.3)
         // .whileTrue(
         //     this.extendWithClearance(
         //         ElevatorSubsystem.L1_EXTENSION_METERS,
@@ -428,10 +440,23 @@ public class Superstructure {
                         ? ExtensionKinematics.L1_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L1_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + coralAdjust.getAsDouble()))
+        .whileTrue(
+            manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + 0.25 + coralAdjust.getAsDouble()));
+
+    stateTriggers
+        .get(SuperState.PRE_L1)
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.L1_EXTENSION_METERS))
         .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SCORE_L1_POS))
         .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SCORE_L1_POS))
+        .whileTrue(
+            this.extendWithClearance(
+                () ->
+                    killVisionIK.getAsBoolean()
+                        ? ExtensionKinematics.L1_EXTENSION
+                        : ExtensionKinematics.getPoseCompensatedExtension(
+                            pose.get(), ExtensionKinematics.L1_EXTENSION)))
+        .whileTrue(
+            manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + 0.25 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -449,7 +474,8 @@ public class Superstructure {
                         ? ExtensionKinematics.L2_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L2_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + coralAdjust.getAsDouble()))
+        .whileTrue(
+            manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + 0.25 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -467,7 +493,8 @@ public class Superstructure {
                         ? ExtensionKinematics.L3_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L3_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + coralAdjust.getAsDouble()))
+        .whileTrue(
+            manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + 0.25 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -485,7 +512,8 @@ public class Superstructure {
                         ? ExtensionKinematics.L4_EXTENSION
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L4_EXTENSION)))
-        .whileTrue(manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + coralAdjust.getAsDouble()))
+        .whileTrue(
+            manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + 0.125 + coralAdjust.getAsDouble()))
         .and(scoreReq)
         .onTrue(this.forceState(SuperState.SCORE_CORAL));
 
@@ -569,10 +597,7 @@ public class Superstructure {
         .and(() -> !intakeAlgaeReq.getAsBoolean() || !intakeTargetOnReef())
         .and(
             () ->
-                CoralTargets.getClosestTarget(pose.get())
-                        .getTranslation()
-                        .getDistance(pose.get().getTranslation())
-                    > 0.3)
+                L1Targets.getNearestLine(pose.get()).getDistance(pose.get().getTranslation()) > 0.3)
         .debounce(0.15)
         .onTrue(forceState(SuperState.IDLE));
 
@@ -583,10 +608,7 @@ public class Superstructure {
         .and(killVisionIK)
         .and(
             () ->
-                CoralTargets.getClosestTarget(pose.get())
-                        .getTranslation()
-                        .getDistance(pose.get().getTranslation())
-                    > 0.3)
+                L1Targets.getNearestLine(pose.get()).getDistance(pose.get().getTranslation()) > 0.3)
         .onTrue(forceState(SuperState.IDLE));
 
     stateTriggers
@@ -721,7 +743,9 @@ public class Superstructure {
                         > 0.3
                     || (algaeIntakeTarget.get() == AlgaeIntakeTarget.GROUND
                         || algaeIntakeTarget.get() == AlgaeIntakeTarget.STACK))
-        .onTrue(this.forceState(SuperState.READY_ALGAE));
+        .onTrue(
+            this.forceState(SuperState.READY_ALGAE)
+                .alongWith(Commands.runOnce(() -> manipulator.setHasAlgae(true)))); // gahahaha
 
     // READY_ALGAE logic
     stateTriggers
@@ -783,10 +807,10 @@ public class Superstructure {
             Commands.parallel(
                 elevator.setExtensionSlow(ElevatorSubsystem.ALGAE_NET_EXTENSION),
                 // Make it initially extend to the full 90 degrees
-                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS),
-                wrist.setSlowTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS)))
-        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
-        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
+                shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS),
+                wrist.setSlowTargetAngle(WristSubsystem.WRIST_PRE_NET_POS)))
+        .and(() -> wrist.isNearAngle(WristSubsystem.WRIST_PRE_NET_POS))
+        .and(() -> shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_PRE_NET_POS))
         .and(() -> elevator.isNearExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .and(scoreReq)
         .onTrue(forceState(SuperState.SCORE_ALGAE_NET));
@@ -794,14 +818,23 @@ public class Superstructure {
     stateTriggers
         .get(SuperState.SCORE_ALGAE_NET)
         .onTrue(Commands.runOnce(() -> stateTimer.reset()))
-        .whileTrue(manipulator.setVoltage(-13.0))
+        .whileTrue(
+            manipulator
+                .hold()
+                .until(
+                    () ->
+                        shoulder.getVelocity()
+                            > ShoulderSubsystem.TOSS_CONFIGS.MotionMagicCruiseVelocity - 0.1)
+                .andThen(manipulator.setVoltage(-13.0)))
         .whileTrue(elevator.setExtension(ElevatorSubsystem.ALGAE_NET_EXTENSION))
         .whileTrue(shoulder.setTargetAngleSlow(ShoulderSubsystem.SHOULDER_SHOOT_NET_POS))
         .whileTrue(wrist.setTargetAngle(WristSubsystem.WRIST_SHOOT_NET_POS))
         .and(() -> stateTimer.hasElapsed(0.5))
         .whileTrue(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS))
         .and(() -> stateTimer.hasElapsed(1.0))
-        .onTrue(forceState(SuperState.IDLE));
+        .onTrue(
+            forceState(SuperState.IDLE)
+                .alongWith(Commands.runOnce(() -> manipulator.setHasAlgae(false))));
 
     stateTriggers
         .get(SuperState.SCORE_ALGAE_PROCESSOR)

@@ -110,6 +110,35 @@ public class ExtensionPathing {
     final var l1 = ExtensionKinematics.L1_EXTENSION;
     graph.addNode(l1);
     graph.putEdge(l1, betweenTucked);
+
+    final var algaeGround =
+        new ExtensionState(
+            ElevatorSubsystem.INTAKE_ALGAE_GROUND_EXTENSION,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_GROUND_POS,
+            WristSubsystem.WRIST_INTAKE_ALGAE_GROUND_POS);
+    graph.addNode(algaeGround);
+    graph.putEdge(algaeGround, betweenTucked);
+    graph.putEdge(algaeGround, untucked);
+
+    final var algaeLow =
+        new ExtensionState(
+            ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+    graph.addNode(algaeLow);
+    graph.putEdge(betweenTucked, algaeLow);
+
+    final var algaeHigh =
+        new ExtensionState(
+            ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+    graph.addNode(algaeHigh);
+    graph.putEdge(betweenTucked, algaeHigh);
+    graph.putEdge(algaeLow, algaeHigh);
+
+    graph.putEdge(l4Tucked, algaeHigh);
+    graph.putEdge(l4Tucked, algaeLow);
   }
 
   private ExtensionPathing() {}
@@ -164,6 +193,8 @@ public class ExtensionPathing {
         result.stream()
             .min(
                 Comparator.comparing(
+                        (Pair<List<ExtensionState>, TotalMotion> s) -> s.getFirst().size())
+                    .thenComparing(
                         (Pair<List<ExtensionState>, TotalMotion> s) -> s.getSecond().elevator)
                     .thenComparing((s) -> s.getSecond().wristRotations)
                     .thenComparing((s) -> s.getSecond().shoulderRotations))
