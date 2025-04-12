@@ -141,7 +141,7 @@ public class Autos {
                 endPos.length() == 3
                     ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
                     : scoreCoralInAuto(
-                                () -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
+                        () -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -418,8 +418,7 @@ public class Autos {
                         - (endPos.length() == 1 ? 0.3 : 0.0)))
         .onTrue(
             Commands.sequence(
-                scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                ));
+                scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get())));
   }
 
   public Command scoreCoralInAuto(Supplier<Pose2d> trajEndPose) {
