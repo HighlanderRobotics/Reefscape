@@ -140,28 +140,8 @@ public class Autos {
             Commands.sequence(
                 endPos.length() == 3
                     ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
-                    : Commands.sequence(
-                        endPos.length() == 1
-                            ? scoreCoralInAuto(
-                                () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                            : Commands.print("autoaligning")
-                                .andThen(
-                                    AutoAim.translateToPose( // TODO does this get called?
-                                            swerve,
-                                            () ->
-                                                steps
-                                                    .get(startPos + "to" + endPos)
-                                                    .getFinalPose()
-                                                    .get())
-                                        .until(
-                                            () ->
-                                                AutoAim.isInTolerance(
-                                                    swerve.getPose(),
-                                                    steps
-                                                        .get(startPos + "to" + endPos)
-                                                        .getFinalPose()
-                                                        .get()))
-                                        .withTimeout(2.0))),
+                    : scoreCoralInAuto(
+                                () -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -380,68 +360,6 @@ public class Autos {
             Commands.sequence(
                 intakeAlgaeInAuto(() -> steps.get("NItoIJ").getFinalPose()),
                 swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2)));
-
-    // routine
-    //     .observe(
-    //         steps
-    //             .get("IJtoNI")
-    //             .atTime(steps.get("IJtoNI").getRawTrajectory().getTotalTime() - 0.2)) // TODO
-    // tune
-    //     .onTrue(Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoEF").cmd()));
-    // routine
-    //     .observe(steps.get("NItoEF").done())
-    //     .onTrue(Commands.sequence(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose())));
-
-    // ---------------------------
-    // Commands.sequence(
-    //     // AutoAim.translateToXCoord(
-    //     //         swerve,
-    //     //         () ->
-    //     //             DriverStation.getAlliance().get() == Alliance.Blue
-    //     //                 ? AutoAim.BLUE_NET_X
-    //     //                 : AutoAim.RED_NET_X,
-    //     //         () -> 0,
-    //     //         () ->
-    //     //             DriverStation.getAlliance().get() == Alliance.Blue
-    //     //                 ? Rotation2d.k180deg
-    //     //                 : Rotation2d.kZero.plus(Rotation2d.fromDegrees(20.0)))
-    //         AutoAim.translateToPose(swerve,
-    //         () -> new Pose2d(DriverStation.getAlliance().get() == Alliance.Blue
-    //                         ? AutoAim.BLUE_NET_X
-    //                         : AutoAim.RED_NET_X,
-    //                         steps.get("GhtoNI").))
-    //         .until(
-    //             () ->
-    //                 (MathUtil.isNear(
-    //                         DriverStation.getAlliance().get() == Alliance.Blue
-    //                             ? AutoAim.BLUE_NET_X
-    //                             : AutoAim.RED_NET_X,
-    //                         swerve.getPose().getX(),
-    //                         Units.inchesToMeters(5))
-    //                     && MathUtil.isNear(
-    //                         DriverStation.getAlliance().get() == Alliance.Blue
-    //                             ? Rotation2d.k180deg
-    //                                 .plus(Rotation2d.fromDegrees(20.0))
-    //                                 .getDegrees()
-    //                             : Rotation2d.kZero
-    //                                 .plus(Rotation2d.fromDegrees(20.0))
-    //                                 .getDegrees(),
-    //                         swerve.getPose().getRotation().getDegrees(),
-    //                         5.0))),
-    // scoreAlgaeInAuto())
-    // )
-
-    // routine.observe(steps.get("NItoIJ").done()).; //TODO cancel into autoalign
-
-    // for (int i = 0; i < stops.length - 2; i++) {
-    //   String startPos = stops[i];
-    //   String endPos = stops[i + 1];
-    //   String nextPos = stops[i + 2];
-    //   runAlgaePath(routine, startPos, endPos, nextPos, steps);
-    // }
-    // routine
-    //     .observe(steps.get("NItoEF").done())
-    //     .onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
     return routine.cmd();
   }
 
@@ -501,9 +419,6 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                // ,
-                // Commands.runOnce(() -> autoGroundCoralIntake = true),
-                // steps.get(endPos + "to" + nextPos).cmd()
                 ));
   }
 
