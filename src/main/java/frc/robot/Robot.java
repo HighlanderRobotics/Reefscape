@@ -1166,7 +1166,7 @@ public class Robot extends LoggedRobot {
     autoChooser.addOption("4.5 R Inside", autos.RItoD());
     autoChooser.addOption("Push Auto", autos.PMtoPL());
     autoChooser.addOption("Algae auto", autos.CMtoGH());
-    autoChooser.addOption("2910 auto", autos.LOtoA());
+    autoChooser.addOption("!!! DO NOT RUN!! 2910 auto", autos.LOtoA());
   }
 
   /** Scales a joystick value for teleop driving */

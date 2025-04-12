@@ -358,7 +358,7 @@ public class Autos {
         .whileTrue(Commands.sequence(steps.get("CMtoG").resetOdometry(), steps.get("CMtoG").cmd()));
 
     routine
-        .observe(steps.get("CMtoG").done())
+        .observe(steps.get("CMtoG").done()) // TODO change to time based
         .onTrue(Commands.sequence(scoreCoralInAuto(() -> steps.get("CMtoG").getFinalPose().get())));
     routine
         .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
@@ -456,11 +456,27 @@ public class Autos {
         // run first path
         .active()
         .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
-        .whileTrue(
+        .whileTrue(Commands.sequence(steps.get("LOtoA").resetOdometry(), steps.get("LOtoA").cmd()));
+    routine
+        .observe(
+            steps.get("LOtoA").atTime(steps.get("LOtoA").getRawTrajectory().getTotalTime() - 0.3))
+        .onTrue(
             Commands.sequence(
-                routine.trajectory("LOtoA").resetOdometry(), routine.trajectory("LOtoA").cmd()));
+                scoreCoralInAuto(() -> steps.get("LOtoA").getFinalPose().get()),
+                Commands.runOnce(() -> autoGroundCoralIntake = true),
+                swerve
+                    .driveTeleop(() -> new ChassisSpeeds(-0.3, 0, 0))
+                    .until(
+                        () -> elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)),
+                steps.get("AtoB").cmd()));
 
-    runGroundPath(routine, "LO", "A", "B", steps);
+    // routine
+    //     .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+    //     .onTrue(
+    //         Commands.sequence(
+    //             swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2)));
+    // runGroundPath(routine, "LO", "A", "B", steps);
+    // runCoralPath(routine, "LO", "A", "B", steps);
     // ----------------
     // runGroundPath(routine, "A", "B", "B", steps);
     // TODO dealgae - merge from prechamps
@@ -493,6 +509,7 @@ public class Autos {
 
   public Command scoreCoralInAuto(Supplier<Pose2d> trajEndPose) {
     return Commands.sequence(
+            Commands.print("scoring"),
             Commands.waitUntil(
                 new Trigger(
                         () ->
@@ -530,11 +547,13 @@ public class Autos {
                   autoPreScore = false;
                 }))
         .raceWith(
-            AutoAim.translateToPose(
-                swerve,
-                () -> CoralTargets.getClosestTarget(trajEndPose.get()),
-                ChassisSpeeds::new,
-                new Constraints(1.5, 1.0)));
+            Commands.print("autoaiming frrr")
+                .andThen(
+                    AutoAim.translateToPose(
+                        swerve,
+                        () -> CoralTargets.getClosestTarget(trajEndPose.get()),
+                        ChassisSpeeds::new,
+                        new Constraints(1.5, 1.0))));
   }
 
   public Command intakeCoralInAuto(Supplier<Optional<Pose2d>> pose) {
