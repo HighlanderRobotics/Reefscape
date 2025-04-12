@@ -13,6 +13,7 @@ import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.utils.Tracer;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
@@ -90,6 +91,7 @@ public class ShoulderSubsystem extends SubsystemBase {
       Logger.recordOutput("Carriage/Shoulder/Cancoder Pos", getZeroingAngle());
   }
 
+  @AutoLogOutput(key = "Shoulder/Zeroing Angle")
   public Rotation2d getZeroingAngle() {
     return Rotation2d.fromRotations(inputs.cancoderPosition).div(SHOULDER_FINAL_STAGE_RATIO);
   }
