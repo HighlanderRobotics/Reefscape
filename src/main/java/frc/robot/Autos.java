@@ -372,53 +372,34 @@ public class Autos {
         .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
         .onTrue(
             Commands.sequence(
-                    swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2),
-                    Commands.runOnce(
-                        () -> {
-                          autoAlgaeIntake = true;
-                          Robot.setCurrentAlgaeIntakeTarget(
-                              AlgaeIntakeTargets.getClosestTarget(
-                                      steps.get("CMtoG").getFinalPose().get())
-                                  .height);
-                        }),
-                    AutoAim.translateToPose(
-                            swerve,
-                            () ->
-                                AlgaeIntakeTargets.getOffsetLocation(
-                                    AlgaeIntakeTargets.getClosestTargetPose(
-                                        steps.get("CMtoG").getFinalPose().get())))
-                        .until(
-                            () ->
-                                AutoAim.isInTolerance(
-                                        swerve.getPose(),
-                                        AlgaeIntakeTargets.getOffsetLocation(
-                                            AlgaeIntakeTargets.getClosestTargetPose(
-                                                swerve.getPose())),
-                                        swerve.getVelocityFieldRelative(),
-                                        Units.inchesToMeters(0.5),
-                                        Units.degreesToRadians(1.0))
-                                    && elevator.isNearTarget()
-                                    && shoulder.isNearAngle(
-                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
-                                    && wrist.isNearAngle(
-                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
-                    AutoAim.approachAlgae(
-                            swerve,
-                            () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
-                            1)
-                        .withTimeout(0.5))
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          autoAlgaeIntake = false;
-                        }),
-                    steps.get("GHtoNI").cmd()));
+                swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2),
+                intakeAlgaeInAuto(() -> steps.get("CMtoG").getFinalPose()),
+                steps.get("GHtoNI").cmd()));
     routine
         .observe(
             steps
                 .get("GHtoNI")
                 .atTime(steps.get("GHtoNI").getRawTrajectory().getTotalTime() - 0.2)) // TODO tune
         .onTrue(Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
+    // ------------------sketchy--------
+    routine
+        .observe(steps.get("NItoIJ").done())
+        .onTrue(
+            Commands.sequence(
+                intakeAlgaeInAuto(() -> steps.get("NItoJ").getFinalPose()),
+                steps.get("IJtoNI").cmd()));
+
+    routine
+        .observe(
+            steps
+                .get("IJtoNI")
+                .atTime(steps.get("IJtoNI").getRawTrajectory().getTotalTime() - 0.2)) // TODO tune
+        .onTrue(Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoEF").cmd()));
+    routine
+        .observe(steps.get("NItoEF").done())
+        .onTrue(Commands.sequence(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose())));
+
+    // ---------------------------
     // Commands.sequence(
     //     // AutoAim.translateToXCoord(
     //     //         swerve,
@@ -456,7 +437,7 @@ public class Autos {
     //                         5.0))),
     // scoreAlgaeInAuto())
     // )
-    ;
+
     // routine.observe(steps.get("NItoIJ").done()).; //TODO cancel into autoalign
 
     // for (int i = 0; i < stops.length - 2; i++) {
@@ -644,45 +625,41 @@ public class Autos {
                       autoPreScore = false;
                     })));
   }
-  // public void runAlgaePath(
-  //     AutoRoutine routine,
-  //     String startPos,
-  //     String endPos,
-  //     String nextPos,
-  //     HashMap<String, AutoTrajectory> steps) {
-  //   routine
-  //       .observe(steps.get(startPos + "to" + endPos).done())
-  //       .onTrue(
-  //           Commands.sequence(
-  //               endPos.equals("NI")
-  //                   ? scoreAlgaeInAuto()
-  //                   : intakeAlgaeInAuto(() -> steps.get(startPos + "to" +
-  // endPos).getFinalPose()),
-  //               steps.get(endPos + "to" + nextPos).cmd()));
-  // }
 
-  // public Command intakeAlgaeInAuto(Supplier<Optional<Pose2d>> pose) {
-  //   if (!pose.get().isPresent()) {
-  //     return Commands.none();
-  //   } else {
-  //     return Commands.sequence(
-  //         Commands.runOnce(
-  //             () -> {
-  //               autoAlgaeIntake = true;
-  //               Robot.setCurrentAlgaeIntakeTarget(
-  //                   AlgaeIntakeTargets.getClosestTarget(pose.get().get()).height); // are you
-  // serios
-  //             }),
-  //         Commands.waitUntil(() -> manipulator.hasAlgae())
-  //             .alongWith(
-  //                 Robot.isSimulation()
-  //                     ? Commands.runOnce(() -> manipulator.setHasAlgae(true))
-  //                     : Commands.none()),
-  //         Commands.runOnce(
-  //             () -> {
-  //               autoAlgaeIntake = false;
-  //             }));
-  //   }
-  // }
-
+  public Command intakeAlgaeInAuto(Supplier<Optional<Pose2d>> pose) {
+    return Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  autoAlgaeIntake = true;
+                  Robot.setCurrentAlgaeIntakeTarget(
+                      AlgaeIntakeTargets.getClosestTarget(pose.get().get()) // wow
+                          .height);
+                }),
+            AutoAim.translateToPose(
+                    swerve,
+                    () ->
+                        AlgaeIntakeTargets.getOffsetLocation(
+                            AlgaeIntakeTargets.getClosestTargetPose(pose.get().get())))
+                .until(
+                    () ->
+                        AutoAim.isInTolerance(
+                                swerve.getPose(),
+                                AlgaeIntakeTargets.getOffsetLocation(
+                                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())),
+                                swerve.getVelocityFieldRelative(),
+                                Units.inchesToMeters(0.5),
+                                Units.degreesToRadians(1.0))
+                            && elevator.isNearTarget()
+                            && shoulder.isNearAngle(
+                                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                            && wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
+            AutoAim.approachAlgae(
+                    swerve, () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()), 1)
+                .withTimeout(0.5))
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  autoAlgaeIntake = false;
+                }));
+  }
 }
