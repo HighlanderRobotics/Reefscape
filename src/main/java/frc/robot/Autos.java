@@ -372,18 +372,14 @@ public class Autos {
             steps
                 .get("GHtoNI")
                 .atTime(steps.get("GHtoNI").getRawTrajectory().getTotalTime() - 0.2)) // TODO tune
+        .onTrue(Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
+    // ------------------sketchy--------
+    routine
+        .observe(steps.get("NItoIJ").done())
         .onTrue(
             Commands.sequence(
-                scoreAlgaeInAuto()
-                // , steps.get("NItoIJ").cmd()
-                ));
-    // ------------------sketchy--------
-    // routine
-    //     .observe(steps.get("NItoIJ").done())
-    //     .onTrue(
-    //         Commands.sequence(
-    //             intakeAlgaeInAuto(() -> steps.get("NItoJ").getFinalPose()),
-    //             steps.get("IJtoNI").cmd()));
+                intakeAlgaeInAuto(() -> steps.get("NItoIJ").getFinalPose()),
+                swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2)));
 
     // routine
     //     .observe(
