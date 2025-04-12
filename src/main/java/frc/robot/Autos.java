@@ -444,6 +444,7 @@ public class Autos {
     //     .onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
     return routine.cmd();
   }
+
   public Command LOtoA() { // 2910
     final var routine = factory.newRoutine("LO to A");
     bindCoralElevatorExtension(routine, 2.0);
@@ -467,21 +468,28 @@ public class Autos {
     // ---------
     return routine.cmd();
   }
-  public void runGroundPath(
-    AutoRoutine routine,
-    String startPos,
-    String endPos,
-    String nextPos,
-    HashMap<String, AutoTrajectory> steps) {
-  routine
-      .observe(steps.get(startPos + "to" + endPos).done())
-      .onTrue(
-          Commands.sequence(
-              scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
-              Commands.runOnce(() -> autoGroundCoralIntake = true),
-              steps.get(endPos + "to" + nextPos).cmd()));
-}
 
+  public void runGroundPath(
+      AutoRoutine routine,
+      String startPos,
+      String endPos,
+      String nextPos,
+      HashMap<String, AutoTrajectory> steps) {
+    routine
+        .observe(
+            steps
+                .get(startPos + "to" + endPos)
+                .atTime(
+                    steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
+                        - (endPos.length() == 1 ? 0.3 : 0.0)))
+        .onTrue(
+            Commands.sequence(
+                scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get())
+                // ,
+                // Commands.runOnce(() -> autoGroundCoralIntake = true),
+                // steps.get(endPos + "to" + nextPos).cmd()
+                ));
+  }
 
   public Command scoreCoralInAuto(Supplier<Pose2d> trajEndPose) {
     return Commands.sequence(
