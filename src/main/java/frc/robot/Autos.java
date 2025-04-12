@@ -484,11 +484,12 @@ public class Autos {
         .whileTrue(
             Commands.sequence(routine.trajectory("LOtoA").resetOdometry(), routine.trajectory("LOtoA").cmd()));
     
-    // //TODO dealgae...i think i'll merge the other one first
-    // routine.observe(routine.trajectory("LOtoA").done()).onTrue(scoreCoralInAuto(swerve::getPose));
-            runGroundPath(routine, "LO", "A", "B", steps);
-    // routine.observe(routine.trajectory("AtoB").done()).onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
-    // runGroundPath(routine, "A", "B", "B", steps);
+    runGroundPath(routine, "LO", "A", "B", steps);
+// ----------------
+    runGroundPath(routine, "A", "B", "B", steps);
+    //TODO dealgae - merge from prechamps
+
+    //---------
     return routine.cmd();
   }
 
