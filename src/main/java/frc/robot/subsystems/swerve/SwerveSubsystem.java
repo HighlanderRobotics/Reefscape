@@ -798,8 +798,11 @@ public class SwerveSubsystem extends SubsystemBase {
                           algaeCamera.inputs.publishTimestampMicros,
                           algaeCamera.inputs.timeSinceLastPong,
                           algaeCamera.inputs.targets)
-                      .getTargets().stream().filter(t -> t.objDetectId == 0).toList().get(0) //TODO check class id's
-                  : new PhotonPipelineResult( //TODO coral by default?
+                      .getTargets().stream()
+                          .filter(t -> t.objDetectId == 0)
+                          .toList()
+                          .get(0) // TODO check class id's
+                  : new PhotonPipelineResult( // TODO coral by default?
                           algaeCamera.inputs.sequenceID,
                           algaeCamera.inputs.captureTimestampMicros,
                           algaeCamera.inputs.publishTimestampMicros,

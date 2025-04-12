@@ -158,19 +158,19 @@ public class Autos {
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
-  public void runGroundPath(AutoRoutine routine,
-  String startPos,
-  String endPos,
-  String nextPos,
-  HashMap<String, AutoTrajectory> steps) {
+  public void runGroundPath(
+      AutoRoutine routine,
+      String startPos,
+      String endPos,
+      String nextPos,
+      HashMap<String, AutoTrajectory> steps) {
     routine
-        .observe(
-            steps
-                .get(startPos + "to" + endPos).done())
-                .onTrue(Commands.sequence(
-                  scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
-                  Commands.runOnce(() -> autoGroundCoralIntake = true),
-                  steps.get(endPos + "to" + nextPos).cmd()));
+        .observe(steps.get(startPos + "to" + endPos).done())
+        .onTrue(
+            Commands.sequence(
+                scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
+                Commands.runOnce(() -> autoGroundCoralIntake = true),
+                steps.get(endPos + "to" + nextPos).cmd()));
   }
 
   public Command LOtoJ() {
@@ -452,25 +452,27 @@ public class Autos {
     return routine.cmd();
   }
 
-  public Command LOtoA() { //2910
+  public Command LOtoA() { // 2910
     final var routine = factory.newRoutine("LO to A");
     bindCoralElevatorExtension(routine, 2.0);
-    HashMap<String, AutoTrajectory> steps =
-    new HashMap<String, AutoTrajectory>();
+    HashMap<String, AutoTrajectory> steps = new HashMap<String, AutoTrajectory>();
     // lo a b4 b2 dealgae
+    steps.put("LOtoA", routine.trajectory("LOtoA"));
+    steps.put("AtoB", routine.trajectory("AtoB"));
     routine
         // run first path
         .active()
         .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
         .whileTrue(
-            Commands.sequence(routine.trajectory("LOtoA").resetOdometry(), routine.trajectory("LOtoA").cmd()));
-    
-    runGroundPath(routine, "LO", "A", "B", steps);
-// ----------------
-    runGroundPath(routine, "A", "B", "B", steps);
-    //TODO dealgae - merge from prechamps
+            Commands.sequence(
+                routine.trajectory("LOtoA").resetOdometry(), routine.trajectory("LOtoA").cmd()));
 
-    //---------
+    runGroundPath(routine, "LO", "A", "B", steps);
+    // ----------------
+    // runGroundPath(routine, "A", "B", "B", steps);
+    // TODO dealgae - merge from prechamps
+
+    // ---------
     return routine.cmd();
   }
 

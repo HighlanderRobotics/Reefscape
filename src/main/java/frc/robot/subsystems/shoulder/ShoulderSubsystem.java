@@ -139,7 +139,6 @@ public class ShoulderSubsystem extends SubsystemBase {
         setTargetAngle(() -> inputs.position).until(() -> true), this.run(() -> {}));
   }
 
-
   public Rotation2d getAngle() {
     return inputs.position;
   }
