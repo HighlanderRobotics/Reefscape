@@ -20,6 +20,7 @@ import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.utils.Tracer;
 import java.util.function.DoubleSupplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class ManipulatorSubsystem extends RollerSubsystem {
@@ -32,7 +33,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double ALGAE_CURRENT_THRESHOLD = 6.0;
   public static final Transform2d IK_WRIST_TO_CORAL = ExtensionKinematics.IK_WRIST_TO_CORAL;
 
-  public static final double CORAL_HOLD_POS = 0.5;
+  public static final double CORAL_HOLD_POS = 0.6;
 
   public static final double GEAR_RATIO = (58.0 / 10.0) * (24.0 / 18.0);
 
@@ -42,7 +43,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   private boolean bb1 = false;
   private boolean bb2 = false;
-  private boolean hasAlgae = false;
+  @AutoLogOutput private boolean hasAlgae = false;
 
   private LinearFilter currentFilter = LinearFilter.movingAverage(20);
   private double currentFilterValue = 0.0;
@@ -204,7 +205,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     hasAlgae = state;
   }
 
-  public boolean hasAlgae() {
+  public boolean hasAlgae() { // TODO icky
     return hasAlgae;
   }
 }

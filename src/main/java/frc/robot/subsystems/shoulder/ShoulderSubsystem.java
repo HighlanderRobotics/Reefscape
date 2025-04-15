@@ -13,6 +13,7 @@ import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.utils.Tracer;
 import java.util.function.Supplier;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.LoggedNetworkBoolean;
 
@@ -29,10 +30,11 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double X_OFFSET_METERS = 0.1016254;
   public static final double Z_OFFSET_METERS = 0.207645;
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
-  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(53.0);
+  public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(50.0);
   public static final Rotation2d SHOULDER_CORAL_GROUND_POS = Rotation2d.fromDegrees(8.0);
 
-  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS = Rotation2d.fromRadians(0.505);
+  public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS =
+      Rotation2d.fromRadians(0.505).plus(Rotation2d.fromDegrees(-5.0));
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(30.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(45.0);
   public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS =
@@ -45,16 +47,18 @@ public class ShoulderSubsystem extends SubsystemBase {
       ExtensionKinematics.L1_EXTENSION.shoulderAngle();
   public static final Rotation2d SHOULDER_SCORE_L4_POS =
       ExtensionKinematics.L4_EXTENSION.shoulderAngle();
-  public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(40);
+  public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(30);
   public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
   public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(60.0);
   public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
   public static final Rotation2d SHOULDER_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(35.0);
 
-  private static final MotionMagicConfigs DEFAULT_CONFIGS =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(4.0);
-  private static final MotionMagicConfigs TOSS_CONFIGS =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(0.5).withMotionMagicAcceleration(4.0);
+  public static final MotionMagicConfigs DEFAULT_CONFIGS =
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(6.0);
+  public static final MotionMagicConfigs TOSS_CONFIGS =
+      new MotionMagicConfigs()
+          .withMotionMagicCruiseVelocity(0.275)
+          .withMotionMagicAcceleration(4.0);
 
   private final ShoulderIO io;
   private final ShoulderIOInputsAutoLogged inputs = new ShoulderIOInputsAutoLogged();
@@ -87,6 +91,7 @@ public class ShoulderSubsystem extends SubsystemBase {
       Logger.recordOutput("Carriage/Shoulder/Cancoder Pos", getZeroingAngle());
   }
 
+  @AutoLogOutput(key = "Shoulder/Zeroing Angle")
   public Rotation2d getZeroingAngle() {
     return Rotation2d.fromRotations(inputs.cancoderPosition).div(SHOULDER_FINAL_STAGE_RATIO);
   }
@@ -157,5 +162,9 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public ShoulderIOInputsAutoLogged getInputs() {
     return inputs;
+  }
+
+  public double getVelocity() {
+    return inputs.angularVelocityRPS;
   }
 }

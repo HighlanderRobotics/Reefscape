@@ -9,6 +9,7 @@ import choreo.auto.AutoRoutine;
 import choreo.auto.AutoTrajectory;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
@@ -17,11 +18,16 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem;
+import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
 import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
@@ -35,15 +41,28 @@ public class Autos {
   private final ManipulatorSubsystem manipulator;
   private final FunnelSubsystem funnel;
   private final AutoFactory factory;
+  private final ElevatorSubsystem elevator;
+  private final ShoulderSubsystem shoulder;
+  private final WristSubsystem wrist;
 
   @AutoLogOutput public static boolean autoPreScore = true;
   @AutoLogOutput public static boolean autoScore = false; // TODO perhaps this should not be static
-  @AutoLogOutput public static boolean autoGroundIntake = false;
+  @AutoLogOutput public static boolean autoGroundCoralIntake = false;
+  @AutoLogOutput public static boolean autoAlgaeIntake = false;
 
-  public Autos(SwerveSubsystem swerve, ManipulatorSubsystem manipulator, FunnelSubsystem funnel) {
+  public Autos(
+      SwerveSubsystem swerve,
+      ManipulatorSubsystem manipulator,
+      FunnelSubsystem funnel,
+      ElevatorSubsystem elevator,
+      ShoulderSubsystem shoulder,
+      WristSubsystem wrist) {
     this.swerve = swerve;
     this.manipulator = manipulator;
     this.funnel = funnel;
+    this.elevator = elevator;
+    this.shoulder = shoulder;
+    this.wrist = wrist;
     factory =
         new AutoFactory(
             swerve::getPose,
@@ -90,8 +109,8 @@ public class Autos {
     final var routine = factory.newRoutine("LM to H");
     final var traj = routine.trajectory("LMtoH");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
-    bindElevatorExtension(routine);
-    routine.observe(traj.done()).onTrue(scoreInAuto());
+    bindCoralElevatorExtension(routine);
+    routine.observe(traj.done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
@@ -99,12 +118,12 @@ public class Autos {
     final var routine = factory.newRoutine("RM to G");
     final var traj = routine.trajectory("RMtoG");
     routine.active().whileTrue(Commands.sequence(traj.resetOdometry(), traj.cmd()));
-    bindElevatorExtension(routine);
-    routine.observe(traj.done()).onTrue(scoreInAuto());
+    bindCoralElevatorExtension(routine);
+    routine.observe(traj.done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
-  public void runPath(
+  public void runCoralPath(
       AutoRoutine routine,
       String startPos,
       String endPos,
@@ -116,33 +135,19 @@ public class Autos {
                 .get(startPos + "to" + endPos)
                 .atTime(
                     steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
-                        - (endPos.length() == 1 ? 0.1 : 0.0)))
+                        - (endPos.length() == 1 ? 0.3 : 0.0)))
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
-                    ? intakeInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
-                    : Commands.sequence(
-                        endPos.length() == 1
-                            ? scoreInAuto(
-                                () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                            : AutoAim.translateToPose(
-                                    swerve,
-                                    () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                                .until(
-                                    () ->
-                                        AutoAim.isInTolerance(
-                                            swerve.getPose(),
-                                            steps
-                                                .get(startPos + "to" + endPos)
-                                                .getFinalPose()
-                                                .get()))
-                                .withTimeout(2.0)),
+                    ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
+                    : scoreCoralInAuto(
+                        () -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
   public Command LOtoJ() {
     final var routine = factory.newRoutine("LO to J");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     routine.active().onTrue(Commands.print("Auto!"));
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
@@ -164,7 +169,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
 
     // final var groundTraj = routine.trajectory("LtoAGround");
@@ -190,7 +195,7 @@ public class Autos {
 
   public Command ROtoE() {
     final var routine = factory.newRoutine("RO to E");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -212,7 +217,7 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
 
     routine
@@ -224,7 +229,7 @@ public class Autos {
 
   public Command LItoK() {
     final var routine = factory.newRoutine("LI to K");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -245,16 +250,16 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLItoB").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PLItoB").done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
   public Command RItoD() {
     final var routine = factory.newRoutine("RI to D");
-    bindElevatorExtension(routine);
+    bindCoralElevatorExtension(routine);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -275,16 +280,16 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PRItoA").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PRItoA").done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
   public Command PMtoPL() {
     final var routine = factory.newRoutine("PM to PL");
-    bindElevatorExtension(routine, 2.0);
+    bindCoralElevatorExtension(routine, 2.0);
     HashMap<String, AutoTrajectory> steps =
         new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
     String[] stops = {
@@ -306,15 +311,119 @@ public class Autos {
       String startPos = stops[i];
       String endPos = stops[i + 1];
       String nextPos = stops[i + 2];
-      runPath(routine, startPos, endPos, nextPos, steps);
+      runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
     // final path
-    routine.observe(steps.get("PLOtoL").done()).onTrue(scoreInAuto());
+    routine.observe(steps.get("PLOtoL").done()).onTrue(scoreCoralInAuto(swerve::getPose));
     return routine.cmd();
   }
 
-  public Command scoreInAuto(Supplier<Pose2d> trajEndPose) {
+  public Command CMtoGH() { // algae path
+    final var routine = factory.newRoutine("CM to GH");
+    bindCoralElevatorExtension(routine, 2.0);
+    bindAlgaeElevatorExtension(routine);
+    HashMap<String, AutoTrajectory> steps =
+        new HashMap<String, AutoTrajectory>(); // key - name of path, value - traj
+    String[] stops = {
+      "CM", "G", "GH", "NI", "IJ", "NI", "EF" // each stop we are going to, in order
+    };
+    for (int i = 0; i < stops.length - 1; i++) {
+      String name = stops[i] + "to" + stops[i + 1]; // concatenate the names of the stops
+      steps.put(
+          name, routine.trajectory(name)); // and puts that name + corresponding traj to the map
+    }
+    routine
+        // run first path
+        .active()
+        .whileTrue(Commands.sequence(steps.get("CMtoG").resetOdometry(), steps.get("CMtoG").cmd()));
+
+    routine
+        .observe(steps.get("CMtoG").done()) // TODO change to time based
+        .onTrue(Commands.sequence(scoreCoralInAuto(() -> steps.get("CMtoG").getFinalPose().get())));
+    routine
+        .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+        .onTrue(
+            Commands.sequence(
+                swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2),
+                intakeAlgaeInAuto(() -> steps.get("CMtoG").getFinalPose()),
+                steps.get("GHtoNI").cmd()));
+    routine
+        .observe(
+            steps
+                .get("GHtoNI")
+                .atTime(steps.get("GHtoNI").getRawTrajectory().getTotalTime() - 0.2)) // TODO tune
+        .onTrue(Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoIJ").cmd()));
+    // ------------------sketchy--------
+    routine
+        .observe(steps.get("NItoIJ").done())
+        .onTrue(
+            Commands.sequence(
+                intakeAlgaeInAuto(() -> steps.get("NItoIJ").getFinalPose()),
+                swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2)));
+    return routine.cmd();
+  }
+
+  public Command LOtoA() { // 2910
+    final var routine = factory.newRoutine("LO to A");
+    bindCoralElevatorExtension(routine, 2.0);
+    HashMap<String, AutoTrajectory> steps = new HashMap<String, AutoTrajectory>();
+    // lo a b4 b2 dealgae
+    steps.put("LOtoA", routine.trajectory("LOtoA"));
+    steps.put("AtoB", routine.trajectory("AtoB"));
+    routine
+        // run first path
+        .active()
+        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
+        .whileTrue(Commands.sequence(steps.get("LOtoA").resetOdometry(), steps.get("LOtoA").cmd()));
+    routine
+        .observe(
+            steps.get("LOtoA").atTime(steps.get("LOtoA").getRawTrajectory().getTotalTime() - 0.3))
+        .onTrue(
+            Commands.sequence(
+                scoreCoralInAuto(() -> steps.get("LOtoA").getFinalPose().get()),
+                Commands.runOnce(() -> autoGroundCoralIntake = true),
+                swerve
+                    .driveTeleop(() -> new ChassisSpeeds(-0.3, 0, 0))
+                    .until(
+                        () -> elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)),
+                steps.get("AtoB").cmd()));
+
+    // routine
+    //     .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
+    //     .onTrue(
+    //         Commands.sequence(
+    //             swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2)));
+    // runGroundPath(routine, "LO", "A", "B", steps);
+    // runCoralPath(routine, "LO", "A", "B", steps);
+    // ----------------
+    // runGroundPath(routine, "A", "B", "B", steps);
+    // TODO dealgae - merge from prechamps
+
+    // ---------
+    return routine.cmd();
+  }
+
+  public void runGroundPath(
+      AutoRoutine routine,
+      String startPos,
+      String endPos,
+      String nextPos,
+      HashMap<String, AutoTrajectory> steps) {
+    routine
+        .observe(
+            steps
+                .get(startPos + "to" + endPos)
+                .atTime(
+                    steps.get(startPos + "to" + endPos).getRawTrajectory().getTotalTime()
+                        - (endPos.length() == 1 ? 0.3 : 0.0)))
+        .onTrue(
+            Commands.sequence(
+                scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get())));
+  }
+
+  public Command scoreCoralInAuto(Supplier<Pose2d> trajEndPose) {
     return Commands.sequence(
+            Commands.print("scoring"),
             Commands.waitUntil(
                 new Trigger(
                         () ->
@@ -334,7 +443,7 @@ public class Autos {
                                     0.0,
                                     swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
                                     3.0))
-                    .debounce(0.10)),
+                    .debounce(0.06)),
             Commands.print("Scoring!"),
             Commands.runOnce(
                 () -> {
@@ -352,19 +461,16 @@ public class Autos {
                   autoPreScore = false;
                 }))
         .raceWith(
-            AutoAim.translateToPose(
-                swerve,
-                () -> CoralTargets.getClosestTarget(trajEndPose.get()),
-                ChassisSpeeds::new,
-                new Constraints(1.5, 2.0)));
+            Commands.print("autoaiming frrr")
+                .andThen(
+                    AutoAim.translateToPose(
+                        swerve,
+                        () -> CoralTargets.getClosestTarget(trajEndPose.get()),
+                        ChassisSpeeds::new,
+                        new Constraints(1.5, 1.0))));
   }
 
-  // TODO: REMOVE THIS OVERLOAD
-  public Command scoreInAuto() {
-    return scoreInAuto(() -> swerve.getPose());
-  }
-
-  public Command intakeInAuto(Supplier<Optional<Pose2d>> pose) {
+  public Command intakeCoralInAuto(Supplier<Optional<Pose2d>> pose) {
     if (!pose.get().isPresent()) {
       return Commands.none();
     } else {
@@ -373,14 +479,14 @@ public class Autos {
               ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
-          // AutoAim.translateToPose(
-          //         swerve,
-          //         () -> pose.get().get(),
-          //         () ->
-          //             ChassisSpeeds.fromRobotRelativeSpeeds(
-          //                 new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
-          swerve
-              .driveVoltage(() -> new ChassisSpeeds(-0.0, 0.0, 0.0))
+          AutoAim.translateToPose(
+                  swerve,
+                  () -> pose.get().get(),
+                  () ->
+                      ChassisSpeeds.fromRobotRelativeSpeeds(
+                          new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
+              // swerve
+              //     .driveVoltage(() -> new ChassisSpeeds(-0.0, 0.0, 0.0))
               .until(
                   () ->
                       manipulator.getSecondBeambreak()
@@ -389,11 +495,11 @@ public class Autos {
     }
   }
 
-  public void bindElevatorExtension(AutoRoutine routine) {
-    bindElevatorExtension(routine, 3.5); // TODO tune
+  public void bindCoralElevatorExtension(AutoRoutine routine) {
+    bindCoralElevatorExtension(routine, 3.75); // TODO tune
   }
 
-  public void bindElevatorExtension(AutoRoutine routine, double toleranceMeters) {
+  public void bindCoralElevatorExtension(AutoRoutine routine, double toleranceMeters) {
     routine
         .observe(
             () ->
@@ -409,5 +515,114 @@ public class Autos {
                     && (manipulator.getSecondBeambreak()))
         .whileTrue(Commands.run(() -> autoPreScore = true))
         .whileFalse(Commands.run(() -> autoPreScore = false));
+  }
+
+  public void bindAlgaeElevatorExtension(AutoRoutine routine, double toleranceMeters) {
+    routine
+        .observe(
+            () ->
+                MathUtil.isNear(
+                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? AutoAim.BLUE_NET_X
+                            : AutoAim.RED_NET_X,
+                        swerve.getPose().getX(),
+                        toleranceMeters)
+                    && (manipulator.hasAlgae()))
+        .whileTrue(Commands.run(() -> autoPreScore = true))
+        .whileFalse(Commands.run(() -> autoPreScore = false));
+  }
+
+  public void bindAlgaeElevatorExtension(AutoRoutine routine) {
+    bindAlgaeElevatorExtension(routine, 0.2); // TODO tune - is the coral one still requiring atp??
+  }
+
+  public Command scoreAlgaeInAuto() { // oh good lord
+    return Commands.sequence(
+            Commands.waitUntil(
+                new Trigger(
+                    () ->
+                        MathUtil.isNear(
+                                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                    ? AutoAim.BLUE_NET_X
+                                    : AutoAim.RED_NET_X,
+                                swerve.getPose().getX(),
+                                Units.inchesToMeters(3.0))
+                            && MathUtil.isNear(
+                                0,
+                                Math.hypot(
+                                    swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                    swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                            && MathUtil.isNear(
+                                0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0))
+                // .debounce(0.06)), // TODO
+                ),
+            Commands.print("Scoring algae"),
+            Commands.runOnce(
+                () -> {
+                  Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
+                  autoScore = true;
+                }),
+            Commands.waitUntil(() -> !manipulator.hasAlgae())
+                .alongWith(
+                    Robot.isSimulation()
+                        ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
+                        : Commands.none())
+                .andThen(
+                    Commands.runOnce(
+                        () -> {
+                          autoScore = false;
+                          autoPreScore = false;
+                        })))
+        .raceWith(
+            AutoAim.translateToXCoord(
+                swerve,
+                () ->
+                    DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                        ? AutoAim.BLUE_NET_X
+                        : AutoAim.RED_NET_X,
+                () -> 0,
+                () ->
+                    (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                            ? Rotation2d.k180deg
+                            : Rotation2d.kZero)
+                        .plus(Rotation2d.fromDegrees(30.0))));
+  }
+
+  public Command intakeAlgaeInAuto(Supplier<Optional<Pose2d>> pose) {
+    return Commands.sequence(
+            Commands.runOnce(
+                () -> {
+                  autoAlgaeIntake = true;
+                  Robot.setCurrentAlgaeIntakeTarget(
+                      AlgaeIntakeTargets.getClosestTarget(pose.get().get()) // wow
+                          .height);
+                }),
+            AutoAim.translateToPose(
+                    swerve,
+                    () ->
+                        AlgaeIntakeTargets.getOffsetLocation(
+                            AlgaeIntakeTargets.getClosestTargetPose(pose.get().get())))
+                .until(
+                    () ->
+                        AutoAim.isInTolerance(
+                                swerve.getPose(),
+                                AlgaeIntakeTargets.getOffsetLocation(
+                                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())),
+                                swerve.getVelocityFieldRelative(),
+                                Units.inchesToMeters(0.5),
+                                Units.degreesToRadians(1.0))
+                            && elevator.isNearTarget()
+                            && shoulder.isNearAngle(
+                                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                            && wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
+            AutoAim.approachAlgae(
+                    swerve, () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()), 1)
+                .withTimeout(0.5))
+        .andThen(
+            Commands.runOnce(
+                () -> {
+                  autoAlgaeIntake = false;
+                }));
   }
 }

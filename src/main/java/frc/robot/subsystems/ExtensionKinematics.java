@@ -35,7 +35,7 @@ public class ExtensionKinematics {
 
   // Not super accurate bc of whack
   public static final Pose2d L1_POSE =
-      new Pose2d(0.26, 0.4, Rotation2d.fromDegrees(15.0)); // solveFK(L1_EXTENSION);
+      new Pose2d(0.33, 0.50, Rotation2d.fromDegrees(20.0)); // solveFK(L1_EXTENSION);
   public static final ExtensionState L1_EXTENSION = solveIK(L1_POSE);
   public static final ExtensionState L2_EXTENSION =
       new ExtensionState(
@@ -50,7 +50,7 @@ public class ExtensionKinematics {
           Rotation2d.fromRadians(2.427));
   public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final Pose2d L4_POSE =
-      new Pose2d(new Translation2d(0.23, 2.05), Rotation2d.fromDegrees(110.0));
+      new Pose2d(new Translation2d(0.20, 2.03), Rotation2d.fromDegrees(110.0));
 
   public static final ExtensionState L4_EXTENSION = solveIK(L4_POSE);
 
