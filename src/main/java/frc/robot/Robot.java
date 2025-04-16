@@ -327,8 +327,8 @@ public class Robot extends LoggedRobot {
                   new SimpleMotorFeedforward(0.0, 0.7),
                   new ProfiledPIDController(
                       0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(15, 1))),
-          new BeambreakIOReal(1, true),
-          new BeambreakIOReal(0, true));
+          new BeambreakIOReal(0, true),
+          new BeambreakIOReal(1, true));
 
   private final ShoulderSubsystem shoulder =
       new ShoulderSubsystem(
