@@ -452,6 +452,9 @@ public class Autos {
     // lo a b4 b2 dealgae
     steps.put("LOtoA", routine.trajectory("LOtoA"));
     steps.put("AtoB", routine.trajectory("AtoB"));
+    steps.put("BtoB", routine.trajectory("BtoB"));
+
+    if (Robot.isSimulation()) manipulator.setSecondBeambreak(true); // gah
     routine
         // run first path
         .active()
@@ -463,12 +466,41 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 scoreCoralInAuto(() -> steps.get("LOtoA").getFinalPose().get()),
-                Commands.runOnce(() -> autoGroundCoralIntake = true),
-                swerve
-                    .driveTeleop(() -> new ChassisSpeeds(-0.3, 0, 0))
+                AutoAim.translateToPose(swerve, () -> steps.get("AtoB").getInitialPose().get())
                     .until(
-                        () -> elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)),
+                        () ->
+                            elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)
+                                && AutoAim.isInTolerance(
+                                    swerve.getPose(), steps.get("AtoB").getInitialPose().get())),
+                Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)),
                 steps.get("AtoB").cmd()));
+    routine
+        .observe(
+            steps
+                .get("AtoB")
+                .active()
+                .and(() -> manipulator.getSecondBeambreak() || manipulator.getFirstBeambreak()))
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  autoGroundCoralIntake = false;
+                  Robot.setCurrentTarget(ReefTarget.L4);
+                }));
+
+    routine
+        .observe(
+            steps.get("AtoB").atTime(steps.get("AtoB").getRawTrajectory().getTotalTime() - 0.3))
+        .onTrue(
+            Commands.sequence(
+                scoreCoralInAuto(() -> steps.get("AtoB").getFinalPose().get()),
+                AutoAim.translateToPose(swerve, () -> steps.get("BtoB").getInitialPose().get())
+                    .until(
+                        () ->
+                            elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)
+                                && AutoAim.isInTolerance(
+                                    swerve.getPose(), steps.get("BtoB").getInitialPose().get())),
+                Commands.runOnce(() -> autoGroundCoralIntake = true),
+                steps.get("BtoB").cmd()));
 
     // routine
     //     .observe(() -> !manipulator.getFirstBeambreak() && !manipulator.getSecondBeambreak())
@@ -602,6 +634,13 @@ public class Autos {
         .whileTrue(Commands.run(() -> autoPreScore = true))
         .whileFalse(Commands.run(() -> autoPreScore = false));
   }
+
+  public void bindGroundCoralElevatorExtension(
+      AutoRoutine routine, double toleranceMeters, Trigger trigger) {
+    routine.observe(trigger).debounce(3).onTrue(Commands.run(() -> autoGroundCoralIntake = true));
+  }
+
+  // ([[[){ ([[[){ ([[[){ ([[[){ ([[[){ ([[[){ ([[[){ ([[[){ ([[[){ ([[[){
 
   public void bindAlgaeElevatorExtension(AutoRoutine routine, double toleranceMeters) {
     routine
