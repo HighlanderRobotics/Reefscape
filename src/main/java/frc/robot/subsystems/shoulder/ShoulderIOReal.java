@@ -1,7 +1,5 @@
 package frc.robot.subsystems.shoulder;
 
-import org.littletonrobotics.junction.Logger;
-
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -22,6 +20,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import org.littletonrobotics.junction.Logger;
 
 public class ShoulderIOReal implements ShoulderIO {
   private final TalonFX motor;
@@ -104,14 +103,16 @@ public class ShoulderIOReal implements ShoulderIO {
 
   @Override
   public void updateInputs(ShoulderIOInputs inputs) {
-    Logger.recordOutput("shoulder refreshall statuscode", BaseStatusSignal.refreshAll(
-        angularVelocityRPS,
-        temp,
-        supplyCurrentAmps,
-        statorCurrentAmps,
-        motorPositionRotations,
-        cancoderPositionRotations,
-        appliedVoltage));
+    Logger.recordOutput(
+        "shoulder refreshall statuscode",
+        BaseStatusSignal.refreshAll(
+            angularVelocityRPS,
+            temp,
+            supplyCurrentAmps,
+            statorCurrentAmps,
+            motorPositionRotations,
+            cancoderPositionRotations,
+            appliedVoltage));
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.cancoderPosition = cancoderPositionRotations.getValueAsDouble();
