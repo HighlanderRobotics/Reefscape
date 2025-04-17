@@ -661,7 +661,7 @@ public class Superstructure {
                     Commands.parallel(
                         wrist.hold(),
                         shoulder.hold(),
-                        elevator.setExtension(Units.inchesToMeters(30)).andThen(elevator.hold()))));
+                        elevator.setExtension(Units.inchesToMeters(40)).andThen(elevator.hold()))));
 
     stateTriggers
         .get(SuperState.CHECK_ALGAE)
