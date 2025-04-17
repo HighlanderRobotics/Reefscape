@@ -337,8 +337,13 @@ public class Superstructure {
         .and(() -> manipulator.getSecondBeambreak() && manipulator.getFirstBeambreak())
         .and(intakeCoralReq.negate())
         .debounce(0.060)
-        .onTrue(Commands.runOnce(() -> manipulator.resetPosition(0.792)))
-        .onTrue(this.forceState(SuperState.READY_CORAL));
+        .onTrue(
+            Commands.parallel(
+                manipulator.setVoltage(0.0),
+                Commands.waitSeconds(0.12)
+                    .andThen(
+                        Commands.runOnce(() -> manipulator.resetPosition(0.792)),
+                        this.forceState(SuperState.READY_CORAL))));
 
     stateTriggers
         .get(SuperState.INTAKE_CORAL_GROUND)
