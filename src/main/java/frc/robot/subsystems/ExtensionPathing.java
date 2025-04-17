@@ -9,6 +9,7 @@ import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
@@ -139,6 +140,15 @@ public class ExtensionPathing {
 
     graph.putEdge(l4Tucked, algaeHigh);
     graph.putEdge(l4Tucked, algaeLow);
+
+    final var algaeHalfTucked =
+        new ExtensionState(
+            Units.inchesToMeters(27.6),
+            ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS,
+            WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
+    graph.addNode(algaeHalfTucked);
+    graph.putEdge(algaeHalfTucked, algaeLow);
+    graph.putEdge(algaeHalfTucked, algaeHigh);
   }
 
   private ExtensionPathing() {}
