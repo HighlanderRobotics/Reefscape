@@ -1,5 +1,7 @@
 package frc.robot.subsystems.climber;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -60,8 +62,8 @@ public class ClimberIOReal implements ClimberIO {
 
   @Override
   public void updateInputs(ClimberIOInputsAutoLogged inputs) {
-    BaseStatusSignal.refreshAll(
-        angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position, appliedVoltage);
+    Logger.recordOutput("Climber refreshall statuscode", BaseStatusSignal.refreshAll(
+        angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position, appliedVoltage));
 
     inputs.position = position.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);

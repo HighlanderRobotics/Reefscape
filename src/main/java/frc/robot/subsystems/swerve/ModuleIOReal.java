@@ -29,6 +29,8 @@ import frc.robot.subsystems.swerve.PhoenixOdometryThread.Registration;
 import frc.robot.subsystems.swerve.PhoenixOdometryThread.SignalType;
 import java.util.Optional;
 
+import org.littletonrobotics.junction.Logger;
+
 /**
  * Module IO implementation for Talon FX drive motor controller, Talon FX turn motor controller, and
  * CANcoder
@@ -139,7 +141,7 @@ public class ModuleIOReal implements ModuleIO {
 
   @Override
   public void updateInputs(final ModuleIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
+    Logger.recordOutput("module" + constants.prefix() + "refreshall statuscode", BaseStatusSignal.refreshAll(
         drivePosition,
         driveVelocity,
         driveAppliedVolts,
@@ -152,7 +154,7 @@ public class ModuleIOReal implements ModuleIO {
         turnAppliedVolts,
         turnStatorCurrent,
         turnSupplyCurrent,
-        turnTempC);
+        turnTempC));
 
     inputs.prefix = constants.prefix();
 

@@ -1,5 +1,7 @@
 package frc.robot.subsystems.wrist;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -62,13 +64,13 @@ public class WristIOReal implements WristIO {
 
   @Override
   public void updateInputs(ArmIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
+    Logger.recordOutput("wrist refreshall statuscode", BaseStatusSignal.refreshAll(
         angularVelocityRPS,
         temp,
         supplyCurrentAmps,
         statorCurrentAmps,
         motorPositionRotations,
-        appliedVoltage);
+        appliedVoltage));
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);

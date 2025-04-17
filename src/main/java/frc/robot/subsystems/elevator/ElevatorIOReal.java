@@ -4,6 +4,8 @@
 
 package frc.robot.subsystems.elevator;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
@@ -107,7 +109,7 @@ public class ElevatorIOReal implements ElevatorIO {
 
   @Override
   public void updateInputs(final ElevatorIOInputsAutoLogged inputs) {
-    BaseStatusSignal.refreshAll(position, velocity, voltage, statorCurrent, supplyCurrent, temp);
+    Logger.recordOutput("Elevator refreshall statuscode", BaseStatusSignal.refreshAll(position, velocity, voltage, statorCurrent, supplyCurrent, temp));
     inputs.positionMeters = position.getValueAsDouble();
     inputs.velocityMetersPerSec = velocity.getValueAsDouble();
     inputs.appliedVolts = voltage.getValueAsDouble();

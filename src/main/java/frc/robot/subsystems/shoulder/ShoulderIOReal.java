@@ -1,5 +1,7 @@
 package frc.robot.subsystems.shoulder;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
@@ -102,14 +104,14 @@ public class ShoulderIOReal implements ShoulderIO {
 
   @Override
   public void updateInputs(ShoulderIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
+    Logger.recordOutput("shoulder refreshall statuscode", BaseStatusSignal.refreshAll(
         angularVelocityRPS,
         temp,
         supplyCurrentAmps,
         statorCurrentAmps,
         motorPositionRotations,
         cancoderPositionRotations,
-        appliedVoltage);
+        appliedVoltage));
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.cancoderPosition = cancoderPositionRotations.getValueAsDouble();
