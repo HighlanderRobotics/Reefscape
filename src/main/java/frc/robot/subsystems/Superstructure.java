@@ -446,7 +446,7 @@ public class Superstructure {
                         : ExtensionKinematics.getPoseCompensatedExtension(
                             pose.get(), ExtensionKinematics.L1_EXTENSION)))
         .whileTrue(
-            manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + 0.25 + coralAdjust.getAsDouble()));
+            manipulator.jog(() -> ManipulatorSubsystem.JOG_POS + 0.05 + coralAdjust.getAsDouble()));
 
     stateTriggers
         .get(SuperState.PRE_L1)
