@@ -57,8 +57,7 @@ public class ExtensionPathing {
     graph.addNode(l3Tucked);
     graph.putEdge(tucked, l3Tucked);
     graph.putEdge(l3Tucked, l2Tucked);
-    final var l3 =
-        ExtensionKinematics.L3_EXTENSION;
+    final var l3 = ExtensionKinematics.L3_EXTENSION;
     graph.addNode(l3);
     graph.putEdge(l3, l3Tucked);
     final var l4Tucked =
