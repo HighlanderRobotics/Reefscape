@@ -713,9 +713,17 @@ public class Superstructure {
         .get(SuperState.INTAKE_ALGAE_HIGH)
         .whileTrue(
             this.extendWithClearance(
-                ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
-                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
-                WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS))
+                    new ExtensionState(
+                        0.0, Rotation2d.fromDegrees(35.0), WristSubsystem.WRIST_CLEARANCE_POS))
+                .until(
+                    () ->
+                        shoulder.isNearAngle(Rotation2d.fromDegrees(35.0))
+                            && wrist.isNearAngle(WristSubsystem.WRIST_CLEARANCE_POS))
+                .andThen(
+                    this.extendWithClearance(
+                        ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
+                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
+                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)))
         .whileTrue(manipulator.setVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
 
     stateTriggers
