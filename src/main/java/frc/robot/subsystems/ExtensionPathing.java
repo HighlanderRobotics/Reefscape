@@ -125,7 +125,7 @@ public class ExtensionPathing {
         new ExtensionState(
             ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
-            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+            WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS);
     graph.addNode(algaeLow);
     graph.putEdge(betweenTucked, algaeLow);
 
@@ -133,7 +133,7 @@ public class ExtensionPathing {
         new ExtensionState(
             ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
-            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+            WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS);
     graph.addNode(algaeHigh);
     graph.putEdge(betweenTucked, algaeHigh);
     graph.putEdge(algaeLow, algaeHigh);
