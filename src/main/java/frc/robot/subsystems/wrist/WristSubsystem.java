@@ -152,7 +152,7 @@ public class WristSubsystem extends SubsystemBase {
                         Commands.waitUntil(
                             () ->
                                 Math.abs(currentFilter.calculate(inputs.statorCurrentAmps))
-                                    > 7.0))),
+                                    > 7.0 && MathUtil.isNear(0.0, inputs.angularVelocityRPS, 0.05)))),
         this.runOnce(
             () -> {
               hasZeroed = true;
