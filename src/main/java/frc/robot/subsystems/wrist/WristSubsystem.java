@@ -21,8 +21,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d MIN_ARM_ROTATION = Rotation2d.fromDegrees(-90.0);
   public static final Rotation2d AUTO_OFFSET = Rotation2d.fromRadians(3.094);
   // shoulder at auto zero - auto offset
-  public static final Rotation2d ZEROING_OFFSET =
-      Rotation2d.fromDegrees(40.517 - AUTO_OFFSET.getDegrees());
+  public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromDegrees(40.517 - AUTO_OFFSET.getDegrees());
 
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
   public static final Rotation2d WRIST_READY_ALGAE = Rotation2d.fromDegrees(-10.0);
@@ -157,7 +156,7 @@ public class WristSubsystem extends SubsystemBase {
         this.runOnce(
             () -> {
               hasZeroed = true;
-              io.resetEncoder(AUTO_OFFSET.minus(shoulderInputs.get().position.minus(Rotation2d.fromDegrees(40.517))));
+              io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
             }));
   }
 
