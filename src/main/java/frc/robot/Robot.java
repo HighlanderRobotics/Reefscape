@@ -188,8 +188,11 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
+  @AutoLogOutput
   private static ReefTarget currentTarget = ReefTarget.L4;
+  @AutoLogOutput
   private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+  @AutoLogOutput
   private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
 
