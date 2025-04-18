@@ -139,7 +139,7 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 endPos.length() == 3
-                    ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
+                    ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose()).andThen(Commands.waitSeconds(0.1))
                     : Commands.sequence(
                         endPos.length() == 1
                             ? scoreCoralInAuto(
