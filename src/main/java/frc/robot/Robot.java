@@ -708,7 +708,7 @@ public class Robot extends LoggedRobot {
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  wrist.resetPosition(WristSubsystem.AUTO_OFFSET);
+                  wrist.resetPosition(Rotation2d.fromRadians(3.094));
                   elevator.resetExtension(0.0);
                 }));
 
