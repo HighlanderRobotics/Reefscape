@@ -356,7 +356,11 @@ public class Autos {
     routine
         // run first path
         .active()
-        .whileTrue(Commands.sequence(steps.get("CMtoG").resetOdometry(), Commands.waitSeconds(2.0), steps.get("CMtoG").cmd()));
+        .whileTrue(
+            Commands.sequence(
+                steps.get("CMtoG").resetOdometry(),
+                Commands.waitSeconds(2.0),
+                steps.get("CMtoG").cmd()));
 
     routine
         .observe(steps.get("CMtoG").done()) // TODO change to time based
