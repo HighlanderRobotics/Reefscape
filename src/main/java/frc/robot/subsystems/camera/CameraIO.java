@@ -6,7 +6,6 @@ package frc.robot.subsystems.camera;
 
 import edu.wpi.first.math.geometry.Transform3d;
 import frc.robot.subsystems.camera.Camera.CameraConstants;
-
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;
 import org.photonvision.EstimatedRobotPose;
@@ -16,23 +15,13 @@ import org.photonvision.targeting.PhotonPipelineResult;
 public interface CameraIO {
   @AutoLog
   public static class CameraIOInputs {
-    public String name = "";
-    // latency could just be calculated from the timestamp, do we need it as an input or could it be
-    // an output?
-    // public double latency = 0.0;
-    // public PhotonTrackedTarget[] targets = new PhotonTrackedTarget[] {};
     public PhotonPipelineResult result = new PhotonPipelineResult();
-    public Transform3d coprocPNPTransform = new Transform3d();
-    // public long sequenceID = 0;
-    // public long captureTimestampMicros = 0;
-    // public long publishTimestampMicros = 0;
-    // public long timeSinceLastPong = 0;
     public boolean stale = true;
   }
 
   public void updateInputs(CameraIOInputs inputs);
 
-  public void setSimPose(Optional<EstimatedRobotPose> simEst, Camera camera, boolean newResult);
+  public void setSimPose(Optional<EstimatedRobotPose> simEst, boolean newResult);
 
   public String getName();
 

@@ -9,8 +9,6 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 
-import edu.wpi.first.math.geometry.Transform3d;
-
 /** Add your docs here. */
 public class CameraIOReal implements CameraIO {
   private final CameraConstants constants;
@@ -24,28 +22,10 @@ public class CameraIOReal implements CameraIO {
 
   @Override
   public void updateInputs(CameraIOInputs inputs) {
-    inputs.name = constants.name();
     var results = camera.getAllUnreadResults();
 
     if (results.size() > 0) {
       inputs.result = results.get(results.size() - 1);
-      // final var result = results.get(results.size() - 1);
-      // inputs.latency = result.metadata.getLatencyMillis();
-
-      // inputs.targets = new PhotonTrackedTarget[result.targets.size()];
-      // for (int i = 0; i < result.targets.size(); i++) {
-      //   inputs.targets[i] = result.targets.get(i);
-      // }
-
-      // inputs.coprocPNPTransform =
-      //     result
-      //         .multitagResult
-      //         .map((pnpResult) -> pnpResult.estimatedPose.best)
-      //         .orElse(Transform3d.kZero);
-      // inputs.sequenceID = result.metadata.getSequenceID();
-      // inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
-      // inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
-      // inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
       inputs.stale = false;
     } else {
       // else leave stale data
@@ -59,7 +39,7 @@ public class CameraIOReal implements CameraIO {
   }
 
   @Override
-  public void setSimPose(Optional<EstimatedRobotPose> simEst, Camera camera, boolean newResult) {}
+  public void setSimPose(Optional<EstimatedRobotPose> simEst, boolean newResult) {}
 
   @Override
   public CameraConstants getCameraConstants() {

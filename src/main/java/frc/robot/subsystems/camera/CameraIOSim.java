@@ -6,7 +6,6 @@ package frc.robot.subsystems.camera;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout.OriginPosition;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import frc.robot.Robot;
 import frc.robot.subsystems.camera.Camera.CameraConstants;
 import java.util.Optional;
@@ -58,18 +57,6 @@ public class CameraIOSim implements CameraIO {
     var results = camera.getAllUnreadResults();
     if (results.size() > 0) {
       inputs.result = results.get(results.size() - 1);
-      // final var result = results.get(results.size() - 1);
-      // inputs.latency = result.metadata.getLatencyMillis();
-
-      // inputs.targets = new PhotonTrackedTarget[result.targets.size()];
-      // for (int i = 0; i < result.targets.size(); i++) {
-      //   inputs.targets[i] = result.targets.get(i);
-      // }
-
-      // inputs.sequenceID = result.metadata.getSequenceID();
-      // inputs.captureTimestampMicros = result.metadata.getCaptureTimestampMicros();
-      // inputs.publishTimestampMicros = result.metadata.getPublishTimestampMicros();
-      // inputs.timeSinceLastPong = result.metadata.timeSinceLastPong;
       inputs.stale = false;
     } else {
       // else leave stale data
@@ -78,7 +65,7 @@ public class CameraIOSim implements CameraIO {
   }
 
   @Override
-  public void setSimPose(Optional<EstimatedRobotPose> simEst, Camera camera, boolean newResult) {
+  public void setSimPose(Optional<EstimatedRobotPose> simEst, boolean newResult) {
     simEst.ifPresentOrElse(
         est ->
             sim.getDebugField().getObject("VisionEstimation").setPose(est.estimatedPose.toPose2d()),
