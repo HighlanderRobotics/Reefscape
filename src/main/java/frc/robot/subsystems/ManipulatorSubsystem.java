@@ -19,6 +19,8 @@ import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
 import frc.robot.utils.Tracer;
+
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -41,9 +43,11 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private final BeambreakIOInputsAutoLogged firstBBInputs = new BeambreakIOInputsAutoLogged(),
       secondBBInputs = new BeambreakIOInputsAutoLogged();
 
-  private boolean bb1 = false;
-  private boolean bb2 = false;
-  @AutoLogOutput private boolean hasAlgae = false;
+  private boolean bb1Sim = false;
+  private boolean bb2Sim = false;
+  @AutoLogOutput private boolean hasAlgaeSim = false;
+
+  private double stateVelocity = 0.0;
 
   private LinearFilter currentFilter = LinearFilter.movingAverage(20);
   private double currentFilterValue = 0.0;
@@ -69,72 +73,17 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
     Logger.processInputs(NAME + "/First Beambreak", firstBBInputs);
     Logger.processInputs(NAME + "/Second Beambreak", secondBBInputs);
-    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput(NAME + "/Has Algae", hasAlgae);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput(NAME + "/Has Algae", hasAlgaeSim);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1);
+      Logger.recordOutput(NAME + "/Sim First Beambreak Override", bb1Sim);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2);
+      Logger.recordOutput(NAME + "/Sim Second Beambreak Override", bb2Sim);
 
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
-
-    if (getFirstBeambreak() && !getSecondBeambreak()) {
-      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(0.0));
-      zeroTimer.reset();
-    }
-
-    if (!getFirstBeambreak() && getSecondBeambreak()) {
-      // Number calculated from coral length, may need tuning
-      Tracer.trace("Manipulator/Zero", () -> io.resetEncoder(1.0));
-      zeroTimer.reset();
-    }
   }
 
-  /** For the old ee */
-  @Deprecated
-  public Command index() {
-    return Commands.sequence(
-        setVelocity(9.0)
-            .until(() -> getFirstBeambreak() || getSecondBeambreak())
-            .unless(() -> getFirstBeambreak()),
-        setVelocity(3.0).until(() -> getSecondBeambreak()).unless(() -> getSecondBeambreak()),
-        setVelocity(-3.0)
-            .until(() -> getFirstBeambreak() && !getSecondBeambreak())
-            .unless(() -> zeroTimer.get() < 0.25),
-        // TODO tune timeout
-        // Commands.runOnce(() -> io.resetEncoder(0.0)),
-        Commands.run(() -> io.setPosition(Rotation2d.fromRotations(1.1)))
-            .until(() -> !getFirstBeambreak() && !getSecondBeambreak()));
-  } // TODO check if anything got lost in merge?
-
-  public Command jog(double rotations) {
-    return Commands.sequence(
-        // this.runOnce(() -> io.resetEncoder(0.0)),
-        this.run(
-            () -> {
-              io.setPosition(Rotation2d.fromRotations(rotations));
-              positionSetpoint = rotations;
-            }));
-  }
-
-  public Command jog(DoubleSupplier rotations) {
-    return Commands.sequence(
-        // this.runOnce(() -> io.resetEncoder(0.0)),
-        this.run(
-            () -> {
-              io.setPosition(Rotation2d.fromRotations(rotations.getAsDouble()));
-              positionSetpoint = rotations.getAsDouble();
-            }));
-  }
-
-  public Command hold() {
-    return this.jog(() -> inputs.positionRotations)
-        .until(() -> true)
-        .andThen(this.run(() -> {}))
-        .until(() -> !MathUtil.isNear(positionSetpoint, inputs.positionRotations, 2.0))
-        .repeatedly();
-  }
 
   public void resetPosition(final double rotations) {
     io.resetEncoder(rotations);
@@ -177,35 +126,55 @@ public class ManipulatorSubsystem extends RollerSubsystem {
         .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
   }
 
+  public Command setStateVelocity(BooleanSupplier checkExtension) {
+    return Commands.waitUntil(checkExtension).andThen(setRollerVelocity(stateVelocity));
+  }
+
+  public void setState(double vel) {
+    stateVelocity = vel;
+  }
+
   public double getStatorCurrentAmps() {
     return currentFilterValue;
   }
 
-  public double getTimeSinceZero() {
-    return zeroTimer.get();
+  public boolean hasAlgae() { // TODO icky
+    return getStatorCurrentAmps() > ALGAE_CURRENT_THRESHOLD || hasAlgaeSim;
   }
 
   public boolean getFirstBeambreak() {
-    return firstBBInputs.get || bb1;
+    return firstBBInputs.get || bb1Sim;
   }
 
   public boolean getSecondBeambreak() {
-    return secondBBInputs.get || bb2;
+    return secondBBInputs.get || bb2Sim;
   }
 
-  public void setFirstBeambreak(boolean state) {
-    bb1 = state;
+  public boolean eitherBeambreak() {
+    return getFirstBeambreak() || getSecondBeambreak();
   }
 
-  public void setSecondBeambreak(boolean state) {
-    bb2 = state;
+  public boolean bothBeambreaks() {
+    return getFirstBeambreak() && getSecondBeambreak();
   }
 
-  public void setHasAlgae(boolean state) {
-    hasAlgae = state;
+  public boolean neitherBeambreak() {
+    return !eitherBeambreak();
   }
 
-  public boolean hasAlgae() { // TODO icky
-    return hasAlgae;
+  public void setSimFirstBeambreak(boolean b) {
+    bb1Sim = b;
+  }
+
+  public void setSimSecondBeambreak(boolean b) {
+    bb2Sim = b;
+  }
+  
+  public void setSimHasAlgae(boolean state) {
+    hasAlgaeSim = state;
+  }
+
+  public double getTimeSinceZero() {
+    return zeroTimer.get();
   }
 }
