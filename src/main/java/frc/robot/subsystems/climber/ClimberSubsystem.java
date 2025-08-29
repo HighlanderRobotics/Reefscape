@@ -38,12 +38,8 @@ public class ClimberSubsystem extends SubsystemBase {
     Logger.processInputs("Climber", inputs);
   }
 
-  public Command setPosition(double position) {
-    return this.run(() -> io.setPosition(position, FAST_VEL));
-  }
-
-  public Command setPositionSlow(double position) {
-    return this.run(() -> io.setPosition(position, SLOW_VEL));
+  public Command setPosition(double position, double vel) {
+    return this.run(() -> io.setPosition(position, vel));
   }
 
   public Command resetClimber() {

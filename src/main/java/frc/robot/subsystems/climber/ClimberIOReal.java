@@ -47,7 +47,7 @@ public class ClimberIOReal implements ClimberIO {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
-    motor.getConfigurator().apply(config);
+    motor.getConfigurator().apply(config);    
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
         angularVelocityRPS,
@@ -62,7 +62,7 @@ public class ClimberIOReal implements ClimberIO {
   @Override
   public void updateInputs(ClimberIOInputsAutoLogged inputs) {
     Logger.recordOutput(
-        "Climber refreshall statuscode",
+        "Climber/Signal Refresh Status Code",
         BaseStatusSignal.refreshAll(
             angularVelocityRPS,
             temp,
@@ -82,11 +82,6 @@ public class ClimberIOReal implements ClimberIO {
   @Override
   public void setVoltage(double volts) {
     motor.setControl(voltageOut.withOutput(volts));
-  }
-
-  @Override
-  public void setPosition(final double position) {
-    motor.setControl(motionMagic.withPosition(position));
   }
 
   @Override

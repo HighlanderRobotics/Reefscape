@@ -50,18 +50,6 @@ public class ClimberIOSim implements ClimberIO {
   }
 
   @Override
-  public void setPosition(final double position) {
-    setVoltage(
-        pid.calculate(
-                armSim.getAngleRads(),
-                Math.asin(
-                    (Units.rotationsToRadians(position)
-                            * ClimberSubsystem.CLIMBER_DRUM_RADIUS_METERS)
-                        / ClimberSubsystem.CLIMBER_ARM_LENGTH_METERS))
-            + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));
-  }
-
-  @Override
   public void resetEncoder(double position) {
     armSim.setState(position, 0);
   }
