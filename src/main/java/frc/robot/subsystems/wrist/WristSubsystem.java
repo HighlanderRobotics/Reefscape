@@ -7,8 +7,6 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
-import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.ExtensionKinematics;
 import frc.robot.subsystems.shoulder.ShoulderIOInputsAutoLogged;
 import java.util.function.Supplier;
@@ -70,7 +68,7 @@ public class WristSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Carriage/Wrist", inputs);
-    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Wrist/Has Zeroed", hasZeroed);
+    Logger.recordOutput("Wrist/Has Zeroed", hasZeroed);
   }
 
   public Command setTargetAngle(final Supplier<Rotation2d> target) {
@@ -153,8 +151,11 @@ public class WristSubsystem extends SubsystemBase {
                                     > 7.0))),
         this.runOnce(
             () -> {
+              // Logger.recordOutput(
+              //     "shoulder zero pos", shoulderInputs.get().position.minus(ZEROING_OFFSET));
               hasZeroed = true;
-              io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
+              // io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
+              io.resetEncoder(Rotation2d.fromRadians(-0.687));
             }));
   }
 

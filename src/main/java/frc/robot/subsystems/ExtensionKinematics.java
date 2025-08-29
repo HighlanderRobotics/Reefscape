@@ -40,13 +40,13 @@ public class ExtensionKinematics {
   public static final ExtensionState L2_EXTENSION =
       new ExtensionState(
           0.23 + Units.inchesToMeters(1.5),
-          Rotation2d.fromRadians(0.569).plus(Rotation2d.fromDegrees(20)),
+          Rotation2d.fromRadians(0.569).plus(Rotation2d.fromDegrees(20 - 2)),
           Rotation2d.fromRadians(2.447));
   public static final Pose2d L2_POSE = solveFK(L2_EXTENSION);
   public static final ExtensionState L3_EXTENSION =
       new ExtensionState(
           0.60 + Units.inchesToMeters(2.0),
-          Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(3)),
+          Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(6)),
           Rotation2d.fromRadians(2.427));
   public static final Pose2d L3_POSE = solveFK(L3_EXTENSION);
   public static final Pose2d L4_POSE =

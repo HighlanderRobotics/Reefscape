@@ -309,7 +309,7 @@ public class Superstructure {
         .get(SuperState.HOME)
         .whileTrue(
             Commands.parallel(
-                shoulder.setTargetAngle(Rotation2d.fromDegrees(55.0)),
+                shoulder.setTargetAngle(Rotation2d.fromDegrees(50.0)),
                 elevator.runCurrentZeroing(),
                 Commands.waitUntil(() -> shoulder.getAngle().getDegrees() > 20.0)
                     .andThen(wrist.currentZero(() -> shoulder.getInputs()))))

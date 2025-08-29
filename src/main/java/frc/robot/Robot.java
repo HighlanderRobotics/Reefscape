@@ -29,7 +29,6 @@ import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -397,72 +396,75 @@ public class Robot extends LoggedRobot {
               .rightTrigger()
               .negate()
               .and(() -> DriverStation.isTeleop())
-              .or(
-                  new Trigger(
-                          () -> {
-                            final var state =
-                                new ExtensionState(
-                                    elevator.getExtensionMeters(),
-                                    shoulder.getAngle(),
-                                    wrist.getAngle());
-                            final var branch =
-                                ExtensionKinematics.getBranchPose(
-                                    swerve.getPose(), state, currentTarget);
-                            final var manipulatorPose =
-                                ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
-                            if (Robot.ROBOT_TYPE != RobotType.REAL)
-                              Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
-                            if (Robot.ROBOT_TYPE != RobotType.REAL)
-                              Logger.recordOutput("IK/Branch", branch);
-                            if (Robot.ROBOT_TYPE != RobotType.REAL)
-                              Logger.recordOutput(
-                                  "IK/Extension Check",
-                                  manipulatorPose,
-                                  manipulatorPose.transformBy(
-                                      new Transform3d(
-                                          Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
-                            return false;
-                            // return branch
-                            //             .getTranslation()
-                            //             .getDistance(manipulatorPose.getTranslation())
-                            //         < Units.inchesToMeters(1.5)
-                            //     || branch
-                            //             .getTranslation()
-                            //             .getDistance(
-                            //                 manipulatorPose
-                            //                     .transformBy(
-                            //                         new Transform3d(
-                            //                             Units.inchesToMeters(3.0),
-                            //                             0.0,
-                            //                             0.0,
-                            //                             new Rotation3d()))
-                            //                     .getTranslation())
-                            //         < Units.inchesToMeters(1.5);
-                          })
-                      .debounce(0.15))
+              //   .or(
+              //       new Trigger(
+              //               () -> {
+              //                 final var state =
+              //                     new ExtensionState(
+              //                         elevator.getExtensionMeters(),
+              //                         shoulder.getAngle(),
+              //                         wrist.getAngle());
+              //                 final var branch =
+              //                     ExtensionKinematics.getBranchPose(
+              //                         swerve.getPose(), state, currentTarget);
+              //                 final var manipulatorPose =
+              //                     ExtensionKinematics.getManipulatorPose(swerve.getPose(),
+              // state);
+              //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
+              //                   Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
+              //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
+              //                   Logger.recordOutput("IK/Branch", branch);
+              //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
+              //                   Logger.recordOutput(
+              //                       "IK/Extension Check",
+              //                       manipulatorPose,
+              //                       manipulatorPose.transformBy(
+              //                           new Transform3d(
+              //                               Units.inchesToMeters(3.0), 0.0, 0.0, new
+              // Rotation3d())));
+              //                 return false;
+              //                 // return branch
+              //                 //             .getTranslation()
+              //                 //             .getDistance(manipulatorPose.getTranslation())
+              //                 //         < Units.inchesToMeters(1.5)
+              //                 //     || branch
+              //                 //             .getTranslation()
+              //                 //             .getDistance(
+              //                 //                 manipulatorPose
+              //                 //                     .transformBy(
+              //                 //                         new Transform3d(
+              //                 //                             Units.inchesToMeters(3.0),
+              //                 //                             0.0,
+              //                 //                             0.0,
+              //                 //                             new Rotation3d()))
+              //                 //                     .getTranslation())
+              //                 //         < Units.inchesToMeters(1.5);
+              //               })
+              //           .debounce(0.15))
               //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
               .or(() -> Autos.autoScore && DriverStation.isAutonomous())
-              .or(
-                  new Trigger(
-                          () ->
-                              AutoAim.isInToleranceCoral(
-                                      swerve.getPose(),
-                                      Units.inchesToMeters(1.5),
-                                      Units.degreesToRadians(1.5))
-                                  && MathUtil.isNear(
-                                      0,
-                                      Math.hypot(
-                                          swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                                          swerve.getVelocityRobotRelative().vyMetersPerSecond),
-                                      AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-                                  && MathUtil.isNear(
-                                      0.0,
-                                      swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-                                      3.0)
-                                  && currentTarget != ReefTarget.L4
-                                  && currentTarget != ReefTarget.L1)
-                      .debounce(0.08)
-                      .and(() -> swerve.hasFrontTags)),
+          //   .or(
+          //       new Trigger(
+          //               () ->
+          //                   AutoAim.isInToleranceCoral(
+          //                           swerve.getPose(),
+          //                           Units.inchesToMeters(1.5),
+          //                           Units.degreesToRadians(1.5))
+          //                       && MathUtil.isNear(
+          //                           0,
+          //                           Math.hypot(
+          //                               swerve.getVelocityRobotRelative().vxMetersPerSecond,
+          //                               swerve.getVelocityRobotRelative().vyMetersPerSecond),
+          //                           AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+          //                       && MathUtil.isNear(
+          //                           0.0,
+          //                           swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+          //                           3.0)
+          //                       && currentTarget != ReefTarget.L4
+          //                       && currentTarget != ReefTarget.L1)
+          //           .debounce(0.08)
+          //           .and(() -> swerve.hasFrontTags))
+          ,
           driver
               .rightTrigger()
               .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
