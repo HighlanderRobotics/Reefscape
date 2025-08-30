@@ -28,12 +28,13 @@ import org.littletonrobotics.junction.Logger;
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
+  public static final double MAX_VELOCITY = 20; //holy cooked
+
   public static final double CORAL_INTAKE_VELOCITY = -18.0;
   public static final double JOG_POS = 0.75;
   public static final double ALGAE_INTAKE_VOLTAGE = 10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = 1.0;
   public static final double ALGAE_CURRENT_THRESHOLD = 6.0;
-  public static final Transform2d IK_WRIST_TO_CORAL = ExtensionKinematics.IK_WRIST_TO_CORAL;
 
   public static final double CORAL_HOLD_POS = 0.6;
 
@@ -95,26 +96,26 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public Command intakeCoralAir(double vel) {
     return Commands.sequence(
-        setVelocity(vel)
+        setRollerVelocity(vel)
             .until(() -> getSecondBeambreak())
             .finallyDo(
                 () -> {
                   io.setPosition(Rotation2d.fromRotations(0.63));
                   positionSetpoint = 0.63;
                 }),
-        setVoltage(2.0).until(() -> !getFirstBeambreak()),
+        setRollerVoltage(2.0).until(() -> !getFirstBeambreak()),
         jog(CORAL_HOLD_POS).until(() -> !getSecondBeambreak() && !getFirstBeambreak()));
   }
 
   public Command intakeCoral(double vel) {
     return Commands.sequence(
-        setVelocity(vel).until(new Trigger(() -> getSecondBeambreak()).debounce(0.5)),
+        setRollerVelocity(vel).until(new Trigger(() -> getSecondBeambreak()).debounce(0.5)),
         Commands.runOnce(
             () -> {
               io.setPosition(Rotation2d.fromRotations(0.5));
               positionSetpoint = 0.5;
             }),
-        setVelocity(1.0).until(() -> !getFirstBeambreak()),
+        setRollerVelocity(1.0).until(() -> !getFirstBeambreak()),
         jog(CORAL_HOLD_POS).until(() -> !getSecondBeambreak() && !getFirstBeambreak()));
   }
 

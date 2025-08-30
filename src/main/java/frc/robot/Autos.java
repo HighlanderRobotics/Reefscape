@@ -182,7 +182,7 @@ public class Autos {
     routine
         // run first path
         .active()
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("LOtoJ").resetOdometry(), steps.get("LOtoJ").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -209,7 +209,7 @@ public class Autos {
 
     routine
         .observe(steps.get("LtoPLM").done())
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L2)));
 
     return routine.cmd().alongWith(Commands.print("auto :("));
   }
@@ -230,7 +230,7 @@ public class Autos {
     routine
         // run first path
         .active()
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("ROtoE").resetOdometry(), steps.get("ROtoE").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -243,7 +243,7 @@ public class Autos {
 
     routine
         .observe(steps.get("CtoPRM").done())
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L2)));
 
     return routine.cmd();
   }
@@ -463,7 +463,7 @@ public class Autos {
     routine
         // run first path
         .active()
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("LOtoA").resetOdometry(), steps.get("LOtoA").cmd()));
     routine
         .observe(
@@ -477,7 +477,7 @@ public class Autos {
                             elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)
                                 && AutoAim.isInTolerance(
                                     swerve.getPose(), steps.get("AtoB").getInitialPose().get())),
-                Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)),
+                Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L2)),
                 steps.get("AtoB").cmd()));
     routine
         .observe(
@@ -489,7 +489,7 @@ public class Autos {
             Commands.runOnce(
                 () -> {
                   autoGroundCoralIntake = false;
-                  Robot.setCurrentTarget(ReefTarget.L4);
+                  Robot.setCoralTarget(ReefTarget.L4);
                 }));
 
     routine
@@ -690,13 +690,13 @@ public class Autos {
             Commands.print("Scoring algae"),
             Commands.runOnce(
                 () -> {
-                  Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
+                  Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.BARGE);
                   autoScore = true;
                 }),
             Commands.waitUntil(() -> !manipulator.hasAlgae())
                 .alongWith(
                     Robot.isSimulation()
-                        ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
+                        ? Commands.runOnce(() -> manipulator.setSimHasAlgae(false))
                         : Commands.none())
                 .andThen(
                     Commands.runOnce(
