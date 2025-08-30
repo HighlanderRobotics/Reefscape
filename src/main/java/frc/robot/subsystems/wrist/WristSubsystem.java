@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -30,10 +31,14 @@ public class WristSubsystem extends SubsystemBase {
   public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
 
+  public static LoggedTunableNumber a = new LoggedTunableNumber("dfsdfjl", 5);
+
   public enum WristState {
     PRE_INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(30.0)), // formerly WRIST_CLEARANCE_POS
     INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(0.0)),
-    HP(Rotation2d.fromDegrees(178.0)),
+    // HP(() -> Rotation2d.fromDegrees(new LoggedTunableNumber("Wrist/HP", 178).get())),
+    // HP(Rotation2d.fromDegrees(178)),
+    HP(new LoggedTunableNumber("Wrist/HP", 178)),
     L1(Rotation2d.fromRadians(0.349)),
     PRE_L2(Rotation2d.fromDegrees(170.0)),
     L2(Rotation2d.fromRadians(2.447)),
@@ -51,14 +56,18 @@ public class WristSubsystem extends SubsystemBase {
     HOME(Rotation2d.fromRadians(-0.687 - 1.0)) // i dunno
   ;
 
-    private final Rotation2d angle;
+    private final Supplier<Rotation2d> angle;
 
     private WristState(Rotation2d angle) {
-      this.angle = angle;
+      this.angle = () -> angle;
+    }
+
+    private WristState(LoggedTunableNumber degrees) {
+      this.angle = () -> Rotation2d.fromDegrees(degrees.get());
     }
 
     public Rotation2d getAngle() {
-      return angle;
+      return angle.get();
     }
   }
 
