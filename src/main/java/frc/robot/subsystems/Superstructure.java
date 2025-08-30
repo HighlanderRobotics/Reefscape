@@ -135,7 +135,7 @@ public class Superstructure {
         0.0,
         1.35,
         0.5), // lowkey why is this so slow
-    HOME_ELEVATOR(ElevatorState.HOME, ShoulderState.HOME, WristState.HOME, 0.0),
+    HOME_ELEVATOR(ElevatorState.HOME, ShoulderState.HOME, WristState.HP, 0.0),
     HOME_WRIST(ElevatorState.HP, ShoulderState.HOME, WristState.HOME, 0.0),
     ANTIJAM_ALGAE(
         ElevatorState.ANTIJAM_ALGAE,

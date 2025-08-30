@@ -109,8 +109,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Elevator/Mechanism2d", mech2d);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Elevator/Carriage Pose", getCarriagePose());
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput("Elevator/Filtered Current", currentFilterValue);
+    // if (Robot.ROBOT_TYPE != RobotType.REAL)
+    Logger.recordOutput("Elevator/Filtered Current", currentFilterValue);
   }
 
   public void setState(ElevatorState state) {
