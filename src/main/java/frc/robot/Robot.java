@@ -52,6 +52,9 @@ import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
+import frc.robot.subsystems.camera.CameraIO;
+import frc.robot.subsystems.camera.CameraIOReal;
+import frc.robot.subsystems.camera.CameraIOSim;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.climber.ClimberSubsystem;
@@ -67,9 +70,6 @@ import frc.robot.subsystems.shoulder.ShoulderIOReal;
 import frc.robot.subsystems.shoulder.ShoulderIOSim;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.swerve.*;
-import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOReal;
-import frc.robot.subsystems.vision.VisionIOSim;
 import frc.robot.subsystems.wrist.*;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.FieldUtils;
@@ -332,13 +332,13 @@ public class Robot extends LoggedRobot {
           ROBOT_TYPE != RobotType.SIM
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
               : new GyroIOSim(swerveDriveSimulation.get().getGyroSimulation()),
-          Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
+          Stream.of(ROBOT_HARDWARE.swerveConstants.getCameraConstants())
               .map(
                   (constants) ->
                       ROBOT_TYPE == RobotType.REAL
-                          ? new VisionIOReal(constants)
-                          : new VisionIOSim(constants))
-              .toArray(VisionIO[]::new),
+                          ? new CameraIOReal(constants)
+                          : new CameraIOSim(constants))
+              .toArray(CameraIO[]::new),
           ROBOT_TYPE != RobotType.SIM
               ? new ModuleIO[] {
                 new ModuleIOReal(
@@ -375,8 +375,8 @@ public class Robot extends LoggedRobot {
           PhoenixOdometryThread.getInstance(),
           swerveDriveSimulation,
           ROBOT_TYPE != RobotType.SIM
-              ? new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants())
-              : new VisionIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
+              ? new CameraIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants())
+              : new CameraIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants()));
 
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
@@ -547,10 +547,10 @@ public class Robot extends LoggedRobot {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
       swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
       // global static is mildly questionable
-      VisionIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+      CameraIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     } else {
       // this should never be called?
-      VisionIOSim.pose = () -> new Pose3d();
+      CameraIOSim.pose = () -> new Pose3d();
     }
     // Add the arms and stuff
     elevatorRoot.append(carriageLigament);
@@ -815,21 +815,21 @@ elevator.setDefaultCommand(elevator.setStateExtension());
                             .and(() -> swerve.hasFrontTags))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    driver
-        .rightBumper()
-        .or(driver.leftBumper())
-        .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
-        .whileTrue(
-            swerve.driveToAlgae(
-                () ->
-                    modifyJoystick(driver.getLeftY())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                () ->
-                    modifyJoystick(driver.getLeftX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                () ->
-                    modifyJoystick(driver.getRightX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
+    // driver
+    //     .rightBumper()
+    //     .or(driver.leftBumper())
+    //     .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
+    //     .whileTrue(
+    //         swerve.driveToAlgae(
+    //             () ->
+    //                 modifyJoystick(driver.getLeftY())
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+    //             () ->
+    //                 modifyJoystick(driver.getLeftX())
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+    //             () ->
+    //                 modifyJoystick(driver.getRightX())
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
     driver
         .rightBumper()
         .or(driver.leftBumper())

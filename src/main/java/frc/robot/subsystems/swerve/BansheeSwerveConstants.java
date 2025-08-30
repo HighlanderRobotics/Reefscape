@@ -21,8 +21,8 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
+import frc.robot.subsystems.camera.Camera.CameraConstants;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
-import frc.robot.subsystems.vision.Vision.VisionConstants;
 
 public class BansheeSwerveConstants extends SwerveConstants {
   private static boolean instantiated = false;
@@ -98,7 +98,7 @@ public class BansheeSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public VisionConstants[] getVisionConstants() {
+  public CameraConstants[] getCameraConstants() {
     final Matrix<N3, N3> LEFT_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(),
@@ -149,8 +149,8 @@ public class BansheeSwerveConstants extends SwerveConstants {
             0,
             0,
             0);
-    final VisionConstants leftCamConstants =
-        new VisionConstants(
+    final CameraConstants leftCamConstants =
+        new CameraConstants(
             "Left_Camera",
             new Transform3d(
                 new Translation3d(
@@ -163,8 +163,8 @@ public class BansheeSwerveConstants extends SwerveConstants {
                     Units.degreesToRadians(120))),
             LEFT_CAMERA_MATRIX,
             LEFT_DIST_COEFFS);
-    final VisionConstants rightCamConstants =
-        new VisionConstants(
+    final CameraConstants rightCamConstants =
+        new CameraConstants(
             "Right_Camera",
             new Transform3d(
                 new Translation3d(
@@ -174,7 +174,7 @@ public class BansheeSwerveConstants extends SwerveConstants {
                 new Rotation3d(0, Units.degreesToRadians(-28.125), Units.degreesToRadians(210))),
             RIGHT_CAMERA_MATRIX,
             RIGHT_DIST_COEFFS);
-    return new VisionConstants[] {leftCamConstants, rightCamConstants};
+    return new CameraConstants[] {leftCamConstants, rightCamConstants};
   }
 
   @Override
@@ -269,8 +269,8 @@ public class BansheeSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public VisionConstants getAlgaeVisionConstants() {
+  public CameraConstants getAlgaeCameraConstants() {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getAlgaeVisionConstants'");
+    throw new UnsupportedOperationException("Unimplemented method 'getAlgaeCameraConstants'");
   }
 }
