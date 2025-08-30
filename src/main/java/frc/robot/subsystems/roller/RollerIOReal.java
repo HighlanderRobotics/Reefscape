@@ -30,6 +30,7 @@ import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
 import java.util.Optional;
 import java.util.function.Consumer;
+import org.littletonrobotics.junction.Logger;
 
 public class RollerIOReal implements RollerIO {
   private final TalonFX motor;
@@ -84,7 +85,10 @@ public class RollerIOReal implements RollerIO {
 
   @Override
   public void updateInputs(RollerIOInputsAutoLogged inputs) {
-    BaseStatusSignal.refreshAll(velocity, voltage, statorCurrent, supplyCurrent, temp, position);
+    Logger.recordOutput(
+        "Roller" + motor.getDeviceID() + "refreshall statuscode",
+        BaseStatusSignal.refreshAll(
+            velocity, voltage, statorCurrent, supplyCurrent, temp, position));
     inputs.velocityRotationsPerSec = velocity.getValue().in(RotationsPerSecond);
     inputs.appliedVolts = voltage.getValue().in(Volts);
     inputs.statorCurrentAmps = statorCurrent.getValueAsDouble();

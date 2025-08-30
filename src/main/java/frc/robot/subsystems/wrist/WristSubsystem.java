@@ -144,7 +144,13 @@ public class WristSubsystem extends SubsystemBase {
               System.out.println("Wrist Zeroing");
             }),
         this.run(() -> io.setMotorVoltage(-1.0))
-            .until(() -> Math.abs(currentFilter.calculate(inputs.statorCurrentAmps)) > 15.0),
+            .raceWith(
+                Commands.waitSeconds(0.5)
+                    .andThen(
+                        Commands.waitUntil(
+                            () ->
+                                Math.abs(currentFilter.calculate(inputs.statorCurrentAmps))
+                                    > 7.0))),
         this.runOnce(
             () -> {
               hasZeroed = true;

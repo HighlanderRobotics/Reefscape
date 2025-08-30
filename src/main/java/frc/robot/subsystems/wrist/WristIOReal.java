@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import org.littletonrobotics.junction.Logger;
 
 public class WristIOReal implements WristIO {
   private final TalonFX motor;
@@ -62,13 +63,15 @@ public class WristIOReal implements WristIO {
 
   @Override
   public void updateInputs(ArmIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
-        angularVelocityRPS,
-        temp,
-        supplyCurrentAmps,
-        statorCurrentAmps,
-        motorPositionRotations,
-        appliedVoltage);
+    Logger.recordOutput(
+        "wrist refreshall statuscode",
+        BaseStatusSignal.refreshAll(
+            angularVelocityRPS,
+            temp,
+            supplyCurrentAmps,
+            statorCurrentAmps,
+            motorPositionRotations,
+            appliedVoltage));
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);

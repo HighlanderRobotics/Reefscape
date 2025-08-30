@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import org.littletonrobotics.junction.Logger;
 
 /** Elevator IO using TalonFXs. */
 public class ElevatorIOReal implements ElevatorIO {
@@ -107,7 +108,10 @@ public class ElevatorIOReal implements ElevatorIO {
 
   @Override
   public void updateInputs(final ElevatorIOInputsAutoLogged inputs) {
-    BaseStatusSignal.refreshAll(position, velocity, voltage, statorCurrent, supplyCurrent, temp);
+    Logger.recordOutput(
+        "Elevator refreshall statuscode",
+        BaseStatusSignal.refreshAll(
+            position, velocity, voltage, statorCurrent, supplyCurrent, temp));
     inputs.positionMeters = position.getValueAsDouble();
     inputs.velocityMetersPerSec = velocity.getValueAsDouble();
     inputs.appliedVolts = voltage.getValueAsDouble();

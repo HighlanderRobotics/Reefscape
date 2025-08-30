@@ -188,9 +188,9 @@ public class Robot extends LoggedRobot {
     PROCESSOR
   }
 
-  private static ReefTarget currentTarget = ReefTarget.L4;
-  private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
-  private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  @AutoLogOutput private static ReefTarget currentTarget = ReefTarget.L4;
+  @AutoLogOutput private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+  @AutoLogOutput private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
   private boolean leftHandedTarget = false;
 
   @AutoLogOutput private boolean killVisionIK = true;
@@ -327,8 +327,8 @@ public class Robot extends LoggedRobot {
                   new SimpleMotorFeedforward(0.0, 0.7),
                   new ProfiledPIDController(
                       0.5, 0.0, 0.0, new TrapezoidProfile.Constraints(15, 1))),
-          new BeambreakIOReal(1, true),
-          new BeambreakIOReal(0, true));
+          new BeambreakIOReal(0, true),
+          new BeambreakIOReal(1, true));
 
   private final ShoulderSubsystem shoulder =
       new ShoulderSubsystem(
@@ -492,6 +492,7 @@ public class Robot extends LoggedRobot {
               .debounce(0.5)
               .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
           driver.a(),
+          driver.b(),
           driver.start(),
           operator.rightBumper(),
           operator.leftBumper(),
@@ -1007,7 +1008,7 @@ public class Robot extends LoggedRobot {
                                     > Math.abs(swerve.getPose().getX() - AutoAim.RED_NET_X)
                                 ? Rotation2d.kZero
                                 : Rotation2d.k180deg)
-                            .plus(Rotation2d.fromDegrees(30.0))),
+                            .plus(Rotation2d.fromDegrees(20.0))),
                 Commands.waitUntil(
                         () -> {
                           final var diff =

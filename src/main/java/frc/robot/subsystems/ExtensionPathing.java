@@ -9,6 +9,7 @@ import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.MutableGraph;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
@@ -56,6 +57,9 @@ public class ExtensionPathing {
     graph.addNode(l3Tucked);
     graph.putEdge(tucked, l3Tucked);
     graph.putEdge(l3Tucked, l2Tucked);
+    final var l3 = ExtensionKinematics.L3_EXTENSION;
+    graph.addNode(l3);
+    graph.putEdge(l3, l3Tucked);
     final var l4Tucked =
         new ExtensionState(
             ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters(),
@@ -124,7 +128,7 @@ public class ExtensionPathing {
         new ExtensionState(
             ElevatorSubsystem.INTAKE_ALGAE_LOW_EXTENSION,
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
-            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+            WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS);
     graph.addNode(algaeLow);
     graph.putEdge(betweenTucked, algaeLow);
 
@@ -132,13 +136,22 @@ public class ExtensionPathing {
         new ExtensionState(
             ElevatorSubsystem.INTAKE_ALGAE_HIGH_EXTENSION,
             ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS,
-            ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS);
+            WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS);
     graph.addNode(algaeHigh);
     graph.putEdge(betweenTucked, algaeHigh);
     graph.putEdge(algaeLow, algaeHigh);
 
     graph.putEdge(l4Tucked, algaeHigh);
     graph.putEdge(l4Tucked, algaeLow);
+
+    final var algaeHalfTucked =
+        new ExtensionState(
+            Units.inchesToMeters(27.6),
+            ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS,
+            WristSubsystem.WRIST_TUCKED_CLEARANCE_POS);
+    graph.addNode(algaeHalfTucked);
+    graph.putEdge(algaeHalfTucked, algaeLow);
+    graph.putEdge(algaeHalfTucked, algaeHigh);
   }
 
   private ExtensionPathing() {}

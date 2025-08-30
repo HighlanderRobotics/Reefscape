@@ -14,6 +14,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import org.littletonrobotics.junction.Logger;
 
 public class ClimberIOReal implements ClimberIO {
   private final TalonFX motor = new TalonFX(18, "*");
@@ -60,8 +61,15 @@ public class ClimberIOReal implements ClimberIO {
 
   @Override
   public void updateInputs(ClimberIOInputsAutoLogged inputs) {
-    BaseStatusSignal.refreshAll(
-        angularVelocityRPS, temp, supplyCurrentAmps, statorCurrentAmps, position, appliedVoltage);
+    Logger.recordOutput(
+        "Climber refreshall statuscode",
+        BaseStatusSignal.refreshAll(
+            angularVelocityRPS,
+            temp,
+            supplyCurrentAmps,
+            statorCurrentAmps,
+            position,
+            appliedVoltage));
 
     inputs.position = position.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);

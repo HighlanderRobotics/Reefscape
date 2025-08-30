@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -93,6 +94,8 @@ public class SwerveSubsystem extends SubsystemBase {
   private Alert usingSyncOdometryAlert = new Alert("Using Sync Odometry", AlertType.kInfo);
   private Alert missingModuleData = new Alert("Missing Module Data", AlertType.kError);
   private Alert missingGyroData = new Alert("Missing Gyro Data", AlertType.kWarning);
+  private Alert futureVisionData =
+      new Alert("Vision Data Coming from ✨The Future✨", AlertType.kError);
 
   private boolean useModuleForceFF = !Robot.isSimulation();
 
@@ -331,6 +334,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private void updateVision() {
     var i = 0;
     hasFrontTags = false;
+    var hasFutureData = false;
     for (var camera : cameras) {
       if ((camera.getName().equals("Front_Left_Camera")
               || camera.getName().equals("Front_Right_Camera"))
@@ -411,6 +415,7 @@ public class SwerveSubsystem extends SubsystemBase {
                 // the sussifier
               });
           lastEstTimestamp = camera.inputs.captureTimestampMicros / 1e6;
+          hasFutureData |= camera.inputs.captureTimestampMicros > RobotController.getTime();
           // if (Robot.ROBOT_TYPE != RobotType.REAL)
           Logger.recordOutput("Vision/" + camera.getName() + "/Invalid Pose Result", "Good Update");
           cameraPoses[i] = visionPose;
@@ -448,6 +453,7 @@ public class SwerveSubsystem extends SubsystemBase {
     }
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Vision/Camera Poses on Robot", arr);
+    futureVisionData.set(hasFutureData);
   }
 
   /**

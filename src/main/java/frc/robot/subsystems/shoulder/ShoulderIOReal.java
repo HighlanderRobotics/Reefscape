@@ -20,6 +20,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.units.measure.Voltage;
+import org.littletonrobotics.junction.Logger;
 
 public class ShoulderIOReal implements ShoulderIO {
   private final TalonFX motor;
@@ -80,7 +81,7 @@ public class ShoulderIOReal implements ShoulderIO {
 
     final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    cancoderConfig.MagnetSensor.MagnetOffset = -0.385174;
+    cancoderConfig.MagnetSensor.MagnetOffset = -0.385174; // 0.2307 + 0.25; // 0.6323; // 0.779;
     cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.9;
 
     cancoder.getConfigurator().apply(cancoderConfig);
@@ -102,14 +103,16 @@ public class ShoulderIOReal implements ShoulderIO {
 
   @Override
   public void updateInputs(ShoulderIOInputs inputs) {
-    BaseStatusSignal.refreshAll(
-        angularVelocityRPS,
-        temp,
-        supplyCurrentAmps,
-        statorCurrentAmps,
-        motorPositionRotations,
-        cancoderPositionRotations,
-        appliedVoltage);
+    Logger.recordOutput(
+        "shoulder refreshall statuscode",
+        BaseStatusSignal.refreshAll(
+            angularVelocityRPS,
+            temp,
+            supplyCurrentAmps,
+            statorCurrentAmps,
+            motorPositionRotations,
+            cancoderPositionRotations,
+            appliedVoltage));
 
     inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.cancoderPosition = cancoderPositionRotations.getValueAsDouble();
