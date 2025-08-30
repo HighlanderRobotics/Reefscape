@@ -733,23 +733,25 @@ public class Autos {
             AutoAim.translateToPose(
                     swerve,
                     () ->
-                    FieldUtils.AlgaeIntakeTargets.getOffsetLocation(
-                        FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(pose.get().get())))
+                        FieldUtils.AlgaeIntakeTargets.getOffsetLocation(
+                            FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(pose.get().get())))
                 .until(
                     () ->
                         AutoAim.isInTolerance(
                                 swerve.getPose(),
                                 FieldUtils.AlgaeIntakeTargets.getOffsetLocation(
-                                    FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())),
+                                    FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(
+                                        swerve.getPose())),
                                 swerve.getVelocityFieldRelative(),
                                 Units.inchesToMeters(0.5),
                                 Units.degreesToRadians(1.0))
                             && elevator.atExtension()
-                            && shoulder.isNearAngle(
-                                ShoulderState.INTAKE_ALGAE_REEF.getAngle())
+                            && shoulder.isNearAngle(ShoulderState.INTAKE_ALGAE_REEF.getAngle())
                             && wrist.isNearAngle(WristState.INTAKE_ALGAE_REEF.getAngle())),
             AutoAim.approachAlgae(
-                    swerve, () -> FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()), 1)
+                    swerve,
+                    () -> FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                    1)
                 .withTimeout(0.5))
         .andThen(
             Commands.runOnce(

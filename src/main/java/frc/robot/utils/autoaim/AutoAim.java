@@ -20,7 +20,6 @@ import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.FieldUtils.AlgaeIntakeTargets;
 import frc.robot.utils.FieldUtils.CoralTargets;
-
 import java.util.List;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;

@@ -47,7 +47,7 @@ public class ClimberIOReal implements ClimberIO {
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
-    motor.getConfigurator().apply(config);    
+    motor.getConfigurator().apply(config);
     BaseStatusSignal.setUpdateFrequencyForAll(
         50.0,
         angularVelocityRPS,

@@ -38,7 +38,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
-import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.camera.Camera;
 import frc.robot.subsystems.camera.CameraIO;
 import frc.robot.subsystems.swerve.OdometryThreadIO.OdometryThreadIOInputs;
@@ -81,7 +80,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private Rotation2d rawGyroRotation = new Rotation2d();
   private Rotation2d lastGyroRotation = new Rotation2d();
 
-  private static SwerveDrivePoseEstimator estimator; //TODO i forgot why this is static
+  private static SwerveDrivePoseEstimator estimator; // TODO i forgot why this is static
   private double lastOdometryUpdateTimestamp = 0.0;
   final Pose3d[] cameraPoses;
 

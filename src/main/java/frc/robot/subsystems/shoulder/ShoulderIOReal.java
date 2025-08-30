@@ -140,7 +140,7 @@ public class ShoulderIOReal implements ShoulderIO {
   }
 
   @Override
-  //TODO i hate this can we get rid of this
+  // TODO i hate this can we get rid of this
   public void setMotionMagicConfigs(final MotionMagicConfigs configs) {
     motor.getConfigurator().apply(configs);
   }

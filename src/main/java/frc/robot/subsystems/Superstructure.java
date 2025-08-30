@@ -1,9 +1,5 @@
 package frc.robot.subsystems;
 
-import java.util.function.Supplier;
-
-import org.littletonrobotics.junction.Logger;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -25,9 +21,11 @@ import frc.robot.subsystems.wrist.WristSubsystem.WristState;
 import frc.robot.utils.FieldUtils.AlgaeIntakeTargets;
 import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.autoaim.AutoAim;
+import java.util.function.Supplier;
+import org.littletonrobotics.junction.Logger;
 
 public class Superstructure {
-   /**
+  /**
    * We should have a state for every single "pose" the robot will hit. Hopefully we can get named
    * positions set up in cad to make this easier?
    */
@@ -134,18 +132,12 @@ public class Superstructure {
         1.35,
         0.5) // lowkey why is this so slow
     ,
-  HOME(
-    ElevatorState.HOME,
-    ShoulderState.HOME,
-    WristState.HOME,
-    0.0
-  ),
-  ANTIJAM_ALGAE(
-    ElevatorState.ANTIJAM_ALGAE,
-    ShoulderState.INTAKE_CORAL_GROUND,
-    WristState.INTAKE_CORAL_GROUND,
-    0.0
-  )
+    HOME(ElevatorState.HOME, ShoulderState.HOME, WristState.HOME, 0.0),
+    ANTIJAM_ALGAE(
+        ElevatorState.ANTIJAM_ALGAE,
+        ShoulderState.INTAKE_CORAL_GROUND,
+        WristState.INTAKE_CORAL_GROUND,
+        0.0)
   // SPIT_CORAL(),
   // ANTI_JAM,
   // L4_TUCKED(ElevatorState.HP, ShoulderState.L4_TUCKED, WristState.L4_TUCKED),
@@ -204,25 +196,25 @@ public class Superstructure {
 
   public static boolean antiJamCoral;
 
-    /** Creates a new Superstructure. */
-    public Superstructure(
-        ElevatorSubsystem elevator,
-        ShoulderSubsystem shoulder,
-        WristSubsystem wrist,
-        ManipulatorSubsystem manipulator,
-        FunnelSubsystem funnel,
-        SwerveSubsystem swerve) {
-      this.elevator = elevator;
-      this.shoulder = shoulder;
-      this.wrist = wrist;
-      this.manipulator = manipulator;
-      this.funnel = funnel;
-      this.swerve = swerve;
-  
-      addTransitions();
-  
-      stateTimer.start();
-    }
+  /** Creates a new Superstructure. */
+  public Superstructure(
+      ElevatorSubsystem elevator,
+      ShoulderSubsystem shoulder,
+      WristSubsystem wrist,
+      ManipulatorSubsystem manipulator,
+      FunnelSubsystem funnel,
+      SwerveSubsystem swerve) {
+    this.elevator = elevator;
+    this.shoulder = shoulder;
+    this.wrist = wrist;
+    this.manipulator = manipulator;
+    this.funnel = funnel;
+    this.swerve = swerve;
+
+    addTransitions();
+
+    stateTimer.start();
+  }
 
   /** This file is not a subsystem, so this MUST be called manually. */
   public void periodic() {
@@ -230,7 +222,7 @@ public class Superstructure {
     Logger.recordOutput("Superstructure/State Timer", stateTimer.get());
   }
 
-    /**
+  /**
    * @param start first state
    * @param end second state
    * @param trigger trigger to make it go from the first state to the second (assuming it's already
@@ -240,7 +232,7 @@ public class Superstructure {
     // maps triggers to the transitions
     trigger.and(new Trigger(() -> state == start)).onTrue(changeStateTo(end));
   }
-      /**
+  /**
    * @param start first state
    * @param end second state
    * @param trigger trigger to make it go from the first state to the second (assuming it's already
@@ -249,7 +241,9 @@ public class Superstructure {
    */
   private void bindTransition(SuperState start, SuperState end, Trigger trigger, Command cmd) {
     // maps triggers to the transitions
-    trigger.and(new Trigger(() -> state == start)).onTrue(Commands.parallel(changeStateTo(end), cmd));
+    trigger
+        .and(new Trigger(() -> state == start))
+        .onTrue(Commands.parallel(changeStateTo(end), cmd));
   }
 
   private boolean atExtension(SuperState state) {
@@ -283,14 +277,13 @@ public class Superstructure {
     shoulder.setState(state.shoulderState);
     wrist.setState(state.wristState);
     manipulator.setState(state.manipulatorVelocity);
-    //funnel and climber don't have states per se
+    // funnel and climber don't have states per se
   }
-
 
   private void addTransitions() {
     // Prob a better way to impl this
     // Vaughn says he wants this available anytime
-    //TODO this will probably not still work
+    // TODO this will probably not still work
     Robot.forceIndexReq.whileTrue(manipulator.setRollerVelocity(1.0));
 
     // ---Funnel---
@@ -328,9 +321,12 @@ public class Superstructure {
         new Trigger(() -> Robot.getCoralTarget() == ReefTarget.L1).and(Robot.preScoreReq));
 
     bindTransition(SuperState.PRE_L1, SuperState.L1, Robot.scoreReq.and(this::atExtension));
-    
-    //cancel
-    bindTransition(SuperState.PRE_L1, SuperState.IDLE, new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L1));
+
+    // cancel
+    bindTransition(
+        SuperState.PRE_L1,
+        SuperState.IDLE,
+        new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L1));
 
     bindTransition(
         SuperState.L1,
@@ -340,19 +336,24 @@ public class Superstructure {
             .and(Robot.scoreReq.negate()));
 
     bindTransition(
-        SuperState.POST_L1, 
-        SuperState.IDLE, 
-        Robot.intakeAlgaeReq.negate().or(() -> !intakeAlgaeFromReef()).and(this::atExtension).and(
-        () ->
-            L1Targets.getNearestLine(swerve.getPose()).getDistance(swerve.getPose().getTranslation()) > 0.3).debounce(0.15));
+        SuperState.POST_L1,
+        SuperState.IDLE,
+        Robot.intakeAlgaeReq
+            .negate()
+            .or(() -> !intakeAlgaeFromReef())
+            .and(this::atExtension)
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15));
 
-    //go straight to intaking algae from reef
+    // go straight to intaking algae from reef
     bindTransition(
-        SuperState.POST_L1, 
+        SuperState.POST_L1,
         SuperState.PRE_PRE_INTAKE_ALGAE,
-        new Trigger(this::atExtension)
-         .and(Robot.intakeAlgaeReq)
-         .and(() -> intakeAlgaeFromReef()));
+        new Trigger(this::atExtension).and(Robot.intakeAlgaeReq).and(() -> intakeAlgaeFromReef()));
 
     // ---L2---
     bindTransition(
@@ -362,8 +363,11 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_L2, SuperState.L2, Robot.scoreReq.and(this::atExtension));
 
-    //cancel
-    bindTransition(SuperState.PRE_L2, SuperState.IDLE, new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L2));
+    // cancel
+    bindTransition(
+        SuperState.PRE_L2,
+        SuperState.IDLE,
+        new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L2));
 
     bindTransition(
         SuperState.L2,
@@ -373,19 +377,24 @@ public class Superstructure {
             .and(Robot.scoreReq.negate()));
 
     bindTransition(
-        SuperState.POST_L2, 
-        SuperState.IDLE, 
-        Robot.intakeAlgaeReq.negate().or(() -> !intakeAlgaeFromReef()).and(this::atExtension).and(
-        () ->
-            L1Targets.getNearestLine(swerve.getPose()).getDistance(swerve.getPose().getTranslation()) > 0.3).debounce(0.15));
+        SuperState.POST_L2,
+        SuperState.IDLE,
+        Robot.intakeAlgaeReq
+            .negate()
+            .or(() -> !intakeAlgaeFromReef())
+            .and(this::atExtension)
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15));
 
-    //go straight to intaking algae from reef
+    // go straight to intaking algae from reef
     bindTransition(
-        SuperState.POST_L2, 
+        SuperState.POST_L2,
         SuperState.PRE_PRE_INTAKE_ALGAE,
-        new Trigger(this::atExtension)
-         .and(Robot.intakeAlgaeReq)
-         .and(() -> intakeAlgaeFromReef()));
+        new Trigger(this::atExtension).and(Robot.intakeAlgaeReq).and(() -> intakeAlgaeFromReef()));
 
     // ---L3---
     bindTransition(
@@ -395,8 +404,11 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_L3, SuperState.L3, Robot.scoreReq.and(this::atExtension));
 
-    //cancel
-    bindTransition(SuperState.PRE_L3, SuperState.IDLE, new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L3));
+    // cancel
+    bindTransition(
+        SuperState.PRE_L3,
+        SuperState.IDLE,
+        new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L3));
 
     bindTransition(
         SuperState.L3,
@@ -406,19 +418,24 @@ public class Superstructure {
             .and(Robot.scoreReq.negate()));
 
     bindTransition(
-        SuperState.POST_L3, 
-        SuperState.IDLE, 
-        Robot.intakeAlgaeReq.negate().or(() -> !intakeAlgaeFromReef()).and(this::atExtension).and(
-        () ->
-            L1Targets.getNearestLine(swerve.getPose()).getDistance(swerve.getPose().getTranslation()) > 0.3).debounce(0.15));
+        SuperState.POST_L3,
+        SuperState.IDLE,
+        Robot.intakeAlgaeReq
+            .negate()
+            .or(() -> !intakeAlgaeFromReef())
+            .and(this::atExtension)
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15));
 
-    //go straight to intaking algae from reef
+    // go straight to intaking algae from reef
     bindTransition(
-        SuperState.POST_L3, 
+        SuperState.POST_L3,
         SuperState.PRE_PRE_INTAKE_ALGAE,
-        new Trigger(this::atExtension)
-         .and(Robot.intakeAlgaeReq)
-         .and(() -> intakeAlgaeFromReef()));
+        new Trigger(this::atExtension).and(Robot.intakeAlgaeReq).and(() -> intakeAlgaeFromReef()));
 
     // ---L4---
     bindTransition(
@@ -430,8 +447,11 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_L4, SuperState.L4, Robot.scoreReq.and(this::atExtension));
 
-    //cancel
-    bindTransition(SuperState.PRE_L4, SuperState.IDLE, new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L4));
+    // cancel
+    bindTransition(
+        SuperState.PRE_L4,
+        SuperState.IDLE,
+        new Trigger(() -> Robot.getCoralTarget() != ReefTarget.L4));
 
     bindTransition(
         SuperState.L4,
@@ -439,23 +459,28 @@ public class Superstructure {
         new Trigger(() -> manipulator.neitherBeambreak())
             .and(this::atExtension)
             .and(Robot.scoreReq.negate()));
-    
+
     bindTransition(SuperState.POST_L4, SuperState.POST_POST_L4, new Trigger(this::atExtension));
 
     bindTransition(
         SuperState.POST_POST_L4,
-        SuperState.IDLE, 
-        Robot.intakeAlgaeReq.negate().or(() -> !intakeAlgaeFromReef()).and(this::atExtension).and(
-        () ->
-            L1Targets.getNearestLine(swerve.getPose()).getDistance(swerve.getPose().getTranslation()) > 0.3).debounce(0.15));
+        SuperState.IDLE,
+        Robot.intakeAlgaeReq
+            .negate()
+            .or(() -> !intakeAlgaeFromReef())
+            .and(this::atExtension)
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15));
 
-    //go straight to intaking algae from reef
+    // go straight to intaking algae from reef
     bindTransition(
         SuperState.POST_POST_L4,
         SuperState.PRE_PRE_INTAKE_ALGAE,
-        new Trigger(this::atExtension)
-         .and(Robot.intakeAlgaeReq)
-         .and(() -> intakeAlgaeFromReef()));
+        new Trigger(this::atExtension).and(Robot.intakeAlgaeReq).and(() -> intakeAlgaeFromReef()));
 
     // ---Intake Algae---
     bindTransition(SuperState.IDLE, SuperState.PRE_PRE_INTAKE_ALGAE, Robot.intakeAlgaeReq);
@@ -472,7 +497,7 @@ public class Superstructure {
         new Trigger(this::atExtension)
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.LOW)));
 
-    //cancel
+    // cancel
     bindTransition(
         SuperState.INTAKE_ALGAE_LOW,
         SuperState.IDLE,
@@ -484,13 +509,13 @@ public class Superstructure {
         SuperState.READY_ALGAE,
         new Trigger(() -> stateTimer.hasElapsed(1.0))
             .and(manipulator::hasAlgae)
-            .and(() -> 
-              AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())
-                                .getTranslation()
-                                .minus(swerve.getPose().getTranslation())
-                                .getNorm()
-                            > 0.3
-            ));
+            .and(
+                () ->
+                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())
+                            .getTranslation()
+                            .minus(swerve.getPose().getTranslation())
+                            .getNorm()
+                        > 0.3));
 
     // ---Intake High Algae---
     bindTransition(
@@ -499,7 +524,7 @@ public class Superstructure {
         new Trigger(this::atExtension)
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.HIGH)));
 
-        //cancel
+    // cancel
     bindTransition(
         SuperState.INTAKE_ALGAE_HIGH,
         SuperState.IDLE,
@@ -511,13 +536,13 @@ public class Superstructure {
         SuperState.READY_ALGAE,
         new Trigger(() -> stateTimer.hasElapsed(1.0))
             .and(manipulator::hasAlgae)
-            .and(() -> 
-              AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())
-                                .getTranslation()
-                                .minus(swerve.getPose().getTranslation())
-                                .getNorm()
-                            > 0.3
-            ));
+            .and(
+                () ->
+                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())
+                            .getTranslation()
+                            .minus(swerve.getPose().getTranslation())
+                            .getNorm()
+                        > 0.3));
 
     // ---Intake Stack Algae---
     bindTransition(
@@ -526,7 +551,7 @@ public class Superstructure {
         new Trigger(this::atExtension)
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.STACK)));
 
-        //cancel
+    // cancel
     bindTransition(
         SuperState.INTAKE_ALGAE_STACK,
         SuperState.IDLE,
@@ -536,8 +561,7 @@ public class Superstructure {
     bindTransition(
         SuperState.INTAKE_ALGAE_STACK,
         SuperState.READY_ALGAE,
-        new Trigger(() -> stateTimer.hasElapsed(1.0))
-            .and(manipulator::hasAlgae));
+        new Trigger(() -> stateTimer.hasElapsed(1.0)).and(manipulator::hasAlgae));
 
     // ---Intake Ground Algae---
     bindTransition(
@@ -546,7 +570,7 @@ public class Superstructure {
         new Trigger(this::atExtension)
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.GROUND)));
 
-        //cancel
+    // cancel
     bindTransition(
         SuperState.INTAKE_ALGAE_GROUND,
         SuperState.IDLE,
@@ -556,8 +580,7 @@ public class Superstructure {
     bindTransition(
         SuperState.INTAKE_ALGAE_GROUND,
         SuperState.READY_ALGAE,
-        new Trigger(() -> stateTimer.hasElapsed(1.0))
-            .and(manipulator::hasAlgae));
+        new Trigger(() -> stateTimer.hasElapsed(1.0)).and(manipulator::hasAlgae));
 
     // ---Score in barge---
     bindTransition(
@@ -607,90 +630,98 @@ public class Superstructure {
                         DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
                             ? AutoAim.BLUE_PROCESSOR_POS.getY()
                             : AutoAim.RED_PROCESSOR_POS.getY(),
-                        0.5))
-        );
+                        0.5)));
 
     // i might be insane for this
-    bindTransition(SuperState.IDLE, SuperState.HOME, Robot.homeReq, Commands.runOnce(
-        () -> {
-          elevator.hasZeroed = false;
-          wrist.hasZeroed = false;
-        }));
-
-    //im not sure why this needs to exist separately
     bindTransition(
-        SuperState.IDLE, 
-        SuperState.HOME, 
-        new Trigger(() -> !elevator.hasZeroed || !wrist.hasZeroed)
-            .and(DriverStation::isEnabled));
+        SuperState.IDLE,
+        SuperState.HOME,
+        Robot.homeReq,
+        Commands.runOnce(
+            () -> {
+              elevator.hasZeroed = false;
+              wrist.hasZeroed = false;
+            }));
 
-    bindTransition(SuperState.READY_CORAL, SuperState.HOME, new Trigger(() -> !wrist.hasZeroed || !elevator.hasZeroed));
-
-    bindTransition(SuperState.HOME, SuperState.IDLE, 
-        Robot.homeReq.negate()
-        .and(() -> elevator.hasZeroed)
-        .and(() -> wrist.hasZeroed)
-        .and(() -> prevState != SuperState.READY_CORAL)); //TODO double check this prevstate thing
-
-    bindTransition(SuperState.HOME, SuperState.READY_CORAL, 
-        Robot.homeReq.negate()
-        .and(() -> elevator.hasZeroed)
-        .and(() -> wrist.hasZeroed)
-        .and(() -> prevState == SuperState.READY_CORAL));
-    
-    //getting rid of SPIT_CORAL and SPIT_ALGAE as explicit states- all they do is run the manipulator wheels
+    // im not sure why this needs to exist separately
     bindTransition(
-        SuperState.READY_CORAL, 
-        SuperState.PRE_CLIMB, 
-        Robot.preClimbReq
-        , funnel.unlatch()
-    );
+        SuperState.IDLE,
+        SuperState.HOME,
+        new Trigger(() -> !elevator.hasZeroed || !wrist.hasZeroed).and(DriverStation::isEnabled));
+
+    bindTransition(
+        SuperState.READY_CORAL,
+        SuperState.HOME,
+        new Trigger(() -> !wrist.hasZeroed || !elevator.hasZeroed));
+
+    bindTransition(
+        SuperState.HOME,
+        SuperState.IDLE,
+        Robot.homeReq
+            .negate()
+            .and(() -> elevator.hasZeroed)
+            .and(() -> wrist.hasZeroed)
+            .and(
+                () ->
+                    prevState != SuperState.READY_CORAL)); // TODO double check this prevstate thing
+
+    bindTransition(
+        SuperState.HOME,
+        SuperState.READY_CORAL,
+        Robot.homeReq
+            .negate()
+            .and(() -> elevator.hasZeroed)
+            .and(() -> wrist.hasZeroed)
+            .and(() -> prevState == SuperState.READY_CORAL));
+
+    // getting rid of SPIT_CORAL and SPIT_ALGAE as explicit states- all they do is run the
+    // manipulator wheels
+    bindTransition(
+        SuperState.READY_CORAL, SuperState.PRE_CLIMB, Robot.preClimbReq, funnel.unlatch());
 
     // the manipulator wheels run at the same speed to spit algae and coral
     bindTransition(
-        SuperState.READY_ALGAE, 
-        SuperState.PRE_CLIMB, 
-        Robot.preClimbReq
-        , funnel.unlatch()
-    );
+        SuperState.READY_ALGAE, SuperState.PRE_CLIMB, Robot.preClimbReq, funnel.unlatch());
 
-
-        // ---Climb---
+    // ---Climb---
 
     bindTransition(SuperState.IDLE, SuperState.PRE_CLIMB, Robot.preClimbReq, funnel.unlatch());
 
-    bindTransition(SuperState.PRE_CLIMB, SuperState.CLIMB, Robot.climbConfReq.and(manipulator::neitherBeambreak));
+    bindTransition(
+        SuperState.PRE_CLIMB,
+        SuperState.CLIMB,
+        Robot.climbConfReq.and(manipulator::neitherBeambreak));
 
     // May need more checks to see if canceling is safe
     bindTransition(SuperState.CLIMB, SuperState.PRE_CLIMB, Robot.climbCancelReq);
 
     bindTransition(SuperState.PRE_CLIMB, SuperState.IDLE, Robot.preClimbReq.negate());
 
-
     // ANTI_JAM logic
 
     // anti coral jam could start from any state, so there's no explicit transition
-    // in fact the state doesn't ever change--the manipulator velocity (and funnel velocity in robot.java) is just overridden
-    // which is why once the request is canceled, the manipulator state is manually set back to the normal value for that state
+    // in fact the state doesn't ever change--the manipulator velocity (and funnel velocity in
+    // robot.java) is just overridden
+    // which is why once the request is canceled, the manipulator state is manually set back to the
+    // normal value for that state
     // setSubstates isn't called every loop, so I don't think it can be set there
     // i have a bad feeling about this though
     Robot.antiCoralJamReq
-        .onTrue(Commands.runOnce(
-            () -> {
-                antiJamCoral = true;
-                manipulator.setState(-10);
-            }
-        ))
-        .onFalse(Commands.runOnce(
-            () -> {
-                antiJamCoral = false;
-                manipulator.setState(state.manipulatorVelocity);
-            }
-        ));
-        
-    Robot.antiAlgaeJamReq
-        .onTrue(this.changeStateTo(SuperState.ANTIJAM_ALGAE));
-    
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  antiJamCoral = true;
+                  manipulator.setState(-10);
+                }))
+        .onFalse(
+            Commands.runOnce(
+                () -> {
+                  antiJamCoral = false;
+                  manipulator.setState(state.manipulatorVelocity);
+                }));
+
+    Robot.antiAlgaeJamReq.onTrue(this.changeStateTo(SuperState.ANTIJAM_ALGAE));
+
     bindTransition(SuperState.ANTIJAM_ALGAE, SuperState.IDLE, Robot.antiAlgaeJamReq.negate());
   }
 
@@ -715,20 +746,27 @@ public class Superstructure {
         || state == SuperState.L4;
   }
 
+  public static boolean stateIsScoreCoral(SuperState state) {
+    return state == SuperState.L1
+        || state == SuperState.L2
+        || state == SuperState.L3
+        || state == SuperState.L4;
+  }
+
   public boolean stateIsAlgaeAlike() {
     return state == SuperState.PRE_PRE_INTAKE_ALGAE
-    || state == SuperState.PRE_INTAKE_ALGAE
-    || state == SuperState.INTAKE_ALGAE_HIGH
-    || state == SuperState.INTAKE_ALGAE_LOW
-    || state == SuperState.INTAKE_ALGAE_STACK
-    || state == SuperState.INTAKE_ALGAE_GROUND
-    || state == SuperState.READY_ALGAE
-    || state == SuperState.PRE_BARGE
-    || state == SuperState.BARGE
-    || state == SuperState.POST_BARGE
-    || state == SuperState.POST_POST_BARGE
-    || state == SuperState.PROCESSOR;
-        // SPIT_ALGAE,
+        || state == SuperState.PRE_INTAKE_ALGAE
+        || state == SuperState.INTAKE_ALGAE_HIGH
+        || state == SuperState.INTAKE_ALGAE_LOW
+        || state == SuperState.INTAKE_ALGAE_STACK
+        || state == SuperState.INTAKE_ALGAE_GROUND
+        || state == SuperState.READY_ALGAE
+        || state == SuperState.PRE_BARGE
+        || state == SuperState.BARGE
+        || state == SuperState.POST_BARGE
+        || state == SuperState.POST_POST_BARGE
+        || state == SuperState.PROCESSOR;
+    // SPIT_ALGAE,
   }
 
   public boolean antiJamCoral() {

@@ -5,7 +5,6 @@
 package frc.robot.subsystems.roller;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import java.util.function.Consumer;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface RollerIO {

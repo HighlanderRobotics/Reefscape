@@ -39,7 +39,7 @@ public class ElevatorIOReal implements ElevatorIO {
   private final StatusSignal<Temperature> temp = motor.getDeviceTemp();
 
   public ElevatorIOReal() {
-    //i'm just going to trust this for chezy i guess
+    // i'm just going to trust this for chezy i guess
     var config = new TalonFXConfiguration();
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;

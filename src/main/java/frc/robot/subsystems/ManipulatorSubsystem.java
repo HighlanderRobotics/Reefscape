@@ -15,7 +15,6 @@ import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
-
 import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -23,7 +22,7 @@ import org.littletonrobotics.junction.Logger;
 public class ManipulatorSubsystem extends RollerSubsystem {
   public static final String NAME = "Manipulator";
 
-  public static final double MAX_VELOCITY = 20; //holy cooked
+  public static final double MAX_VELOCITY = 20; // holy cooked
 
   public static final double CORAL_INTAKE_VELOCITY = -18.0;
   public static final double JOG_POS = 0.75;
@@ -80,7 +79,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
       Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
   }
 
-
   public void resetPosition(final double rotations) {
     io.resetEncoder(rotations);
   }
@@ -136,7 +134,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public void setSimSecondBeambreak(boolean b) {
     bb2Sim = b;
   }
-  
+
   public void setSimHasAlgae(boolean state) {
     hasAlgaeSim = state;
   }

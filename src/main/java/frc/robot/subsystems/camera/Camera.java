@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.RobotController;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.utils.Tracer;
@@ -166,7 +167,7 @@ public class Camera {
                               (getName().equals("Front_Left_Camera")
                                           || getName().equals("Front_Right_Camera"))
                                       && (Robot.state.get().toString().startsWith("PRE_L")
-                                          || Robot.state.get() == SuperState.SCORE_CORAL
+                                          || Superstructure.stateIsScoreCoral(Robot.state.get())
                                           || Robot.state.get() == SuperState.INTAKE_ALGAE_HIGH
                                           || Robot.state.get() == SuperState.INTAKE_ALGAE_LOW)
                                   ? 0.5
@@ -197,14 +198,14 @@ public class Camera {
                                                   || t.getFiducialId() == 14)
                                   ? 1.2
                                   : 1.0)
-                          .times(Robot.state.get() == SuperState.PRE_NET ? 0.5 : 1.0));
+                          .times(Robot.state.get() == SuperState.PRE_BARGE ? 0.5 : 1.0));
               // the sussifier
             });
 
         hasFutureData |= inputs.result.metadata.captureTimestampMicros > RobotController.getTime();
         // if (Robot.ROBOT_TYPE != RobotType.REAL)
         Logger.recordOutput("Vision/" + getName() + "/Invalid Pose Result", "Good Update");
-        
+
         Tracer.trace(
             "Log Tag Poses",
             () -> {

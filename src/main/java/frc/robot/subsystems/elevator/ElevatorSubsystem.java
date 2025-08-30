@@ -15,11 +15,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
@@ -37,7 +35,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double Z_OFFSET_METERS = Units.inchesToMeters(8.175000);
 
   public static final double MAX_EXTENSION_METERS = Units.inchesToMeters(63.50);
-  
+
   public static final double MAX_ACCELERATION = 10.0;
   public static final double SLOW_ACCELERATION = 5.0;
   public static final double MEDIUM_ACCELERATION = 8.5;
@@ -75,8 +73,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     READY_ALGAE(0.1),
     BARGE(Units.inchesToMeters(62.5)),
     PROCESSOR(Units.inchesToMeters(0.01)), // lmao
-    HOME(0.0), //NOT ACTUALLY 0!!!
-    ANTIJAM_ALGAE(0.0) //NOT ACTUALLY 0!!!
+    HOME(0.0), // NOT ACTUALLY 0!!!
+    ANTIJAM_ALGAE(0.0) // NOT ACTUALLY 0!!!
   ;
 
     private final double extensionMeters;
@@ -89,7 +87,6 @@ public class ElevatorSubsystem extends SubsystemBase {
       return extensionMeters;
     }
   }
-
 
   @AutoLogOutput(key = "Elevator/State")
   public ElevatorState state = ElevatorState.HP;
@@ -117,12 +114,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final LoggedMechanismLigament2d carriage =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
 
-  //i hate myself
+  // i hate myself
   private Supplier<Rotation2d> shoulderAngleSupplier;
   private BooleanSupplier wristAtAngleSupplier;
 
   /** Creates a new ElevatorSubsystem. */
-  public ElevatorSubsystem(ElevatorIO io, Supplier<Rotation2d> shoulderAngleSupplier, BooleanSupplier wristAtAngleSupplier) {
+  public ElevatorSubsystem(
+      ElevatorIO io,
+      Supplier<Rotation2d> shoulderAngleSupplier,
+      BooleanSupplier wristAtAngleSupplier) {
     this.io = io;
     this.shoulderAngleSupplier = shoulderAngleSupplier;
     this.wristAtAngleSupplier = wristAtAngleSupplier;
@@ -146,7 +146,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public void setState(ElevatorState state) {
     this.state = state;
   }
-  
+
   public Command setExtension(DoubleSupplier meters) {
     return this.run(
         () -> {
@@ -155,7 +155,7 @@ public class ElevatorSubsystem extends SubsystemBase {
           Logger.recordOutput("Elevator/Setpoint", setpoint);
         });
   }
-  
+
   public Command setExtension(double meters) {
     return this.setExtension(() -> meters);
   }
@@ -165,11 +165,15 @@ public class ElevatorSubsystem extends SubsystemBase {
       return runCurrentZeroing();
     } else if (state == ElevatorState.ANTIJAM_ALGAE) {
       return Commands.sequence(
-        setExtension(() -> inputs.positionMeters)
-          .until(() -> wristAtAngleSupplier.getAsBoolean() && shoulderAngleSupplier.get().getDegrees() < 10.0),
-        setExtension(Units.inchesToMeters(40)));
+          setExtension(() -> inputs.positionMeters)
+              .until(
+                  () ->
+                      wristAtAngleSupplier.getAsBoolean()
+                          && shoulderAngleSupplier.get().getDegrees() < 10.0),
+          setExtension(Units.inchesToMeters(40)));
     } else {
-    return setExtension(() -> state.getExtensionMeters());}
+      return setExtension(() -> state.getExtensionMeters());
+    }
   }
 
   public boolean atExtension(double expected) {

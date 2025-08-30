@@ -10,30 +10,6 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-
-import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.GyroSimulation;
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.LogFileUtil;
-import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
-
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.CANBus.CANBusStatus;
 import com.ctre.phoenix6.SignalLogger;
@@ -44,7 +20,6 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.signals.InvertedValue;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -117,6 +92,28 @@ import frc.robot.utils.FieldUtils.CoralTargets;
 import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.GyroSimulation;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
   public enum RobotType {
@@ -181,110 +178,112 @@ public class Robot extends LoggedRobot {
 
   private static CANBusStatus canivoreStatus = canivore.getStatus();
 
-  private static final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
-  private static final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
+  private static final CommandXboxControllerSubsystem driver =
+      new CommandXboxControllerSubsystem(0);
+  private static final CommandXboxControllerSubsystem operator =
+      new CommandXboxControllerSubsystem(1);
 
-  private static Supplier<Pose2d> pose;
+  private static Supplier<Pose2d> pose = () -> new Pose2d();
 
   public static Trigger preScoreReq =
-  driver
-  .rightTrigger()
-  .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
-  .or(
-      () ->
-          pose.get()
-                      .getTranslation()
-                      .minus(
-                          DriverStation.getAlliance().orElse(Alliance.Blue)
-                                  == Alliance.Blue
-                              ? AutoAim.BLUE_REEF_CENTER
-                              : AutoAim.RED_REEF_CENTER)
-                      .getNorm()
-                  < 3.25
-              && DriverStation.isAutonomous());
+      driver
+          .rightTrigger()
+          .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
+          .or(
+              () ->
+                  pose.get()
+                              .getTranslation()
+                              .minus(
+                                  DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                      ? AutoAim.BLUE_REEF_CENTER
+                                      : AutoAim.RED_REEF_CENTER)
+                              .getNorm()
+                          < 3.25
+                      && DriverStation.isAutonomous());
 
   @AutoLogOutput
-  public static Trigger scoreReq = driver
-  .rightTrigger()
-  .negate()
-  .and(() -> DriverStation.isTeleop())
-  //   .or(
-  //       new Trigger(
-  //               () -> {
-  //                 final var state =
-  //                     new ExtensionState(
-  //                         elevator.getExtensionMeters(),
-  //                         shoulder.getAngle(),
-  //                         wrist.getAngle());
-  //                 final var branch =
-  //                     ExtensionKinematics.getBranchPose(
-  //                         swerve.getPose(), state, currentTarget);
-  //                 final var manipulatorPose =
-  //                     ExtensionKinematics.getManipulatorPose(swerve.getPose(),
-  // state);
-  //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
-  //                   Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
-  //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
-  //                   Logger.recordOutput("IK/Branch", branch);
-  //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
-  //                   Logger.recordOutput(
-  //                       "IK/Extension Check",
-  //                       manipulatorPose,
-  //                       manipulatorPose.transformBy(
-  //                           new Transform3d(
-  //                               Units.inchesToMeters(3.0), 0.0, 0.0, new
-  // Rotation3d())));
-  //                 return false;
-  //                 // return branch
-  //                 //             .getTranslation()
-  //                 //             .getDistance(manipulatorPose.getTranslation())
-  //                 //         < Units.inchesToMeters(1.5)
-  //                 //     || branch
-  //                 //             .getTranslation()
-  //                 //             .getDistance(
-  //                 //                 manipulatorPose
-  //                 //                     .transformBy(
-  //                 //                         new Transform3d(
-  //                 //                             Units.inchesToMeters(3.0),
-  //                 //                             0.0,
-  //                 //                             0.0,
-  //                 //                             new Rotation3d()))
-  //                 //                     .getTranslation())
-  //                 //         < Units.inchesToMeters(1.5);
-  //               })
-  //           .debounce(0.15))
-  //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-  .or(() -> Autos.autoScore && DriverStation.isAutonomous());
+  public static Trigger scoreReq =
+      driver
+          .rightTrigger()
+          .negate()
+          .and(() -> DriverStation.isTeleop())
+          //   .or(
+          //       new Trigger(
+          //               () -> {
+          //                 final var state =
+          //                     new ExtensionState(
+          //                         elevator.getExtensionMeters(),
+          //                         shoulder.getAngle(),
+          //                         wrist.getAngle());
+          //                 final var branch =
+          //                     ExtensionKinematics.getBranchPose(
+          //                         swerve.getPose(), state, currentTarget);
+          //                 final var manipulatorPose =
+          //                     ExtensionKinematics.getManipulatorPose(swerve.getPose(),
+          // state);
+          //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
+          //                   Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
+          //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
+          //                   Logger.recordOutput("IK/Branch", branch);
+          //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
+          //                   Logger.recordOutput(
+          //                       "IK/Extension Check",
+          //                       manipulatorPose,
+          //                       manipulatorPose.transformBy(
+          //                           new Transform3d(
+          //                               Units.inchesToMeters(3.0), 0.0, 0.0, new
+          // Rotation3d())));
+          //                 return false;
+          //                 // return branch
+          //                 //             .getTranslation()
+          //                 //             .getDistance(manipulatorPose.getTranslation())
+          //                 //         < Units.inchesToMeters(1.5)
+          //                 //     || branch
+          //                 //             .getTranslation()
+          //                 //             .getDistance(
+          //                 //                 manipulatorPose
+          //                 //                     .transformBy(
+          //                 //                         new Transform3d(
+          //                 //                             Units.inchesToMeters(3.0),
+          //                 //                             0.0,
+          //                 //                             0.0,
+          //                 //                             new Rotation3d()))
+          //                 //                     .getTranslation())
+          //                 //         < Units.inchesToMeters(1.5);
+          //               })
+          //           .debounce(0.15))
+          //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
+          .or(() -> Autos.autoScore && DriverStation.isAutonomous());
 
   @AutoLogOutput
-  public static Trigger intakeAlgaeReq = driver.leftTrigger().or(() -> Autos.autoAlgaeIntake && DriverStation.isAutonomous());
+  public static Trigger intakeAlgaeReq =
+      driver.leftTrigger().or(() -> Autos.autoAlgaeIntake && DriverStation.isAutonomous());
 
   @AutoLogOutput
-  public static Trigger intakeCoralReq =  driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous());
+  public static Trigger intakeCoralReq =
+      driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous());
 
   @AutoLogOutput(key = "Superstructure/Pre Climb Request")
-  public static Trigger preClimbReq =  driver
-              .x()
-              .and(driver.pov(-1).negate())
-              .debounce(0.5)
-              .or(operator.x().and(operator.pov(-1).negate()).debounce(0.5));
+  public static Trigger preClimbReq =
+      driver
+          .x()
+          .and(driver.pov(-1).negate())
+          .debounce(0.5)
+          .or(operator.x().and(operator.pov(-1).negate()).debounce(0.5));
 
   @AutoLogOutput(key = "Superstructure/Climb Confirm Request")
-  public static Trigger climbConfReq =           driver.rightTrigger();
+  public static Trigger climbConfReq = driver.rightTrigger();
 
   @AutoLogOutput(key = "Superstructure/Climb Cancel Request")
   public static Trigger climbCancelReq =
-          driver
-              .y()
-              .debounce(0.5)
-              .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5));
+      driver.y().debounce(0.5).or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5));
 
   @AutoLogOutput(key = "Superstructure/Anti Coral Jam Request")
   public static final Trigger antiCoralJamReq = driver.a();
 
   @AutoLogOutput(key = "Superstructure/Anti Algae Jam Request")
   public static final Trigger antiAlgaeJamReq = driver.b();
-  
+
   @AutoLogOutput(key = "Superstructure/Home Request")
   public static Trigger homeReq = driver.start();
 
@@ -294,15 +293,14 @@ public class Robot extends LoggedRobot {
   @AutoLogOutput(key = "Superstructure/Force Funnel Req")
   public static Trigger forceFunnelReq = operator.leftBumper();
 
-  @AutoLogOutput(key = "Superstructure/Force Index Req") //TODO what?
+  @AutoLogOutput(key = "Superstructure/Force Index Req") // TODO what?
   public static Trigger forceIndexReq = operator.povDown();
 
-
-  //killVisionIK, DoubleSupplier coralAdjust)
+  // killVisionIK, DoubleSupplier coralAdjust)
   //          new Trigger(() -> killVisionIK)
-//   .or(() -> coralTarget == ReefTarget.L1)
-//   .or(() -> DriverStation.isAutonomous()),
-// () -> MathUtil.clamp(-operator.getLeftY(), -0.5, 0.5));
+  //   .or(() -> coralTarget == ReefTarget.L1)
+  //   .or(() -> DriverStation.isAutonomous()),
+  // () -> MathUtil.clamp(-operator.getLeftY(), -0.5, 0.5));
 
   // Create and configure a drivetrain simulation configuration
   private Optional<DriveTrainSimulationConfig> driveTrainSimulationConfig =
@@ -398,8 +396,6 @@ public class Robot extends LoggedRobot {
               ? new CameraIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants())
               : new CameraIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants()));
 
-
-
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
           ROBOT_TYPE != RobotType.SIM
@@ -454,7 +450,7 @@ public class Robot extends LoggedRobot {
                               .withForwardSoftLimitEnable(true)
                               .withForwardSoftLimitThreshold(0.5)))
               : new WristIOSim(),
-              () -> shoulder.getAngle());
+          () -> shoulder.getAngle());
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
           ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim(),
@@ -483,7 +479,7 @@ public class Robot extends LoggedRobot {
   private final ClimberSubsystem climber =
       new ClimberSubsystem(ROBOT_TYPE != RobotType.SIM ? new ClimberIOReal() : new ClimberIOSim());
 
-      private final Superstructure superstructure =
+  private final Superstructure superstructure =
       new Superstructure(elevator, shoulder, wrist, manipulator, funnel, swerve);
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
@@ -504,8 +500,7 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismLigament2d carriageLigament =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
   private final LoggedMechanismLigament2d shoulderLigament =
-      new LoggedMechanismLigament2d(
-          "Arm", Units.inchesToMeters(15.7), 90.0);
+      new LoggedMechanismLigament2d("Arm", Units.inchesToMeters(15.7), 90.0);
   private final LoggedMechanismLigament2d wristLigament =
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
@@ -675,7 +670,9 @@ public class Robot extends LoggedRobot {
     elevator.setDefaultCommand(elevator.setStateExtension());
     shoulder.setDefaultCommand(shoulder.setStateAngle());
     wrist.setDefaultCommand(wrist.setStateAngle());
-    manipulator.setDefaultCommand(manipulator.setStateVelocity(() -> superstructure.atExtension() || superstructure.antiJamCoral()));
+    manipulator.setDefaultCommand(
+        manipulator.setStateVelocity(
+            () -> superstructure.atExtension() || superstructure.antiJamCoral()));
     funnel.setDefaultCommand(
         funnel.setRollerVoltage(
             () ->
@@ -685,13 +682,16 @@ public class Robot extends LoggedRobot {
                             || (Stream.of(FieldUtils.HumanPlayerTargets.values())
                                     .map(
                                         (t) ->
-                                            t.location.minus(swerve.getPose()).getTranslation().getNorm()) //TODO pose needs to be changed
+                                            t.location
+                                                .minus(swerve.getPose())
+                                                .getTranslation()
+                                                .getNorm()) // TODO pose needs to be changed
                                     .min(Double::compare)
                                     .get()
                                 < 1.0)
                         ? 1.0
-                        : (superstructure.antiJamCoral() 
-                            ? -10.0 
+                        : (superstructure.antiJamCoral()
+                            ? -10.0
                             : 0.0)))); // at what point do ternary operators do more harm than good
     climber.setDefaultCommand(
         climber.setPosition(
@@ -731,9 +731,6 @@ public class Robot extends LoggedRobot {
                         modifyJoystick(driver.getRightX())
                             * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
                     .times(-1)));
-
-    //?????
-    pose = () -> swerve.getPose();
 
     driver
         .rightBumper()
@@ -818,8 +815,7 @@ public class Robot extends LoggedRobot {
                                     && elevator.atExtension()
                                     && shoulder.isNearAngle(
                                         ShoulderState.INTAKE_ALGAE_REEF.getAngle())
-                                    && wrist.isNearAngle(
-                                        WristState.INTAKE_ALGAE_REEF.getAngle())),
+                                    && wrist.isNearAngle(WristState.INTAKE_ALGAE_REEF.getAngle())),
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
@@ -948,11 +944,13 @@ public class Robot extends LoggedRobot {
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSimFirstBeambreak(true)).ignoringDisable(true));
+        .onTrue(
+            Commands.runOnce(() -> manipulator.setSimFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSimFirstBeambreak(false)).ignoringDisable(true));
+        .onTrue(
+            Commands.runOnce(() -> manipulator.setSimFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
@@ -960,7 +958,8 @@ public class Robot extends LoggedRobot {
 
     RobotModeTriggers.autonomous()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
+        .onTrue(
+            Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
     driver
         .start()
         .onTrue(
@@ -1005,7 +1004,9 @@ public class Robot extends LoggedRobot {
                   algaeIntakeTarget = AlgaeIntakeTarget.STACK;
                 }));
 
-    operator.leftTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.BARGE));
+    operator
+        .leftTrigger()
+        .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.BARGE));
 
     operator
         .rightTrigger()
@@ -1127,8 +1128,7 @@ public class Robot extends LoggedRobot {
             "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
 
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput("Targets/Reef Target", coralTarget);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Targets/Reef Target", coralTarget);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
@@ -1246,6 +1246,7 @@ public class Robot extends LoggedRobot {
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
     state = superstructure::getState;
+    pose = swerve::getPose;
   }
 
   public static void setCoralTarget(ReefTarget target) {
