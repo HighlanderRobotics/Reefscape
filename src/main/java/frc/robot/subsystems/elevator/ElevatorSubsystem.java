@@ -73,7 +73,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     READY_ALGAE(0.1),
     BARGE(Units.inchesToMeters(62.5)),
     PROCESSOR(Units.inchesToMeters(0.01)), // lmao
-    HOME(0.0), // NOT ACTUALLY 0!!!
+    HOME(-0.3), // i'm quite scared
     ANTIJAM_ALGAE(0.0) // NOT ACTUALLY 0!!!
   ;
 
@@ -161,19 +161,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command setStateExtension() {
-    if (state == ElevatorState.HOME) {
-      return runCurrentZeroing();
-    } else if (state == ElevatorState.ANTIJAM_ALGAE) {
-      return Commands.sequence(
-          setExtension(() -> inputs.positionMeters)
-              .until(
-                  () ->
-                      wristAtAngleSupplier.getAsBoolean()
-                          && shoulderAngleSupplier.get().getDegrees() < 10.0),
-          setExtension(Units.inchesToMeters(40)));
-    } else {
-      return setExtension(() -> state.getExtensionMeters());
-    }
+    return setExtension(() -> state.getExtensionMeters());
   }
 
   public boolean atExtension(double expected) {
@@ -185,21 +173,23 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command runCurrentZeroing() {
-    return this.run(
-            () -> {
-              io.setVoltage(-2.0);
-              setpoint = 0.0;
-              if (Robot.ROBOT_TYPE != RobotType.REAL)
-                Logger.recordOutput("Elevator/Setpoint", Double.NaN);
-            })
-        .until(() -> Math.abs(currentFilterValue) > 50.0)
-        .finallyDo(
-            (interrupted) -> {
-              if (!interrupted) {
-                io.resetEncoder(0.0);
-                hasZeroed = true;
-              }
-            });
+    return Commands.print("Elevator Zeroing")
+        .andThen(
+            this.run(
+                    () -> {
+                      io.setVoltage(-2.0);
+                      setpoint = 0.0;
+                      if (Robot.ROBOT_TYPE != RobotType.REAL)
+                        Logger.recordOutput("Elevator/Setpoint", Double.NaN);
+                    })
+                .until(() -> Math.abs(currentFilterValue) > 50.0)
+                .finallyDo(
+                    (interrupted) -> {
+                      if (!interrupted) {
+                        io.resetEncoder(0.0);
+                        hasZeroed = true;
+                      }
+                    }));
   }
 
   public Pose3d getCarriagePose() {

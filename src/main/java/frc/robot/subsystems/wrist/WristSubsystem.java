@@ -7,6 +7,8 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -68,7 +70,8 @@ public class WristSubsystem extends SubsystemBase {
     PRE_BARGE(Rotation2d.fromDegrees(100)),
     SCORE_BARGE(Rotation2d.fromDegrees(110)),
     PROCESSOR(Rotation2d.fromDegrees(-30.0)),
-    HOME(Rotation2d.kZero);
+    HOME(Rotation2d.fromRadians(-0.687 - 1.0)) // i dunno
+  ;
 
     private final Rotation2d angle;
 
@@ -81,18 +84,19 @@ public class WristSubsystem extends SubsystemBase {
     }
   }
 
-  @AutoLogOutput(key = "Wrist/Setpoint")
+  @AutoLogOutput(key = "Carriage/Wrist/Setpoint")
   private Rotation2d setpoint = Rotation2d.kZero;
 
-  @AutoLogOutput(key = "Wrist/State")
+  @AutoLogOutput(key = "Carriage/Wrist/State")
   private WristState state = WristState.HP;
 
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
 
   private final LinearFilter currentFilter = LinearFilter.movingAverage(10);
+  public double currentFilterValue = 0.0;
 
-  @AutoLogOutput(key = "Wrist/Has Zeroed")
+  @AutoLogOutput(key = "Carriage/Wrist/Has Zeroed")
   public boolean hasZeroed = false;
 
   // i hate myself
@@ -107,6 +111,10 @@ public class WristSubsystem extends SubsystemBase {
   public void periodic() {
     io.updateInputs(inputs);
     Logger.processInputs("Carriage/Wrist", inputs);
+    currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
+
+    if (Robot.ROBOT_TYPE != RobotType.REAL)
+      Logger.recordOutput("Carriage/Wrist/Filtered Current", currentFilterValue);
   }
 
   public void setState(WristState state) {
@@ -114,12 +122,7 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command setStateAngle() {
-    if (state == WristState.HOME) {
-      return Commands.waitUntil(() -> shoulderAngleSupplier.get().getDegrees() > 20.0)
-          .andThen(currentZero());
-    } else {
-      return setAngle(() -> state.getAngle());
-    }
+    return setAngle(() -> state.getAngle());
   }
 
   public Command setAngle(final Supplier<Rotation2d> target) {
@@ -129,10 +132,6 @@ public class WristSubsystem extends SubsystemBase {
           setpoint = target.get();
           Logger.recordOutput("Carriage/Wrist/Setpoint", setpoint);
         });
-  }
-
-  public Command setAngle(final Rotation2d target) {
-    return setAngle(() -> target);
   }
 
   public Command setVoltage(final double volts) {
@@ -156,28 +155,59 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command currentZero() {
-    return Commands.sequence(
-        this.runOnce(
-            () -> {
-              currentFilter.reset();
-              System.out.println("Wrist Zeroing");
-            }),
-        this.run(() -> io.setMotorVoltage(-1.0))
-            .raceWith(
-                Commands.waitSeconds(0.5)
-                    .andThen(
-                        Commands.waitUntil(
-                            () ->
-                                Math.abs(currentFilter.calculate(inputs.statorCurrentAmps))
-                                    > 7.0))),
-        this.runOnce(
-            () -> {
-              // Logger.recordOutput(
-              //     "shoulder zero pos", shoulderInputs.get().position.minus(ZEROING_OFFSET));
-              hasZeroed = true;
-              // io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
-              io.resetEncoder(Rotation2d.fromRadians(-0.687));
-            }));
+    // return Commands.sequence(
+    //         this.runOnce(
+    //             () -> {
+    //               currentFilter.reset();
+    //               System.out.println("Wrist Zeroing");
+    //             }),
+    //         this.run(() -> io.setMotorVoltage(-1.0))
+    //             .raceWith(
+    //                 Commands.waitSeconds(0.5)
+    //                     .andThen(
+    //                         Commands.waitUntil(
+    //                             () ->
+    //                                 Math.abs(currentFilter.calculate(inputs.statorCurrentAmps))
+    //                                     > 7.0))),
+    //         this.runOnce(
+    //             () -> {
+    //               // Logger.recordOutput(
+    //               //     "shoulder zero pos",
+    // shoulderInputs.get().position.minus(ZEROING_OFFSET));
+    //               hasZeroed = true;
+    //               // io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
+    //               io.resetEncoder(Rotation2d.fromRadians(-0.687));
+    //             }))
+    //     .finallyDo(() -> Commands.print("DONE"));
+    return Commands.print("Wrist Zeroing")
+        .andThen(
+            this.run(() -> io.setMotorVoltage(-1.0))
+                .until(() -> Math.abs(currentFilterValue) > 7.0)
+                .finallyDo(
+                    (interrupted) -> {
+                      if (!interrupted) {
+                        io.resetEncoder(Rotation2d.fromRadians(-0.687));
+                        hasZeroed = true;
+                      }
+                    }));
+
+    // return Commands.print("Elevator Zeroing")
+    // .andThen(
+    //     this.run(
+    //             () -> {
+    //               io.setVoltage(-2.0);
+    //               setpoint = 0.0;
+    //               if (Robot.ROBOT_TYPE != RobotType.REAL)
+    //                 Logger.recordOutput("Elevator/Setpoint", Double.NaN);
+    //             })
+    //         .until(() -> Math.abs(currentFilterValue) > 50.0)
+    //         .finallyDo(
+    //             (interrupted) -> {
+    //               if (!interrupted) {
+    //                 io.resetEncoder(0.0);
+    //                 hasZeroed = true;
+    //               }
+    //             }));
   }
 
   public void resetPosition(Rotation2d angle) {

@@ -1,6 +1,7 @@
 package frc.robot.subsystems;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -130,9 +131,9 @@ public class Superstructure {
         WristState.INTAKE_ALGAE_GROUND,
         0.0,
         1.35,
-        0.5) // lowkey why is this so slow
-    ,
-    HOME(ElevatorState.HOME, ShoulderState.HOME, WristState.HOME, 0.0),
+        0.5), // lowkey why is this so slow
+    HOME_ELEVATOR(ElevatorState.HOME, ShoulderState.HOME, WristState.HOME, 0.0),
+    HOME_WRIST(ElevatorState.HP, ShoulderState.HOME, WristState.HOME, 0.0),
     ANTIJAM_ALGAE(
         ElevatorState.ANTIJAM_ALGAE,
         ShoulderState.INTAKE_CORAL_GROUND,
@@ -632,47 +633,26 @@ public class Superstructure {
                             : AutoAim.RED_PROCESSOR_POS.getY(),
                         0.5)));
 
-    // i might be insane for this
+    // HOME
     bindTransition(
         SuperState.IDLE,
-        SuperState.HOME,
-        Robot.homeReq,
-        Commands.runOnce(
-            () -> {
-              elevator.hasZeroed = false;
-              wrist.hasZeroed = false;
-            }));
+        SuperState.HOME_ELEVATOR,
+        new Trigger(() -> !elevator.hasZeroed || !wrist.hasZeroed)
+            .and(() -> DriverStation.isEnabled()));
 
-    // im not sure why this needs to exist separately
     bindTransition(
+        SuperState.HOME_ELEVATOR,
+        SuperState.HOME_WRIST,
+        new Trigger(() -> Math.abs(elevator.currentFilterValue) > 50.0),
+        Commands.print("Elevator Zeroing")
+            .andThen(Commands.runOnce(() -> elevator.resetExtension(0.0))));
+
+    bindTransition(
+        SuperState.HOME_WRIST,
         SuperState.IDLE,
-        SuperState.HOME,
-        new Trigger(() -> !elevator.hasZeroed || !wrist.hasZeroed).and(DriverStation::isEnabled));
-
-    bindTransition(
-        SuperState.READY_CORAL,
-        SuperState.HOME,
-        new Trigger(() -> !wrist.hasZeroed || !elevator.hasZeroed));
-
-    bindTransition(
-        SuperState.HOME,
-        SuperState.IDLE,
-        Robot.homeReq
-            .negate()
-            .and(() -> elevator.hasZeroed)
-            .and(() -> wrist.hasZeroed)
-            .and(
-                () ->
-                    prevState != SuperState.READY_CORAL)); // TODO double check this prevstate thing
-
-    bindTransition(
-        SuperState.HOME,
-        SuperState.READY_CORAL,
-        Robot.homeReq
-            .negate()
-            .and(() -> elevator.hasZeroed)
-            .and(() -> wrist.hasZeroed)
-            .and(() -> prevState == SuperState.READY_CORAL));
+        new Trigger(() -> Math.abs(wrist.currentFilterValue) > 7.0),
+        Commands.print("Wrist Zeroing")
+            .andThen(Commands.runOnce(() -> wrist.resetPosition(Rotation2d.fromRadians(-0.687)))));
 
     // getting rid of SPIT_CORAL and SPIT_ALGAE as explicit states- all they do is run the
     // manipulator wheels

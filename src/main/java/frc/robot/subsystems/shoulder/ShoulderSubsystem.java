@@ -98,10 +98,10 @@ public class ShoulderSubsystem extends SubsystemBase {
     }
   }
 
-  @AutoLogOutput(key = "Shoulder/Setpoint")
+  @AutoLogOutput(key = "Carriage/Shoulder/Setpoint")
   private Rotation2d setpoint = Rotation2d.kZero;
 
-  @AutoLogOutput(key = "Shoulder/State")
+  @AutoLogOutput(key = "Carriage/Shoulder/State")
   private ShoulderState state = ShoulderState.HP;
 
   private final ShoulderIO io;
@@ -123,7 +123,7 @@ public class ShoulderSubsystem extends SubsystemBase {
     Logger.processInputs("Carriage/Shoulder", inputs);
     if (dashboardZero.get()) {
       Tracer.trace(
-          "Shoulder/Zero",
+          "Carriage/Shoulder/Zero",
           () -> {
             rezero();
             dashboardZero.set(false);
@@ -141,7 +141,7 @@ public class ShoulderSubsystem extends SubsystemBase {
     return setAngle(() -> state.getAngle());
   }
 
-  @AutoLogOutput(key = "Shoulder/Zeroing Angle")
+  @AutoLogOutput(key = "Carriage/Shoulder/Zeroing Angle")
   // what
   public Rotation2d getZeroingAngle() {
     return Rotation2d.fromRotations(inputs.cancoderPosition).div(SHOULDER_FINAL_STAGE_RATIO);
