@@ -54,9 +54,8 @@ public class WristSubsystem extends SubsystemBase {
 
     private final Supplier<Rotation2d> angle;
 
-
-    private WristState(double defaultValue, boolean fromDegrees) {
-      LoggedTunableNumber ltn = new LoggedTunableNumber("Wrist/" + this.name(), defaultValue);
+    private WristState(double defaultAngle, boolean fromDegrees) {
+      LoggedTunableNumber ltn = new LoggedTunableNumber("Wrist/" + this.name(), defaultAngle);
       // just don't use rotations i guess
       if (fromDegrees) {
         this.angle = () -> Rotation2d.fromDegrees(ltn.get());
