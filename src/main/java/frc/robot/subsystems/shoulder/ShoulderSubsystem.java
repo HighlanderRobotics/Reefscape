@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.utils.LoggedTunableNumber;
 import frc.robot.utils.Tracer;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -36,38 +37,41 @@ public class ShoulderSubsystem extends SubsystemBase {
           .withMotionMagicAcceleration(4.0);
 
   public enum ShoulderState {
-    HP(Rotation2d.fromDegrees(50.0)),
-    PRE_INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(35.0)),
-    INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(8.0)),
-    PRE_L1(Rotation2d.fromDegrees(35.0)),
-    L1(Rotation2d.fromRadians(1.617)), // not sure about units tbh
-    PRE_L2(Rotation2d.fromDegrees(35.0)),
-    L2(Rotation2d.fromRadians(0.569).plus(Rotation2d.fromDegrees(20))),
-    PRE_L3(Rotation2d.fromDegrees(35.0)),
-    L3(Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(3))),
-    PRE_L4(Rotation2d.fromDegrees(8.0)),
-    L4(Rotation2d.fromDegrees(25.0)),
-    PRE_INTAKE_ALGAE_REEF(Rotation2d.fromDegrees(35.0)),
-    INTAKE_ALGAE_REEF(Rotation2d.fromDegrees(45.0)),
-    INTAKE_ALGAE_STACK(Rotation2d.fromDegrees(30.0)),
+    HP(50.0),
+    PRE_INTAKE_CORAL_GROUND(35.0),
+    INTAKE_CORAL_GROUND(8.0),
+    PRE_L1(35.0),
+    L1(Units.radiansToDegrees(1.617)), // not sure about units tbh
+    PRE_L2(35.0),
+    L2(Rotation2d.fromRadians(0.569).plus(Rotation2d.fromDegrees(20)).getDegrees()),
+    PRE_L3(35.0),
+    L3(Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(3)).getDegrees()),
+    PRE_L4(8.0),
+    L4(25.0),
+    PRE_INTAKE_ALGAE_REEF(35.0),
+    INTAKE_ALGAE_REEF(45.0),
+    INTAKE_ALGAE_STACK(30.0),
     INTAKE_ALGAE_GROUND(
         Rotation2d.fromRadians(0.505)
             .plus(Rotation2d.fromDegrees(-5.0))
-            .minus(Rotation2d.fromDegrees(2))), // hello??
-    READY_ALGAE(Rotation2d.fromDegrees(60.0)),
-    PRE_BARGE(Rotation2d.fromDegrees(30)),
-    SCORE_BARGE(Rotation2d.fromDegrees(90)),
-    PROCESSOR(Rotation2d.fromDegrees(60.0)),
-    HOME(Rotation2d.fromDegrees(50.0));
+            .minus(Rotation2d.fromDegrees(2))
+            .getDegrees()), // hello??
+    READY_ALGAE(60.0),
+    PRE_BARGE(30),
+    SCORE_BARGE(90),
+    PROCESSOR(60.0),
+    HOME(50.0);
 
-    private final Rotation2d angle;
+    private final Supplier<Rotation2d> angle;
 
-    private ShoulderState(Rotation2d angle) {
-      this.angle = angle;
+    private ShoulderState(double defaultAngle) {
+      LoggedTunableNumber ltn = new LoggedTunableNumber("Shoulder/" + this.name(), defaultAngle);
+      // we're in real life!! use degrees
+      this.angle = () -> Rotation2d.fromDegrees(ltn.get());
     }
 
     public Rotation2d getAngle() {
-      return angle;
+      return angle.get();
     }
   }
 

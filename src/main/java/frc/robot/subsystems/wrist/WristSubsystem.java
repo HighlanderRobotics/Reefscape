@@ -4,6 +4,7 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -32,36 +33,32 @@ public class WristSubsystem extends SubsystemBase {
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
 
   public enum WristState {
-    PRE_INTAKE_CORAL_GROUND(30.0, true), // formerly WRIST_CLEARANCE_POS
-    INTAKE_CORAL_GROUND(0.0, true),
-    HP(178.0, true),
-    L1(0.349, false),
-    PRE_L2(170.0, true),
-    L2(2.447, false),
-    PRE_L3(170.0, true),
-    L3(2.427, false),
-    L4(120.0, true), // ??
-    PRE_INTAKE_ALGAE_REEF(30.0, true),
-    INTAKE_ALGAE_REEF(-20.0, true),
-    INTAKE_ALGAE_STACK(-10, true),
-    INTAKE_ALGAE_GROUND(-65, true),
-    READY_ALGAE(20, true),
-    PRE_BARGE(100, true),
-    SCORE_BARGE(110, true),
-    PROCESSOR(-30.0, true),
-    HOME(-0.687 - 1.0, false) // i dunno
+    PRE_INTAKE_CORAL_GROUND(30.0), // formerly WRIST_CLEARANCE_POS
+    INTAKE_CORAL_GROUND(0.0),
+    HP(178.0),
+    L1(Units.radiansToDegrees(0.349)),
+    PRE_L2(170.0),
+    L2(Units.radiansToDegrees(2.447)),
+    PRE_L3(170.0),
+    L3(Units.radiansToDegrees(2.427)),
+    L4(120.0), // ??
+    PRE_INTAKE_ALGAE_REEF(30.0),
+    INTAKE_ALGAE_REEF(-20.0),
+    INTAKE_ALGAE_STACK(-10),
+    INTAKE_ALGAE_GROUND(-65),
+    READY_ALGAE(20),
+    PRE_BARGE(100),
+    SCORE_BARGE(110),
+    PROCESSOR(-30.0),
+    HOME(Units.radiansToDegrees(-0.687 - 1.0)) // i dunno
   ;
 
     private final Supplier<Rotation2d> angle;
 
-    private WristState(double defaultAngle, boolean fromDegrees) {
+    private WristState(double defaultAngle) {
       LoggedTunableNumber ltn = new LoggedTunableNumber("Wrist/" + this.name(), defaultAngle);
-      // just don't use rotations i guess
-      if (fromDegrees) {
-        this.angle = () -> Rotation2d.fromDegrees(ltn.get());
-      } else {
-        this.angle = () -> Rotation2d.fromRadians(ltn.get());
-      }
+      // we're in real life!! use degrees
+      this.angle = () -> Rotation2d.fromDegrees(ltn.get());
     }
 
     public Rotation2d getAngle() {
