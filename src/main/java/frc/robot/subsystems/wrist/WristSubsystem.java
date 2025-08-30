@@ -24,7 +24,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(5);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1).withMotionMagicAcceleration(1);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(3);
@@ -91,8 +91,8 @@ public class WristSubsystem extends SubsystemBase {
     Logger.processInputs("Carriage/Wrist", inputs);
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
 
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput("Carriage/Wrist/Filtered Current", currentFilterValue);
+    // if (Robot.ROBOT_TYPE != RobotType.REAL)
+    Logger.recordOutput("Carriage/Wrist/Filtered Current", currentFilterValue);
   }
 
   public void setState(WristState state) {

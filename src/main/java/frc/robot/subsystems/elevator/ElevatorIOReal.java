@@ -80,9 +80,9 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
     config.CurrentLimits.SupplyCurrentLowerTime = 0.25;
 
-    config.MotionMagic.MotionMagicAcceleration = ElevatorSubsystem.MAX_ACCELERATION;
+    config.MotionMagic.MotionMagicAcceleration = ElevatorSubsystem.SLOW_ACCELERATION;
     // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity = 4.5;
+    config.MotionMagic.MotionMagicCruiseVelocity = 2;
     // (5500.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
 
     config.MotionMagic.MotionMagicExpo_kV = 1.9;
