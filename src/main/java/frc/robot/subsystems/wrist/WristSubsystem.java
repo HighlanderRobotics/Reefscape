@@ -31,39 +31,38 @@ public class WristSubsystem extends SubsystemBase {
   public static MotionMagicConfigs CRAWL_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
 
-  public static LoggedTunableNumber a = new LoggedTunableNumber("dfsdfjl", 5);
-
   public enum WristState {
-    PRE_INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(30.0)), // formerly WRIST_CLEARANCE_POS
-    INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(0.0)),
-    // HP(() -> Rotation2d.fromDegrees(new LoggedTunableNumber("Wrist/HP", 178).get())),
-    // HP(Rotation2d.fromDegrees(178)),
-    HP(new LoggedTunableNumber("Wrist/HP", 178)),
-    L1(Rotation2d.fromRadians(0.349)),
-    PRE_L2(Rotation2d.fromDegrees(170.0)),
-    L2(Rotation2d.fromRadians(2.447)),
-    PRE_L3(Rotation2d.fromDegrees(170.0)),
-    L3(Rotation2d.fromRadians(2.427)),
-    L4(Rotation2d.fromDegrees(120.0)), // ??
-    PRE_INTAKE_ALGAE_REEF(Rotation2d.fromDegrees(30.0)),
-    INTAKE_ALGAE_REEF(Rotation2d.fromDegrees(-20.0)),
-    INTAKE_ALGAE_STACK(Rotation2d.fromDegrees(-10)),
-    INTAKE_ALGAE_GROUND(Rotation2d.fromDegrees(-65)),
-    READY_ALGAE(Rotation2d.fromDegrees(20)),
-    PRE_BARGE(Rotation2d.fromDegrees(100)),
-    SCORE_BARGE(Rotation2d.fromDegrees(110)),
-    PROCESSOR(Rotation2d.fromDegrees(-30.0)),
-    HOME(Rotation2d.fromRadians(-0.687 - 1.0)) // i dunno
+    PRE_INTAKE_CORAL_GROUND(30.0, true), // formerly WRIST_CLEARANCE_POS
+    INTAKE_CORAL_GROUND(0.0, true),
+    HP(178.0, true),
+    L1(0.349, false),
+    PRE_L2(170.0, true),
+    L2(2.447, false),
+    PRE_L3(170.0, true),
+    L3(2.427, false),
+    L4(120.0, true), // ??
+    PRE_INTAKE_ALGAE_REEF(30.0, true),
+    INTAKE_ALGAE_REEF(-20.0, true),
+    INTAKE_ALGAE_STACK(-10, true),
+    INTAKE_ALGAE_GROUND(-65, true),
+    READY_ALGAE(20, true),
+    PRE_BARGE(100, true),
+    SCORE_BARGE(110, true),
+    PROCESSOR(-30.0, true),
+    HOME(-0.687 - 1.0, false) // i dunno
   ;
 
     private final Supplier<Rotation2d> angle;
 
-    private WristState(Rotation2d angle) {
-      this.angle = () -> angle;
-    }
 
-    private WristState(LoggedTunableNumber degrees) {
-      this.angle = () -> Rotation2d.fromDegrees(degrees.get());
+    private WristState(double defaultValue, boolean fromDegrees) {
+      LoggedTunableNumber ltn = new LoggedTunableNumber("Wrist/" + this.name(), defaultValue);
+      // just don't use rotations i guess
+      if (fromDegrees) {
+        this.angle = () -> Rotation2d.fromDegrees(ltn.get());
+      } else {
+        this.angle = () -> Rotation2d.fromRadians(ltn.get());
+      }
     }
 
     public Rotation2d getAngle() {
