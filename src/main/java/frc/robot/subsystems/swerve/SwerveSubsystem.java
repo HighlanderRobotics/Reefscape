@@ -81,7 +81,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private Rotation2d rawGyroRotation = new Rotation2d();
   private Rotation2d lastGyroRotation = new Rotation2d();
 
-  private static SwerveDrivePoseEstimator estimator;
+  private static SwerveDrivePoseEstimator estimator; //TODO i forgot why this is static
   private double lastOdometryUpdateTimestamp = 0.0;
   final Pose3d[] cameraPoses;
 
@@ -105,7 +105,7 @@ public class SwerveSubsystem extends SubsystemBase {
       CameraIO algaeCameraIO) {
     this.constants = constants;
     this.kinematics = new SwerveDriveKinematics(constants.getModuleTranslations());
-    this.estimator =
+    estimator =
         new SwerveDrivePoseEstimator(
             kinematics,
             rawGyroRotation,

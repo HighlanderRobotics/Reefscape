@@ -5,8 +5,6 @@ import java.util.function.Supplier;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Timer;
@@ -17,7 +15,6 @@ import frc.robot.Robot;
 import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.Robot.ReefTarget;
-import frc.robot.subsystems.climber.ClimberSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorState;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
@@ -126,7 +123,7 @@ public class Superstructure {
         ElevatorState.INTAKE_ALGAE_GROUND,
         ShoulderState.INTAKE_ALGAE_GROUND,
         WristState.INTAKE_ALGAE_GROUND,
-        0.0,
+        10.0,
         3.4,
         2.0),
     CLIMB(
@@ -136,7 +133,19 @@ public class Superstructure {
         0.0,
         1.35,
         0.5) // lowkey why is this so slow
-  // HOME(),
+    ,
+  HOME(
+    ElevatorState.HOME,
+    ShoulderState.HOME,
+    WristState.HOME,
+    0.0
+  ),
+  ANTIJAM_ALGAE(
+    ElevatorState.ANTIJAM_ALGAE,
+    ShoulderState.INTAKE_CORAL_GROUND,
+    WristState.INTAKE_CORAL_GROUND,
+    0.0
+  )
   // SPIT_CORAL(),
   // ANTI_JAM,
   // L4_TUCKED(ElevatorState.HP, ShoulderState.L4_TUCKED, WristState.L4_TUCKED),
@@ -191,8 +200,9 @@ public class Superstructure {
   private final WristSubsystem wrist;
   private final ManipulatorSubsystem manipulator;
   private final FunnelSubsystem funnel;
-  private final ClimberSubsystem climber;
   private final SwerveSubsystem swerve;
+
+  public static boolean antiJamCoral;
 
     /** Creates a new Superstructure. */
     public Superstructure(
@@ -201,14 +211,12 @@ public class Superstructure {
         WristSubsystem wrist,
         ManipulatorSubsystem manipulator,
         FunnelSubsystem funnel,
-        ClimberSubsystem climber,
         SwerveSubsystem swerve) {
       this.elevator = elevator;
       this.shoulder = shoulder;
       this.wrist = wrist;
       this.manipulator = manipulator;
       this.funnel = funnel;
-      this.climber = climber;
       this.swerve = swerve;
   
       addTransitions();
@@ -231,6 +239,17 @@ public class Superstructure {
   private void bindTransition(SuperState start, SuperState end, Trigger trigger) {
     // maps triggers to the transitions
     trigger.and(new Trigger(() -> state == start)).onTrue(changeStateTo(end));
+  }
+      /**
+   * @param start first state
+   * @param end second state
+   * @param trigger trigger to make it go from the first state to the second (assuming it's already
+   *     in the first state)
+   * @param cmd some command to run while making the transition
+   */
+  private void bindTransition(SuperState start, SuperState end, Trigger trigger, Command cmd) {
+    // maps triggers to the transitions
+    trigger.and(new Trigger(() -> state == start)).onTrue(Commands.parallel(changeStateTo(end), cmd));
   }
 
   private boolean atExtension(SuperState state) {
@@ -591,120 +610,89 @@ public class Superstructure {
                         0.5))
         );
 
-    stateTriggers
-        .get(SuperState.IDLE)
-        .and(() -> !elevator.hasZeroed || !wrist.hasZeroed)
-        .and(() -> DriverStation.isEnabled())
-        // .and(() -> Robot.ROBOT_TYPE != RobotType.SIM)
-        .onTrue(this.forceState(SuperState.HOME));
+    // i might be insane for this
+    bindTransition(SuperState.IDLE, SuperState.HOME, Robot.homeReq, Commands.runOnce(
+        () -> {
+          elevator.hasZeroed = false;
+          wrist.hasZeroed = false;
+        }));
 
-    // We might want to make this work when we have a piece as well?
-    stateTriggers
-        .get(SuperState.IDLE)
-        .and(homeReq)
-        .onTrue(this.forceState(SuperState.HOME))
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  elevator.hasZeroed = false;
-                  wrist.hasZeroed = false;
-                }));
+    //im not sure why this needs to exist separately
+    bindTransition(
+        SuperState.IDLE, 
+        SuperState.HOME, 
+        new Trigger(() -> !elevator.hasZeroed || !wrist.hasZeroed)
+            .and(DriverStation::isEnabled));
 
-    stateTriggers
-        .get(SuperState.HOME)
-        .whileTrue(
-            Commands.parallel(
-                shoulder.setAngle(Rotation2d.fromDegrees(50.0)),
-                elevator.runCurrentZeroing(),
-                Commands.waitUntil(() -> shoulder.getAngle().getDegrees() > 20.0)
-                    .andThen(wrist.currentZero(() -> shoulder.getInputs()))))
-        .and(() -> elevator.hasZeroed && wrist.hasZeroed && !homeReq.getAsBoolean())
-        .onTrue(this.forceState(prevState));
+    bindTransition(SuperState.READY_CORAL, SuperState.HOME, new Trigger(() -> !wrist.hasZeroed || !elevator.hasZeroed));
 
-    // SPIT_CORAL logic + -> IDLE
-    stateTriggers
-        .get(SuperState.SPIT_CORAL)
-        .whileTrue(manipulator.setRollerVelocity(10))
-        .and(() -> !manipulator.getFirstBeambreak())
-        .and(() -> !manipulator.getSecondBeambreak())
-        .and(Robot.preClimbReq.negate())
-        .onTrue(this.forceState(SuperState.IDLE));
-    // SPIT_CORAL -> PRE_CLIMB
-    stateTriggers
-        .get(SuperState.SPIT_CORAL)
-        .and(() -> !manipulator.getFirstBeambreak())
-        .and(() -> !manipulator.getSecondBeambreak())
-        .and(Robot.preClimbReq)
-        .onTrue(forceState(SuperState.PRE_CLIMB));
+    bindTransition(SuperState.HOME, SuperState.IDLE, 
+        Robot.homeReq.negate()
+        .and(() -> elevator.hasZeroed)
+        .and(() -> wrist.hasZeroed)
+        .and(() -> prevState != SuperState.READY_CORAL)); //TODO double check this prevstate thing
 
-    stateTriggers
-        .get(SuperState.READY_CORAL)
-        .and(() -> !wrist.hasZeroed || !elevator.hasZeroed)
-        .onTrue(this.forceState(SuperState.HOME));
-    // READY_CORAL -> SPIT_CORAL
-    stateTriggers
-        .get(SuperState.READY_CORAL)
-        .and(Robot.preClimbReq)
-        .onTrue(this.forceState(SuperState.SPIT_CORAL));
-
-    antiCoralJamReq
-        .onTrue(this.forceState(SuperState.ANTI_CORAL_JAM))
-        .onFalse(this.forceState(SuperState.IDLE));
-    antiAlgaeJamReq
-        .onTrue(this.forceState(SuperState.ANTI_ALGAE_JAM))
-        .onFalse(this.forceState(SuperState.IDLE));
-    // ANTI_JAM logic
-    stateTriggers
-        .get(SuperState.ANTI_CORAL_JAM)
-        .whileTrue(elevator.hold())
-        .whileTrue(wrist.hold())
-        .whileTrue(shoulder.hold())
-        .whileTrue(manipulator.setVelocity(-10))
-        .whileTrue(funnel.setVoltage(-10.0));
-
-    stateTriggers
-        .get(SuperState.ANTI_ALGAE_JAM)
-        .whileTrue(
-            Commands.parallel(
-                    elevator.hold(),
-                    shoulder.setAngle(ShoulderSubsystem.SHOULDER_CORAL_GROUND_POS),
-                    wrist.setAngle(WristSubsystem.WRIST_CORAL_GROUND))
-                .until(() -> wrist.isNearTarget() && shoulder.getAngle().getDegrees() < 10.0)
-                .andThen(
-                    Commands.parallel(
-                        wrist.hold(),
-                        shoulder.hold(),
-                        elevator.setExtension(Units.inchesToMeters(40)).andThen(elevator.hold()))));
+    bindTransition(SuperState.HOME, SuperState.READY_CORAL, 
+        Robot.homeReq.negate()
+        .and(() -> elevator.hasZeroed)
+        .and(() -> wrist.hasZeroed)
+        .and(() -> prevState == SuperState.READY_CORAL));
     
+    //getting rid of SPIT_CORAL and SPIT_ALGAE as explicit states- all they do is run the manipulator wheels
+    bindTransition(
+        SuperState.READY_CORAL, 
+        SuperState.PRE_CLIMB, 
+        Robot.preClimbReq
+        , funnel.unlatch()
+    );
 
-    // READY_ALGAE -> SPIT_ALGAE
-    stateTriggers
-        .get(SuperState.READY_ALGAE)
-        .and(preClimbReq)
-        .onTrue(forceState(SuperState.SPIT_ALGAE));
+    // the manipulator wheels run at the same speed to spit algae and coral
+    bindTransition(
+        SuperState.READY_ALGAE, 
+        SuperState.PRE_CLIMB, 
+        Robot.preClimbReq
+        , funnel.unlatch()
+    );
 
-    
-    // SPIT_ALGAE -> PRE_CLIMB
-    stateTriggers
-        .get(SuperState.SPIT_ALGAE)
-        // Positive bc algae is backwards
-        .whileTrue(manipulator.setVelocity(10))
-        // Wait 1 second
-        .and(() -> stateTimer.hasElapsed(1))
-        .and(preClimbReq)
-        .onTrue(forceState(SuperState.PRE_CLIMB));
 
         // ---Climb---
-    // Climb could start from any state, so there's no particular transition
-    Robot.preClimbReq.onTrue(
-        Commands.parallel(changeStateTo(SuperState.PRE_CLIMB), funnel.unlatch()));
 
-    bindTransition(SuperState.PRE_CLIMB, SuperState.CLIMB, Robot.climbConfReq);
+    bindTransition(SuperState.IDLE, SuperState.PRE_CLIMB, Robot.preClimbReq, funnel.unlatch());
+
+    bindTransition(SuperState.PRE_CLIMB, SuperState.CLIMB, Robot.climbConfReq.and(manipulator::neitherBeambreak));
 
     // May need more checks to see if canceling is safe
     bindTransition(SuperState.CLIMB, SuperState.PRE_CLIMB, Robot.climbCancelReq);
-  }
 
+    bindTransition(SuperState.PRE_CLIMB, SuperState.IDLE, Robot.preClimbReq.negate());
+
+
+    // ANTI_JAM logic
+
+    // anti coral jam could start from any state, so there's no explicit transition
+    // in fact the state doesn't ever change--the manipulator velocity (and funnel velocity in robot.java) is just overridden
+    // which is why once the request is canceled, the manipulator state is manually set back to the normal value for that state
+    // setSubstates isn't called every loop, so I don't think it can be set there
+    // i have a bad feeling about this though
+    Robot.antiCoralJamReq
+        .onTrue(Commands.runOnce(
+            () -> {
+                antiJamCoral = true;
+                manipulator.setState(-10);
+            }
+        ))
+        .onFalse(Commands.runOnce(
+            () -> {
+                antiJamCoral = false;
+                manipulator.setState(state.manipulatorVelocity);
+            }
+        ));
+        
+    Robot.antiAlgaeJamReq
+        .onTrue(this.changeStateTo(SuperState.ANTIJAM_ALGAE));
+    
+    bindTransition(SuperState.ANTIJAM_ALGAE, SuperState.IDLE, Robot.antiAlgaeJamReq.negate());
+  }
 
   public SuperState getState() {
     return state;
@@ -741,5 +729,9 @@ public class Superstructure {
     || state == SuperState.POST_POST_BARGE
     || state == SuperState.PROCESSOR;
         // SPIT_ALGAE,
+  }
+
+  public boolean antiJamCoral() {
+    return antiJamCoral;
   }
 }

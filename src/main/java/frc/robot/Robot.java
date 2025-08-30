@@ -10,6 +10,30 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.GyroSimulation;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.CANBus.CANBusStatus;
 import com.ctre.phoenix6.SignalLogger;
@@ -20,6 +44,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.signals.InvertedValue;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -46,7 +71,6 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Robot.AlgaeScoreTarget;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
@@ -70,8 +94,20 @@ import frc.robot.subsystems.shoulder.ShoulderIOReal;
 import frc.robot.subsystems.shoulder.ShoulderIOSim;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem.ShoulderState;
-import frc.robot.subsystems.swerve.*;
-import frc.robot.subsystems.wrist.*;
+import frc.robot.subsystems.swerve.AlphaSwerveConstants;
+import frc.robot.subsystems.swerve.BansheeSwerveConstants;
+import frc.robot.subsystems.swerve.GyroIOPigeon2;
+import frc.robot.subsystems.swerve.GyroIOSim;
+import frc.robot.subsystems.swerve.KelpieSwerveConstants;
+import frc.robot.subsystems.swerve.ModuleIO;
+import frc.robot.subsystems.swerve.ModuleIOMapleSim;
+import frc.robot.subsystems.swerve.ModuleIOReal;
+import frc.robot.subsystems.swerve.PhoenixOdometryThread;
+import frc.robot.subsystems.swerve.SwerveConstants;
+import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.subsystems.wrist.WristIOReal;
+import frc.robot.subsystems.wrist.WristIOSim;
+import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem.WristState;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.FieldUtils;
@@ -81,29 +117,6 @@ import frc.robot.utils.FieldUtils.CoralTargets;
 import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
-
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.GyroSimulation;
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.LogFileUtil;
-import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
   public enum RobotType {
@@ -171,14 +184,15 @@ public class Robot extends LoggedRobot {
   private static final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
   private static final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
 
+  private static Supplier<Pose2d> pose;
+
   public static Trigger preScoreReq =
   driver
   .rightTrigger()
   .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
   .or(
       () ->
-          swerve
-                      .getPose()
+          pose.get()
                       .getTranslation()
                       .minus(
                           DriverStation.getAlliance().orElse(Alliance.Blue)
@@ -265,10 +279,14 @@ public class Robot extends LoggedRobot {
               .debounce(0.5)
               .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5));
 
-              //anti coral, anti algae, home
-        //       driver.a(),
-        //   driver.b(),
-        //   driver.start(),
+  @AutoLogOutput(key = "Superstructure/Anti Coral Jam Request")
+  public static final Trigger antiCoralJamReq = driver.a();
+
+  @AutoLogOutput(key = "Superstructure/Anti Algae Jam Request")
+  public static final Trigger antiAlgaeJamReq = driver.b();
+  
+  @AutoLogOutput(key = "Superstructure/Home Request")
+  public static Trigger homeReq = driver.start();
 
   @AutoLogOutput(key = "Superstructure/Rev Funnel Req")
   public static Trigger revFunnelReq = operator.rightBumper();
@@ -380,9 +398,7 @@ public class Robot extends LoggedRobot {
               ? new CameraIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants())
               : new CameraIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants()));
 
-  private final ElevatorSubsystem elevator =
-      new ElevatorSubsystem(
-          ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim());
+
 
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
@@ -437,8 +453,13 @@ public class Robot extends LoggedRobot {
                           new SoftwareLimitSwitchConfigs()
                               .withForwardSoftLimitEnable(true)
                               .withForwardSoftLimitThreshold(0.5)))
-              : new WristIOSim());
-
+              : new WristIOSim(),
+              () -> shoulder.getAngle());
+  private final ElevatorSubsystem elevator =
+      new ElevatorSubsystem(
+          ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim(),
+          () -> shoulder.getAngle(),
+          () -> wrist.atSetpoint());
   private final FunnelSubsystem funnel =
       new FunnelSubsystem(
           ROBOT_TYPE != RobotType.SIM
@@ -463,7 +484,7 @@ public class Robot extends LoggedRobot {
       new ClimberSubsystem(ROBOT_TYPE != RobotType.SIM ? new ClimberIOReal() : new ClimberIOSim());
 
       private final Superstructure superstructure =
-      new Superstructure(elevator, shoulder, wrist, manipulator, funnel, climber, swerve);
+      new Superstructure(elevator, shoulder, wrist, manipulator, funnel, swerve);
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -651,10 +672,10 @@ public class Robot extends LoggedRobot {
                 })
             .ignoringDisable(true));
 
-elevator.setDefaultCommand(elevator.setStateExtension());
+    elevator.setDefaultCommand(elevator.setStateExtension());
     shoulder.setDefaultCommand(shoulder.setStateAngle());
     wrist.setDefaultCommand(wrist.setStateAngle());
-    manipulator.setDefaultCommand(manipulator.setStateVelocity(superstructure::atExtension));
+    manipulator.setDefaultCommand(manipulator.setStateVelocity(() -> superstructure.atExtension() || superstructure.antiJamCoral()));
     funnel.setDefaultCommand(
         funnel.setRollerVoltage(
             () ->
@@ -669,7 +690,9 @@ elevator.setDefaultCommand(elevator.setStateExtension());
                                     .get()
                                 < 1.0)
                         ? 1.0
-                        : 0.0))); // at what point do ternary operators do more harm than good
+                        : (superstructure.antiJamCoral() 
+                            ? -10.0 
+                            : 0.0)))); // at what point do ternary operators do more harm than good
     climber.setDefaultCommand(
         climber.setPosition(
             superstructure.getState().climberPosition,
@@ -708,6 +731,9 @@ elevator.setDefaultCommand(elevator.setStateExtension());
                         modifyJoystick(driver.getRightX())
                             * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
                     .times(-1)));
+
+    //?????
+    pose = () -> swerve.getPose();
 
     driver
         .rightBumper()

@@ -84,7 +84,9 @@ public class ShoulderSubsystem extends SubsystemBase {
     READY_ALGAE(Rotation2d.fromDegrees(60.0)),
     PRE_BARGE(Rotation2d.fromDegrees(30)),
     SCORE_BARGE(Rotation2d.fromDegrees(90)),
-    PROCESSOR(Rotation2d.fromDegrees(60.0));
+    PROCESSOR(Rotation2d.fromDegrees(60.0)),
+    HOME(Rotation2d.fromDegrees(50.0))
+    ;
 
     // L4_TUCKED(Rotation2d.fromDegrees(35.0)), // SHOULDER_TUCKED_CLEARANCE_POS
     // L4_TUCKED_OUT(Rotation2d.fromDegrees(25.0)),

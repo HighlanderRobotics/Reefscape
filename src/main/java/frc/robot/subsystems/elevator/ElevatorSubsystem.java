@@ -11,10 +11,14 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+
+import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -70,7 +74,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     INTAKE_ALGAE_GROUND(0.14 - Units.inchesToMeters(0.75)),
     READY_ALGAE(0.1),
     BARGE(Units.inchesToMeters(62.5)),
-    PROCESSOR(Units.inchesToMeters(0.01)) // lmao
+    PROCESSOR(Units.inchesToMeters(0.01)), // lmao
+    HOME(0.0), //NOT ACTUALLY 0!!!
+    ANTIJAM_ALGAE(0.0) //NOT ACTUALLY 0!!!
   ;
 
     private final double extensionMeters;
@@ -111,9 +117,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final LoggedMechanismLigament2d carriage =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
 
+  //i hate myself
+  private Supplier<Rotation2d> shoulderAngleSupplier;
+  private BooleanSupplier wristAtAngleSupplier;
+
   /** Creates a new ElevatorSubsystem. */
-  public ElevatorSubsystem(ElevatorIO io) {
+  public ElevatorSubsystem(ElevatorIO io, Supplier<Rotation2d> shoulderAngleSupplier, BooleanSupplier wristAtAngleSupplier) {
     this.io = io;
+    this.shoulderAngleSupplier = shoulderAngleSupplier;
+    this.wristAtAngleSupplier = wristAtAngleSupplier;
   }
 
   @Override
@@ -149,7 +161,15 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command setStateExtension() {
-    return setExtension(() -> state.getExtensionMeters());
+    if (state == ElevatorState.HOME) {
+      return runCurrentZeroing();
+    } else if (state == ElevatorState.ANTIJAM_ALGAE) {
+      return Commands.sequence(
+        setExtension(() -> inputs.positionMeters)
+          .until(() -> wristAtAngleSupplier.getAsBoolean() && shoulderAngleSupplier.get().getDegrees() < 10.0),
+        setExtension(Units.inchesToMeters(40)));
+    } else {
+    return setExtension(() -> state.getExtensionMeters());}
   }
 
   public boolean atExtension(double expected) {

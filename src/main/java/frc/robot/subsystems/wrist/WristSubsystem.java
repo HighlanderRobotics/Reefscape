@@ -7,7 +7,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.subsystems.shoulder.ShoulderIOInputsAutoLogged;
+
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -65,7 +65,8 @@ public class WristSubsystem extends SubsystemBase {
     READY_ALGAE(Rotation2d.fromDegrees(20)),
     PRE_BARGE(Rotation2d.fromDegrees(100)),
     SCORE_BARGE(Rotation2d.fromDegrees(110)),
-    PROCESSOR(Rotation2d.fromDegrees(-30.0))
+    PROCESSOR(Rotation2d.fromDegrees(-30.0)),
+    HOME(Rotation2d.kZero)
   ;
 
     private final Rotation2d angle;
@@ -93,8 +94,12 @@ public class WristSubsystem extends SubsystemBase {
   @AutoLogOutput(key = "Wrist/Has Zeroed")
   public boolean hasZeroed = false;
 
-  public WristSubsystem(WristIO io) {
+  //i hate myself
+  private Supplier<Rotation2d> shoulderAngleSupplier;
+
+  public WristSubsystem(WristIO io, Supplier<Rotation2d> shoulderAngleSupplier) {
     this.io = io;
+    this.shoulderAngleSupplier = shoulderAngleSupplier;
   }
 
   @Override
@@ -108,7 +113,12 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command setStateAngle() {
+    if (state == WristState.HOME) {
+      return Commands.waitUntil(() -> shoulderAngleSupplier.get().getDegrees() > 20.0)
+      .andThen(currentZero());
+    } else {
     return setAngle(() -> state.getAngle());
+  }
   }
 
   public Command setAngle(final Supplier<Rotation2d> target) {
@@ -140,7 +150,11 @@ public class WristSubsystem extends SubsystemBase {
     return MathUtil.isNear(target.getDegrees(), inputs.position.getDegrees(), 10.0);
   }
 
-  public Command currentZero(Supplier<ShoulderIOInputsAutoLogged> shoulderInputs) {
+  public boolean atSetpoint() {
+    return isNearAngle(setpoint);
+  }
+
+  public Command currentZero() {
     return Commands.sequence(
         this.runOnce(
             () -> {
