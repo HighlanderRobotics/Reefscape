@@ -48,21 +48,25 @@ public class Superstructure {
         WristState.PRE_INTAKE_CORAL_GROUND,
         0.0),
     READY_CORAL(ElevatorState.HP, ShoulderState.HP, WristState.HP, 0.0),
-    PRE_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.PRE_L1, 0.0),
-    L1(ElevatorState.L1, ShoulderState.L1, WristState.PRE_L1, 3.0),
-    POST_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.PRE_L1, 0.0),
-    PRE_L2(ElevatorState.L2, ShoulderState.PRE_L2, WristState.PRE_L2, 0.0),
+    // TODO make manipulator stuff less ugly
+    PRE_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.L1, 0.0),
+    L1(ElevatorState.L1, ShoulderState.L1, WristState.L1, 3.0),
+    POST_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.L1, 0.0),
+
+    PRE_L2(ElevatorState.L2, ShoulderState.PRE_L2, WristState.L2, 0.0),
     L2(ElevatorState.L2, ShoulderState.L2, WristState.L2, -15.0),
     POST_L2(ElevatorState.L2, ShoulderState.PRE_L2, WristState.PRE_L2, 0.0),
-    PRE_L3(ElevatorState.L3, ShoulderState.PRE_L3, WristState.PRE_L3, 0.0),
+
+    PRE_L3(ElevatorState.L3, ShoulderState.PRE_L3, WristState.L3, 0.0),
     L3(ElevatorState.L3, ShoulderState.L3, WristState.L3, -15.0),
     POST_L3(ElevatorState.L3, ShoulderState.PRE_L3, WristState.PRE_L3, 0.0),
-    PRE_PRE_L4(ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0),
-    PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 0.0), // worried about shoulder here
+
+    PRE_L4(ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0),
     L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 20.0),
     POST_L4(ElevatorState.L4, ShoulderState.L4, WristState.HP, 0.0),
     POST_POST_L4(
         ElevatorState.HP, ShoulderState.L4, WristState.HP, 0.0), // like do we see the vision
+
     PRE_PRE_INTAKE_ALGAE(
         ElevatorState.HP,
         ShoulderState.PRE_INTAKE_ALGAE_REEF,
@@ -276,7 +280,7 @@ public class Superstructure {
     elevator.setState(state.elevatorState);
     shoulder.setState(state.shoulderState);
     wrist.setState(state.wristState);
-    manipulator.setState(state.manipulatorVelocity);
+
     // funnel and climber don't have states per se
   }
 
@@ -320,7 +324,11 @@ public class Superstructure {
         SuperState.PRE_L1,
         new Trigger(() -> Robot.getCoralTarget() == ReefTarget.L1).and(Robot.preScoreReq));
 
-    bindTransition(SuperState.PRE_L1, SuperState.L1, Robot.scoreReq.and(this::atExtension));
+    bindTransition(SuperState.PRE_L1, SuperState.L1, new Trigger(this::atExtension));
+
+    Robot.scoreReq
+        .onTrue(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)))
+        .onFalse(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)));
 
     // cancel
     bindTransition(
@@ -361,7 +369,7 @@ public class Superstructure {
         SuperState.PRE_L2,
         new Trigger(() -> Robot.getCoralTarget() == ReefTarget.L2).and(Robot.preScoreReq));
 
-    bindTransition(SuperState.PRE_L2, SuperState.L2, Robot.scoreReq.and(this::atExtension));
+    bindTransition(SuperState.PRE_L2, SuperState.L2, new Trigger(this::atExtension));
 
     // cancel
     bindTransition(
@@ -402,7 +410,7 @@ public class Superstructure {
         SuperState.PRE_L3,
         new Trigger(() -> Robot.getCoralTarget() == ReefTarget.L3).and(Robot.preScoreReq));
 
-    bindTransition(SuperState.PRE_L3, SuperState.L3, Robot.scoreReq.and(this::atExtension));
+    bindTransition(SuperState.PRE_L3, SuperState.L3, new Trigger(this::atExtension));
 
     // cancel
     bindTransition(
@@ -443,9 +451,7 @@ public class Superstructure {
         SuperState.PRE_L4,
         new Trigger(() -> Robot.getCoralTarget() == ReefTarget.L4).and(Robot.preScoreReq));
 
-    bindTransition(SuperState.PRE_PRE_L4, SuperState.PRE_L4, new Trigger(this::atExtension));
-
-    bindTransition(SuperState.PRE_L4, SuperState.L4, Robot.scoreReq.and(this::atExtension));
+    bindTransition(SuperState.PRE_L4, SuperState.L4, new Trigger(this::atExtension));
 
     // cancel
     bindTransition(
