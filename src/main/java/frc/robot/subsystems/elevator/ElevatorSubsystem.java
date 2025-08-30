@@ -182,7 +182,9 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public void resetExtension(double extension) {
+    System.out.println("Elevator zeroing");
     io.resetEncoder(extension);
     hasZeroed = true;
+    System.out.println("Elevator zeroed!");
   }
 }

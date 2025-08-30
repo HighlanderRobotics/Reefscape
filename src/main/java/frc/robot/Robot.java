@@ -244,6 +244,8 @@ public class Robot extends LoggedRobot {
   public static Trigger homeReq =
       driver
           .start()
+          .and(() -> ElevatorSubsystem.hasZeroed || WristSubsystem.hasZeroed)
+          // zeroing on startup
           .or(
               new Trigger(() -> !ElevatorSubsystem.hasZeroed || !WristSubsystem.hasZeroed)
                   .and(() -> DriverStation.isEnabled()));
@@ -540,7 +542,7 @@ public class Robot extends LoggedRobot {
         Commands.runOnce(
                 () -> {
                   elevator.resetExtension(0.0);
-                  wrist.resetPosition(Rotation2d.k180deg);
+                  wrist.rezero(Rotation2d.k180deg);
                 })
             .ignoringDisable(true));
 
@@ -572,7 +574,7 @@ public class Robot extends LoggedRobot {
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  wrist.resetPosition(Rotation2d.fromRadians(3.094));
+                  wrist.rezero(Rotation2d.fromRadians(3.094));
                   elevator.resetExtension(0.0);
                 }));
 

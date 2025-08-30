@@ -187,8 +187,14 @@ public class WristSubsystem extends SubsystemBase {
     //             }));
   }
 
-  public void resetPosition(Rotation2d angle) {
+  public void rezero(Rotation2d angle) {
+    System.out.println("Wrist rezeroing");
     io.resetEncoder(angle);
     hasZeroed = true;
+    System.out.println("Wrist rezeroed!");
+  }
+
+  public void resetEncoder(Rotation2d angle) {
+    io.resetEncoder(angle);
   }
 }

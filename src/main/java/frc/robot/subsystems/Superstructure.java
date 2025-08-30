@@ -641,11 +641,12 @@ public class Superstructure {
     bindTransition(
         SuperState.IDLE,
         SuperState.HOME_ELEVATOR,
-        Robot.homeReq,
+        Robot.homeReq.and(() -> prevState != SuperState.HOME_ELEVATOR),
         Commands.runOnce(
             () -> {
               ElevatorSubsystem.hasZeroed = false;
               WristSubsystem.hasZeroed = false;
+              wrist.resetEncoder(SuperState.IDLE.wristState.getAngle());
             }));
 
     // bindTransition(
@@ -659,21 +660,16 @@ public class Superstructure {
         SuperState.HOME_WRIST,
         // SuperState.IDLE,
         new Trigger(() -> Math.abs(elevator.currentFilterValue) > 50.0).debounce(0.1),
-        Commands.print("Elevator Zeroing")
-            .alongWith(Commands.runOnce(() -> elevator.resetExtension(0.0)))
+        Commands.runOnce(() -> elevator.resetExtension(0.0))
         //     .andThen(Commands.runOnce(() -> elevator.resetExtension(0.0)))
         );
 
     bindTransition(
         SuperState.HOME_WRIST,
         SuperState.IDLE,
-        new Trigger(() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.1),
-        Commands.print("Wrist Zeroing")
-            .andThen(
-                Commands.runOnce(
-                    () ->
-                        wrist.resetPosition(
-                            Rotation2d.fromDegrees(178).minus(Rotation2d.fromRadians(3.357))))));
+        new Trigger(() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.5),
+        Commands.runOnce(
+            () -> wrist.rezero(Rotation2d.fromDegrees(160).minus(Rotation2d.fromRadians(3.357)))));
 
     // getting rid of SPIT_CORAL and SPIT_ALGAE as explicit states- all they do is run the
     // manipulator wheels

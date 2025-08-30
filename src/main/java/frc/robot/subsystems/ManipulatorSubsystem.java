@@ -42,6 +42,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private boolean bb2Sim = false;
   @AutoLogOutput private boolean hasAlgaeSim = false;
 
+  @AutoLogOutput(key = "Manipulator State Velocity")
   private double stateVelocity = 0.0;
 
   private LinearFilter currentFilter = LinearFilter.movingAverage(20);
