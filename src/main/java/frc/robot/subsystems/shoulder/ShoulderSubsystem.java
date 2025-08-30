@@ -28,30 +28,6 @@ public class ShoulderSubsystem extends SubsystemBase {
   public static final double Z_OFFSET_METERS = 0.207645;
   public static final double ARM_LENGTH_METERS = Units.inchesToMeters(13.5);
 
-  // public static final Rotation2d SHOULDER_HP_POS = Rotation2d.fromDegrees(50.0 - 7);
-  // public static final Rotation2d SHOULDER_CORAL_GROUND_POS = Rotation2d.fromDegrees(8.0);
-  // public static final Rotation2d SHOULDER_INTAKE_ALGAE_GROUND_POS =
-  //     Rotation2d.fromRadians(0.505)
-  //         .plus(Rotation2d.fromDegrees(-5.0))
-  //         .minus(Rotation2d.fromDegrees(2));
-  // public static final Rotation2d SHOULDER_INTAKE_ALGAE_STACK_POS = Rotation2d.fromDegrees(30.0);
-  // public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_POS = Rotation2d.fromDegrees(45.0);
-  // public static final Rotation2d SHOULDER_INTAKE_ALGAE_REEF_RETRACT_POS =
-  //     Rotation2d.fromDegrees(60.0);
-  // // may be incorrect as l2-3 poses are derived from ExtensionKinematics now
-  // public static final Rotation2d SHOULDER_SCORE_POS =
-  //     ExtensionKinematics.L2_EXTENSION.shoulderAngle();
-  // public static final Rotation2d SHOULDER_WHACK_L1_POS = Rotation2d.fromDegrees(45);
-  // public static final Rotation2d SHOULDER_SCORE_L1_POS =
-  //     ExtensionKinematics.L1_EXTENSION.shoulderAngle();
-  // public static final Rotation2d SHOULDER_SCORE_L4_POS =
-  //     ExtensionKinematics.L4_EXTENSION.shoulderAngle();
-  // public static final Rotation2d SHOULDER_PRE_NET_POS = Rotation2d.fromDegrees(30);
-  // public static final Rotation2d SHOULDER_SHOOT_NET_POS = Rotation2d.fromDegrees(90);
-  // public static final Rotation2d SHOULDER_SCORE_PROCESSOR_POS = Rotation2d.fromDegrees(60.0);
-  // public static final Rotation2d SHOULDER_CLEARANCE_POS = Rotation2d.fromDegrees(80.0);
-  // public static final Rotation2d SHOULDER_TUCKED_CLEARANCE_POS = Rotation2d.fromDegrees(35.0);
-
   public static final MotionMagicConfigs DEFAULT_CONFIGS =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(1.0).withMotionMagicAcceleration(6.0);
   public static final MotionMagicConfigs TOSS_CONFIGS =
@@ -83,9 +59,6 @@ public class ShoulderSubsystem extends SubsystemBase {
     SCORE_BARGE(Rotation2d.fromDegrees(90)),
     PROCESSOR(Rotation2d.fromDegrees(60.0)),
     HOME(Rotation2d.fromDegrees(50.0));
-
-    // L4_TUCKED(Rotation2d.fromDegrees(35.0)), // SHOULDER_TUCKED_CLEARANCE_POS
-    // L4_TUCKED_OUT(Rotation2d.fromDegrees(25.0)),
 
     private final Rotation2d angle;
 

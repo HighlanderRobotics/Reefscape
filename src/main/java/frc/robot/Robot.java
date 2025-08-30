@@ -185,6 +185,7 @@ public class Robot extends LoggedRobot {
 
   private static Supplier<Pose2d> pose = () -> new Pose2d();
 
+  @AutoLogOutput(key = "Superstructure/Pre Score Request")
   public static Trigger preScoreReq =
       driver
           .rightTrigger()
@@ -201,65 +202,19 @@ public class Robot extends LoggedRobot {
                           < 3.25
                       && DriverStation.isAutonomous());
 
-  @AutoLogOutput
+  @AutoLogOutput(key = "Superstructure/Score Request")
   public static Trigger scoreReq =
       driver
           .rightTrigger()
           .negate()
           .and(() -> DriverStation.isTeleop())
-          //   .or(
-          //       new Trigger(
-          //               () -> {
-          //                 final var state =
-          //                     new ExtensionState(
-          //                         elevator.getExtensionMeters(),
-          //                         shoulder.getAngle(),
-          //                         wrist.getAngle());
-          //                 final var branch =
-          //                     ExtensionKinematics.getBranchPose(
-          //                         swerve.getPose(), state, currentTarget);
-          //                 final var manipulatorPose =
-          //                     ExtensionKinematics.getManipulatorPose(swerve.getPose(),
-          // state);
-          //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
-          //                   Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
-          //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
-          //                   Logger.recordOutput("IK/Branch", branch);
-          //                 if (Robot.ROBOT_TYPE != RobotType.REAL)
-          //                   Logger.recordOutput(
-          //                       "IK/Extension Check",
-          //                       manipulatorPose,
-          //                       manipulatorPose.transformBy(
-          //                           new Transform3d(
-          //                               Units.inchesToMeters(3.0), 0.0, 0.0, new
-          // Rotation3d())));
-          //                 return false;
-          //                 // return branch
-          //                 //             .getTranslation()
-          //                 //             .getDistance(manipulatorPose.getTranslation())
-          //                 //         < Units.inchesToMeters(1.5)
-          //                 //     || branch
-          //                 //             .getTranslation()
-          //                 //             .getDistance(
-          //                 //                 manipulatorPose
-          //                 //                     .transformBy(
-          //                 //                         new Transform3d(
-          //                 //                             Units.inchesToMeters(3.0),
-          //                 //                             0.0,
-          //                 //                             0.0,
-          //                 //                             new Rotation3d()))
-          //                 //                     .getTranslation())
-          //                 //         < Units.inchesToMeters(1.5);
-          //               })
-          //           .debounce(0.15))
-          //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
           .or(() -> Autos.autoScore && DriverStation.isAutonomous());
 
-  @AutoLogOutput
+  @AutoLogOutput(key = "Superstructure/Algae Intake Request")
   public static Trigger intakeAlgaeReq =
       driver.leftTrigger().or(() -> Autos.autoAlgaeIntake && DriverStation.isAutonomous());
 
-  @AutoLogOutput
+  @AutoLogOutput(key = "Superstructure/Coral Intake Request")
   public static Trigger intakeCoralReq =
       driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous());
 
@@ -449,13 +404,10 @@ public class Robot extends LoggedRobot {
                           new SoftwareLimitSwitchConfigs()
                               .withForwardSoftLimitEnable(true)
                               .withForwardSoftLimitThreshold(0.5)))
-              : new WristIOSim(),
-          () -> shoulder.getAngle());
+              : new WristIOSim());
   private final ElevatorSubsystem elevator =
       new ElevatorSubsystem(
-          ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim(),
-          () -> shoulder.getAngle(),
-          () -> wrist.atSetpoint());
+          ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim());
   private final FunnelSubsystem funnel =
       new FunnelSubsystem(
           ROBOT_TYPE != RobotType.SIM
@@ -505,10 +457,9 @@ public class Robot extends LoggedRobot {
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
 
-  public static Supplier<SuperState> state =
-      () -> SuperState.IDLE; // TODO i feel like im breaking a rule
+  public static Supplier<SuperState> state = () -> SuperState.IDLE;
 
-  @SuppressWarnings("resource")
+  @SuppressWarnings({"resource", "unlikely-arg-type"})
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
     SignalLogger.enableAutoLogging(false);
@@ -685,7 +636,7 @@ public class Robot extends LoggedRobot {
                                             t.location
                                                 .minus(swerve.getPose())
                                                 .getTranslation()
-                                                .getNorm()) // TODO pose needs to be changed
+                                                .getNorm())
                                     .min(Double::compare)
                                     .get()
                                 < 1.0)

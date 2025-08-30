@@ -77,6 +77,14 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     currentFilterValue = currentFilter.calculate(inputs.statorCurrentAmps);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput(NAME + "/Filtered Current", currentFilterValue);
+
+    if (getFirstBeambreak() && !getSecondBeambreak()) {
+      zeroTimer.reset();
+    }
+
+    if (!getFirstBeambreak() && getSecondBeambreak()) {
+      zeroTimer.reset();
+    }
   }
 
   public void resetPosition(final double rotations) {

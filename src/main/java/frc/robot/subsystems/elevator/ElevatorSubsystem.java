@@ -15,9 +15,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
-import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
-import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
@@ -39,25 +37,6 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double MAX_ACCELERATION = 10.0;
   public static final double SLOW_ACCELERATION = 5.0;
   public static final double MEDIUM_ACCELERATION = 8.5;
-
-  // public static final double L1_EXTENSION_METERS =
-  //     ExtensionKinematics.L1_EXTENSION.elevatorHeightMeters();
-  // public static final double L1_WHACK_CORAL_EXTENSION_METERS = Units.inchesToMeters(24.0);
-  // public static final double L2_EXTENSION_METERS =
-  //     ExtensionKinematics.L2_EXTENSION.elevatorHeightMeters();
-  // public static final double L3_EXTENSION_METERS =
-  //     ExtensionKinematics.L3_EXTENSION.elevatorHeightMeters();
-  // public static final double L4_EXTENSION_METERS =
-  //     ExtensionKinematics.L4_EXTENSION.elevatorHeightMeters();
-  // public static final double INTAKE_ALGAE_GROUND_EXTENSION = 0.14 - Units.inchesToMeters(0.75);
-  // public static final double INTAKE_ALGAE_STACK_EXTENSION = Units.inchesToMeters(9.0);
-  // public static final double INTAKE_ALGAE_LOW_EXTENSION = Units.inchesToMeters(20.0);
-  // public static final double INTAKE_ALGAE_HIGH_EXTENSION = Units.inchesToMeters(35.0);
-  // // 1 inch high (maybe not needed?)
-  // public static final double ALGAE_NET_EXTENSION = Units.inchesToMeters(62.5);
-  // public static final double ALGAE_PROCESSOR_EXTENSION = 0.01;
-  // public static final double HP_EXTENSION_METERS = Units.inchesToMeters(0.0);
-  // public static final double GROUND_EXTENSION_METERS = Units.inchesToMeters(0.0);
 
   public enum ElevatorState {
     HP(Units.inchesToMeters(0.0)),
@@ -114,18 +93,9 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final LoggedMechanismLigament2d carriage =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
 
-  // i hate myself
-  private Supplier<Rotation2d> shoulderAngleSupplier;
-  private BooleanSupplier wristAtAngleSupplier;
-
   /** Creates a new ElevatorSubsystem. */
-  public ElevatorSubsystem(
-      ElevatorIO io,
-      Supplier<Rotation2d> shoulderAngleSupplier,
-      BooleanSupplier wristAtAngleSupplier) {
+  public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
-    this.shoulderAngleSupplier = shoulderAngleSupplier;
-    this.wristAtAngleSupplier = wristAtAngleSupplier;
   }
 
   @Override

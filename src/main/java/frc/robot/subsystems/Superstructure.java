@@ -58,8 +58,7 @@ public class Superstructure {
     L3(ElevatorState.L3, ShoulderState.L3, WristState.L3, -15.0),
     POST_L3(ElevatorState.L3, ShoulderState.PRE_L3, WristState.PRE_L3, 0.0),
     PRE_PRE_L4(ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0),
-    PRE_L4(
-        ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0), // worried about shoulder here
+    PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 0.0), // worried about shoulder here
     L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 20.0),
     POST_L4(ElevatorState.L4, ShoulderState.L4, WristState.HP, 0.0),
     POST_POST_L4(
@@ -291,7 +290,7 @@ public class Superstructure {
     bindTransition(
         SuperState.IDLE,
         SuperState.READY_CORAL,
-        new Trigger(() -> manipulator.getFirstBeambreak() && manipulator.getTimeSinceZero() < 1.0));
+        new Trigger(manipulator::eitherBeambreak).and(() -> manipulator.getTimeSinceZero() < 1.0));
 
     // ---Intake coral ground---
     bindTransition(SuperState.IDLE, SuperState.PRE_INTAKE_CORAL_GROUND, Robot.intakeCoralReq);
@@ -441,7 +440,7 @@ public class Superstructure {
     // ---L4---
     bindTransition(
         SuperState.READY_CORAL,
-        SuperState.PRE_PRE_L4,
+        SuperState.PRE_L4,
         new Trigger(() -> Robot.getCoralTarget() == ReefTarget.L4).and(Robot.preScoreReq));
 
     bindTransition(SuperState.PRE_PRE_L4, SuperState.PRE_L4, new Trigger(this::atExtension));
@@ -639,6 +638,10 @@ public class Superstructure {
         SuperState.HOME_ELEVATOR,
         new Trigger(() -> !elevator.hasZeroed || !wrist.hasZeroed)
             .and(() -> DriverStation.isEnabled()));
+
+    bindTransition(SuperState.IDLE, SuperState.HOME_ELEVATOR, Robot.homeReq);
+
+    bindTransition(SuperState.READY_CORAL, SuperState.HOME_ELEVATOR, Robot.homeReq);
 
     bindTransition(
         SuperState.HOME_ELEVATOR,
