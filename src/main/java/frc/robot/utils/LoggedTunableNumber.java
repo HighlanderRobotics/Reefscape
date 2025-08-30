@@ -17,8 +17,8 @@ import org.littletonrobotics.junction.networktables.LoggedNetworkNumber;
 
 /**
  * Class for a tunable number. Gets value from dashboard in tuning mode, returns default if not or
- * value not in dashboard.
- * Taken from 6328's 2025 code - with the modification that we don't disable the HAL and don't put TUNING_MODE in a Constants file
+ * value not in dashboard. Taken from 6328's 2025 code - with the modification that we don't disable
+ * the HAL and don't put TUNING_MODE in a Constants file
  */
 public class LoggedTunableNumber implements DoubleSupplier {
   private static final String tableKey = "/Tuning";

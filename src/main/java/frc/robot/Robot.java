@@ -241,7 +241,12 @@ public class Robot extends LoggedRobot {
   public static final Trigger antiAlgaeJamReq = driver.b();
 
   @AutoLogOutput(key = "Superstructure/Home Request")
-  public static Trigger homeReq = driver.start();
+  public static Trigger homeReq =
+      driver
+          .start()
+          .or(
+              new Trigger(() -> !ElevatorSubsystem.hasZeroed || !WristSubsystem.hasZeroed)
+                  .and(() -> DriverStation.isEnabled()));
 
   @AutoLogOutput(key = "Superstructure/Rev Funnel Req")
   public static Trigger revFunnelReq = operator.rightBumper();
