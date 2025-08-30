@@ -4,10 +4,7 @@
 
 package frc.robot.subsystems;
 
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -18,10 +15,8 @@ import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
-import frc.robot.utils.Tracer;
 
 import java.util.function.BooleanSupplier;
-import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -88,35 +83,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public void resetPosition(final double rotations) {
     io.resetEncoder(rotations);
-  }
-
-  public Command intakeCoral() {
-    return intakeCoral(CORAL_INTAKE_VELOCITY);
-  }
-
-  public Command intakeCoralAir(double vel) {
-    return Commands.sequence(
-        setRollerVelocity(vel)
-            .until(() -> getSecondBeambreak())
-            .finallyDo(
-                () -> {
-                  io.setPosition(Rotation2d.fromRotations(0.63));
-                  positionSetpoint = 0.63;
-                }),
-        setRollerVoltage(2.0).until(() -> !getFirstBeambreak()),
-        jog(CORAL_HOLD_POS).until(() -> !getSecondBeambreak() && !getFirstBeambreak()));
-  }
-
-  public Command intakeCoral(double vel) {
-    return Commands.sequence(
-        setRollerVelocity(vel).until(new Trigger(() -> getSecondBeambreak()).debounce(0.5)),
-        Commands.runOnce(
-            () -> {
-              io.setPosition(Rotation2d.fromRotations(0.5));
-              positionSetpoint = 0.5;
-            }),
-        setRollerVelocity(1.0).until(() -> !getFirstBeambreak()),
-        jog(CORAL_HOLD_POS).until(() -> !getSecondBeambreak() && !getFirstBeambreak()));
   }
 
   public Command intakeAlgae() {

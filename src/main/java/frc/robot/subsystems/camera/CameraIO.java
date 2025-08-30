@@ -4,7 +4,6 @@
 
 package frc.robot.subsystems.camera;
 
-import edu.wpi.first.math.geometry.Transform3d;
 import frc.robot.subsystems.camera.Camera.CameraConstants;
 import java.util.Optional;
 import org.littletonrobotics.junction.AutoLog;

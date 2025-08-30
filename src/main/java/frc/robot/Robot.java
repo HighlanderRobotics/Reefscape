@@ -69,8 +69,10 @@ import frc.robot.subsystems.servo.ServoIOReal;
 import frc.robot.subsystems.shoulder.ShoulderIOReal;
 import frc.robot.subsystems.shoulder.ShoulderIOSim;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem.ShoulderState;
 import frc.robot.subsystems.swerve.*;
 import frc.robot.subsystems.wrist.*;
+import frc.robot.subsystems.wrist.WristSubsystem.WristState;
 import frc.robot.utils.CommandXboxControllerSubsystem;
 import frc.robot.utils.FieldUtils;
 import frc.robot.utils.FieldUtils.AlgaeIntakeTargets;
@@ -461,7 +463,7 @@ public class Robot extends LoggedRobot {
       new ClimberSubsystem(ROBOT_TYPE != RobotType.SIM ? new ClimberIOReal() : new ClimberIOSim());
 
       private final Superstructure superstructure =
-      new Superstructure(elevator, shoulder, wrist, manipulator, funnel, climber);
+      new Superstructure(elevator, shoulder, wrist, manipulator, funnel, climber, swerve);
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -787,11 +789,11 @@ elevator.setDefaultCommand(elevator.setStateExtension());
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
-                                    && elevator.isNearTarget()
+                                    && elevator.atExtension()
                                     && shoulder.isNearAngle(
-                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
+                                        ShoulderState.INTAKE_ALGAE_REEF.getAngle())
                                     && wrist.isNearAngle(
-                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
+                                        WristState.INTAKE_ALGAE_REEF.getAngle())),
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
@@ -836,7 +838,7 @@ elevator.setDefaultCommand(elevator.setStateExtension());
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
-                    || superstructure.getState() == SuperState.PRE_PROCESSOR)
+                    || superstructure.getState() == SuperState.PROCESSOR)
         .and(() -> algaeScoreTarget == AlgaeScoreTarget.PROCESSOR)
         .whileTrue(
             Commands.parallel(
@@ -885,7 +887,7 @@ elevator.setDefaultCommand(elevator.setStateExtension());
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
-                    || superstructure.getState() == SuperState.PRE_NET)
+                    || superstructure.getState() == SuperState.PRE_BARGE)
         .and(() -> algaeScoreTarget == AlgaeScoreTarget.BARGE)
         .whileTrue(
             Commands.parallel(
@@ -920,11 +922,11 @@ elevator.setDefaultCommand(elevator.setStateExtension());
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(true)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setSimFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(false)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setSimFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
@@ -932,7 +934,7 @@ elevator.setDefaultCommand(elevator.setStateExtension());
 
     RobotModeTriggers.autonomous()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
+        .onTrue(Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
     driver
         .start()
         .onTrue(
@@ -1217,17 +1219,6 @@ elevator.setDefaultCommand(elevator.setStateExtension());
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "IK/Manipulator FK Pose",
-          ExtensionKinematics.getManipulatorPose(
-              swerve.getPose(), superstructure.getExtensionState()));
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "IK/Extension FK Pose",
-          ExtensionKinematics.solveFK(
-              new ExtensionState(
-                  elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
     state = superstructure::getState;
   }
 

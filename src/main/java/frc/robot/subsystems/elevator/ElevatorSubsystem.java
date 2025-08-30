@@ -156,6 +156,10 @@ public class ElevatorSubsystem extends SubsystemBase {
     return MathUtil.isNear(expected, inputs.positionMeters, 0.05);
   }
 
+  public boolean atExtension() {
+    return atExtension(setpoint);
+  }
+
   public Command runCurrentZeroing() {
     return this.run(
             () -> {
