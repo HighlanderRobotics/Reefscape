@@ -140,29 +140,8 @@ public class Autos {
             Commands.sequence(
                 endPos.length() == 3
                     ? intakeCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose())
-                        .andThen(Commands.waitSeconds(0.1))
-                    : Commands.sequence(
-                        endPos.length() == 1
-                            ? scoreCoralInAuto(
-                                () -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                            : Commands.print("autoaligning")
-                                .andThen(
-                                    AutoAim.translateToPose( // TODO does this get called?
-                                            swerve,
-                                            () ->
-                                                steps
-                                                    .get(startPos + "to" + endPos)
-                                                    .getFinalPose()
-                                                    .get())
-                                        .until(
-                                            () ->
-                                                AutoAim.isInTolerance(
-                                                    swerve.getPose(),
-                                                    steps
-                                                        .get(startPos + "to" + endPos)
-                                                        .getFinalPose()
-                                                        .get()))
-                                        .withTimeout(2.0))),
+                    : scoreCoralInAuto(
+                        () -> steps.get(startPos + "to" + endPos).getFinalPose().get()),
                 steps.get(endPos + "to" + nextPos).cmd()));
   }
 
@@ -537,11 +516,7 @@ public class Autos {
                         - (endPos.length() == 1 ? 0.3 : 0.0)))
         .onTrue(
             Commands.sequence(
-                scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get())
-                // ,
-                // Commands.runOnce(() -> autoGroundCoralIntake = true),
-                // steps.get(endPos + "to" + nextPos).cmd()
-                ));
+                scoreCoralInAuto(() -> steps.get(startPos + "to" + endPos).getFinalPose().get())));
   }
 
   public Command scoreCoralInAuto(Supplier<Pose2d> trajEndPose) {
