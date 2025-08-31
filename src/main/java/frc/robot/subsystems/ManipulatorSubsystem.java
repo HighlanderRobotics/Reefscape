@@ -7,7 +7,6 @@ package frc.robot.subsystems;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
@@ -101,7 +100,8 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public Command setStateVelocity(BooleanSupplier checkExtension) {
-    return Commands.waitUntil(checkExtension).andThen(setRollerVelocity(stateVelocity));
+    // return Commands.waitUntil(checkExtension).andThen(setRollerVelocity(stateVelocity));
+    return setRollerVelocity(stateVelocity);
   }
 
   public void setState(double vel) {

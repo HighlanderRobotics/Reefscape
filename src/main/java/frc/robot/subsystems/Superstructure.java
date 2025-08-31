@@ -318,6 +318,8 @@ public class Superstructure {
         SuperState.READY_CORAL,
         new Trigger(this::atExtension));
 
+    bindTransition(
+        SuperState.READY_CORAL, SuperState.IDLE, new Trigger(manipulator::neitherBeambreak));
     // ---L1---
     bindTransition(
         SuperState.READY_CORAL,
@@ -327,8 +329,17 @@ public class Superstructure {
     bindTransition(SuperState.PRE_L1, SuperState.L1, new Trigger(this::atExtension));
 
     Robot.scoreReq
-        .onTrue(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)))
-        .onFalse(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)));
+        .and(() -> stateIsScoreCoral(state))
+        // .onTrue(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)))
+        // .onFalse(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)));
+        .whileTrue(manipulator.setRollerVelocity(state.manipulatorVelocity));
+
+    Robot.intakeCoralReq
+        .onTrue(manipulator.setRollerVelocity(-18))
+        .onFalse(manipulator.setRollerVelocity(0));
+    // Commands.runOnce(
+    //     (() -> manipulator.setState(SuperState.INTAKE_CORAL_GROUND.manipulatorVelocity))));
+    // .onFalse(Commands.runOnce((() -> manipulator.setState(0))));
 
     // cancel
     bindTransition(
