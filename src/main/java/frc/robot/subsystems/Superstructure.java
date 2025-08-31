@@ -305,6 +305,9 @@ public class Superstructure {
         new Trigger(this::atExtension));
 
     bindTransition(
+        SuperState.PRE_INTAKE_CORAL_GROUND, SuperState.IDLE, Robot.intakeCoralReq.negate());
+
+    bindTransition(
         SuperState.INTAKE_CORAL_GROUND,
         SuperState.POST_INTAKE_CORAL_GROUND,
         Robot.intakeCoralReq
@@ -312,6 +315,10 @@ public class Superstructure {
             .debounce(0.060)
             .and(manipulator::bothBeambreaks)
             .debounce(0.12)); // TODO i'm lowkey losing my shit
+    bindTransition(
+        SuperState.INTAKE_CORAL_GROUND,
+        SuperState.PRE_INTAKE_CORAL_GROUND,
+        Robot.intakeCoralReq.negate().and(manipulator::neitherBeambreak));
 
     bindTransition(
         SuperState.POST_INTAKE_CORAL_GROUND,
@@ -335,6 +342,7 @@ public class Superstructure {
         .whileTrue(manipulator.setRollerVelocity(state.manipulatorVelocity));
 
     Robot.intakeCoralReq
+        .and(() -> !manipulator.bothBeambreaks())
         .onTrue(manipulator.setRollerVelocity(-18))
         .onFalse(manipulator.setRollerVelocity(0));
     // Commands.runOnce(
