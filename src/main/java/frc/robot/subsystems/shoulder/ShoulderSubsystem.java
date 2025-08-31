@@ -38,8 +38,8 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public enum ShoulderState {
     HP(50.0),
-    PRE_INTAKE_CORAL_GROUND(35.0),
-    INTAKE_CORAL_GROUND(8.0),
+    PRE_INTAKE_CORAL_GROUND(15.0),
+    INTAKE_CORAL_GROUND(0.0),
     PRE_L1(35.0),
     L1(Units.radiansToDegrees(1.617)), // not sure about units tbh
     PRE_L2(35.0),

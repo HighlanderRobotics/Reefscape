@@ -185,6 +185,7 @@ public class Robot extends LoggedRobot {
       new CommandXboxControllerSubsystem(1);
 
   private static Supplier<Pose2d> pose = () -> new Pose2d();
+  public static Supplier<SuperState> state = () -> SuperState.IDLE;
 
   @AutoLogOutput(key = "Superstructure/Pre Score Request")
   public static Trigger preScoreReq =
@@ -209,6 +210,7 @@ public class Robot extends LoggedRobot {
           .rightTrigger()
           .negate()
           .and(() -> DriverStation.isTeleop())
+          .and(() -> Superstructure.stateIsScoreCoral(state.get()) || state.get() == SuperState.L1)
           .or(() -> Autos.autoScore && DriverStation.isAutonomous());
 
   @AutoLogOutput(key = "Superstructure/Algae Intake Request")
@@ -464,8 +466,6 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismLigament2d wristLigament =
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
-
-  public static Supplier<SuperState> state = () -> SuperState.IDLE;
 
   @SuppressWarnings({"resource", "unlikely-arg-type"})
   public Robot() {

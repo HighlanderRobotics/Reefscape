@@ -34,14 +34,14 @@ public class Superstructure {
     IDLE(ElevatorState.HP, ShoulderState.HP, WristState.HP, -7.0),
     PRE_INTAKE_CORAL_GROUND(
         ElevatorState.INTAKE_CORAL_GROUND,
-        ShoulderState.PRE_INTAKE_CORAL_GROUND,
+        ShoulderState.INTAKE_ALGAE_GROUND,
         WristState.PRE_INTAKE_CORAL_GROUND,
-        -18.0),
+        -5.0),
     INTAKE_CORAL_GROUND(
         ElevatorState.INTAKE_CORAL_GROUND,
         ShoulderState.INTAKE_CORAL_GROUND,
         WristState.INTAKE_CORAL_GROUND,
-        -18.0),
+        -5.0),
     POST_INTAKE_CORAL_GROUND(
         ElevatorState.INTAKE_CORAL_GROUND,
         ShoulderState.PRE_INTAKE_CORAL_GROUND,
@@ -341,9 +341,15 @@ public class Superstructure {
         // .onFalse(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)));
         .whileTrue(manipulator.setRollerVelocity(state.manipulatorVelocity));
 
+    Robot.scoreReq
+        .and(() -> state == SuperState.L1)
+        // .onTrue(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)))
+        // .onFalse(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)));
+        .whileTrue(manipulator.setRollerVelocity(3.0));
+
     Robot.intakeCoralReq
         .and(() -> !manipulator.bothBeambreaks())
-        .onTrue(manipulator.setRollerVelocity(-18))
+        .onTrue(manipulator.setRollerVelocity(-10))
         .onFalse(manipulator.setRollerVelocity(0));
     // Commands.runOnce(
     //     (() -> manipulator.setState(SuperState.INTAKE_CORAL_GROUND.manipulatorVelocity))));
@@ -763,10 +769,10 @@ public class Superstructure {
   }
 
   public static boolean stateIsScoreCoral(SuperState state) {
-    return state == SuperState.L1
-        || state == SuperState.L2
-        || state == SuperState.L3
-        || state == SuperState.L4;
+    return
+    // state == SuperState.L1
+    //     ||
+    state == SuperState.L2 || state == SuperState.L3 || state == SuperState.L4;
   }
 
   public boolean stateIsAlgaeAlike() {
