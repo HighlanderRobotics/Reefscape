@@ -619,6 +619,19 @@ public class Robot extends LoggedRobot {
                 })
             .ignoringDisable(true));
 
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle First Beambreak",
+        Robot.isSimulation()
+            ? Commands.runOnce(
+                () -> manipulator.setSimFirstBeambreak(!manipulator.getFirstBeambreak()))
+            : Commands.none());
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle Second Beambreak",
+        Robot.isSimulation()
+            ? Commands.runOnce(
+                () -> manipulator.setSimSecondBeambreak(!manipulator.getSecondBeambreak()))
+            : Commands.none());
+
     elevator.setDefaultCommand(elevator.setStateExtension());
     shoulder.setDefaultCommand(shoulder.setStateAngle());
     wrist.setDefaultCommand(wrist.setStateAngle());

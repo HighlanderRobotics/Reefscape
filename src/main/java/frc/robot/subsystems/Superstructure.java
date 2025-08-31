@@ -34,7 +34,7 @@ public class Superstructure {
     IDLE(ElevatorState.HP, ShoulderState.HP, WristState.HP, -7.0),
     PRE_INTAKE_CORAL_GROUND(
         ElevatorState.INTAKE_CORAL_GROUND,
-        ShoulderState.INTAKE_ALGAE_GROUND,
+        ShoulderState.INTAKE_CORAL_GROUND,
         WristState.PRE_INTAKE_CORAL_GROUND,
         -5.0),
     INTAKE_CORAL_GROUND(
