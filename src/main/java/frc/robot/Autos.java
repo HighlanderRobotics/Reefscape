@@ -461,7 +461,8 @@ public class Autos {
     steps.put("AtoB", routine.trajectory("AtoB"));
     steps.put("BtoB", routine.trajectory("BtoB"));
 
-    if (Robot.isSimulation()) manipulator.setSimSecondBeambreak(true); // gah
+    // if (Robot.isSimulation()) manipulator.setSimSecondBeambreak(true); // gah //TODO why did i do
+    // this????
     routine
         // run first path
         .active()

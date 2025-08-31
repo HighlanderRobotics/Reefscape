@@ -263,7 +263,7 @@ public class Superstructure {
   private Command changeStateTo(SuperState nextState) {
     return Commands.runOnce(
             () -> {
-              System.out.println("Changing state to " + nextState);
+              System.out.println("Changing state from " + state + " to " + nextState);
               stateTimer.reset();
               this.prevState = this.state;
               this.state = nextState;
@@ -294,7 +294,10 @@ public class Superstructure {
     bindTransition(
         SuperState.IDLE,
         SuperState.READY_CORAL,
-        new Trigger(manipulator::eitherBeambreak).and(() -> manipulator.getTimeSinceZero() < 1.0));
+        new Trigger(manipulator::eitherBeambreak)
+            .debounce(0.5)
+            .and(() -> manipulator.getTimeSinceZero() < 1.0),
+        Commands.print("sdfklsdjf"));
 
     // ---Intake coral ground---
     bindTransition(SuperState.IDLE, SuperState.PRE_INTAKE_CORAL_GROUND, Robot.intakeCoralReq);
@@ -663,15 +666,33 @@ public class Superstructure {
                             : AutoAim.RED_PROCESSOR_POS.getY(),
                         0.5)));
 
+    // bindTransition(
+    //     SuperState.IDLE,
+    //     SuperState.HOME_ELEVATOR,
+    //     Robot.homeReq.and(() -> prevState != SuperState.HOME_ELEVATOR),
+    //     Commands.runOnce(
+    //         () -> {
+    //           ElevatorSubsystem.hasZeroed = false;
+    //           WristSubsystem.hasZeroed = false;
+    //           wrist.resetEncoder(SuperState.IDLE.wristState.getAngle());
+    //         }));
+
+    // zero on startup
     bindTransition(
         SuperState.IDLE,
         SuperState.HOME_ELEVATOR,
-        Robot.homeReq.and(() -> prevState != SuperState.HOME_ELEVATOR),
+        new Trigger(() -> !ElevatorSubsystem.hasZeroed || !WristSubsystem.hasZeroed)
+            .and(() -> DriverStation.isEnabled()));
+
+    // manual request
+    bindTransition(
+        SuperState.IDLE,
+        SuperState.HOME_ELEVATOR,
+        Robot.homeReq,
         Commands.runOnce(
             () -> {
-              ElevatorSubsystem.hasZeroed = false;
-              WristSubsystem.hasZeroed = false;
-              wrist.resetEncoder(SuperState.IDLE.wristState.getAngle());
+              elevator.hasZeroed = false;
+              wrist.hasZeroed = false;
             }));
 
     // bindTransition(
@@ -692,7 +713,7 @@ public class Superstructure {
     bindTransition(
         SuperState.HOME_WRIST,
         SuperState.IDLE,
-        new Trigger(() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.5),
+        Robot.homeReq.negate().and(() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.5),
         Commands.runOnce(
             () -> wrist.rezero(Rotation2d.fromDegrees(160).minus(Rotation2d.fromRadians(3.357)))));
 

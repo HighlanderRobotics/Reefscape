@@ -243,14 +243,7 @@ public class Robot extends LoggedRobot {
   public static final Trigger antiAlgaeJamReq = driver.b();
 
   @AutoLogOutput(key = "Superstructure/Home Request")
-  public static Trigger homeReq =
-      driver
-          .start()
-          .and(() -> ElevatorSubsystem.hasZeroed || WristSubsystem.hasZeroed)
-          // zeroing on startup
-          .or(
-              new Trigger(() -> !ElevatorSubsystem.hasZeroed || !WristSubsystem.hasZeroed)
-                  .and(() -> DriverStation.isEnabled()));
+  public static Trigger homeReq = driver.start();
 
   @AutoLogOutput(key = "Superstructure/Rev Funnel Req")
   public static Trigger revFunnelReq = operator.rightBumper();
@@ -915,10 +908,11 @@ public class Robot extends LoggedRobot {
         .and(() -> ROBOT_TYPE == RobotType.SIM)
         .onTrue(Commands.runOnce(() -> manipulator.setSimHasAlgae(!manipulator.hasAlgae())));
 
-    RobotModeTriggers.autonomous()
-        .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(
-            Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
+    // RobotModeTriggers.autonomous()
+    //     .and(() -> ROBOT_TYPE == RobotType.SIM)
+    //     .onTrue(
+    //         Commands.runOnce(() ->
+    // manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
     driver
         .start()
         .onTrue(
