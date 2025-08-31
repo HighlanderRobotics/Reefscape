@@ -45,6 +45,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     L1(0.217),
     L2(0.23 + Units.inchesToMeters(1.5)),
     L3(0.60 + Units.inchesToMeters(2.0)),
+    PRE_L4(1),
     L4(1.383),
     INTAKE_ALGAE_LOW(Units.inchesToMeters(20.0)),
     INTAKE_ALGAE_HIGH(Units.inchesToMeters(35.0)),
