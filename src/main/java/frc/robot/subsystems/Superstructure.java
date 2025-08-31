@@ -367,9 +367,16 @@ public class Superstructure {
     bindTransition(
         SuperState.L1,
         SuperState.POST_L1,
-        new Trigger(() -> manipulator.neitherBeambreak())
+        new Trigger(manipulator::neitherBeambreak)
             .and(this::atExtension)
-            .and(Robot.scoreReq.negate()));
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15)
+        // .and(Robot.scoreReq.negate())
+        );
 
     bindTransition(
         SuperState.POST_L1,
@@ -386,6 +393,7 @@ public class Superstructure {
             .debounce(0.15));
 
     // go straight to intaking algae from reef
+    //def needs tuning
     bindTransition(
         SuperState.POST_L1,
         SuperState.PRE_PRE_INTAKE_ALGAE,
@@ -408,10 +416,16 @@ public class Superstructure {
     bindTransition(
         SuperState.L2,
         SuperState.POST_L2,
-        new Trigger(() -> manipulator.neitherBeambreak())
+        new Trigger(manipulator::neitherBeambreak)
             .and(this::atExtension)
-            .and(Robot.scoreReq.negate()));
-
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15)
+        // .and(Robot.scoreReq.negate())
+        );
     bindTransition(
         SuperState.POST_L2,
         SuperState.IDLE,
@@ -449,9 +463,16 @@ public class Superstructure {
     bindTransition(
         SuperState.L3,
         SuperState.POST_L3,
-        new Trigger(() -> manipulator.neitherBeambreak())
+        new Trigger(manipulator::neitherBeambreak)
             .and(this::atExtension)
-            .and(Robot.scoreReq.negate()));
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15)
+        // .and(Robot.scoreReq.negate())
+        );
 
     bindTransition(
         SuperState.POST_L3,
@@ -490,9 +511,16 @@ public class Superstructure {
     bindTransition(
         SuperState.L4,
         SuperState.POST_L4,
-        new Trigger(() -> manipulator.neitherBeambreak())
+        new Trigger(manipulator::neitherBeambreak)
             .and(this::atExtension)
-            .and(Robot.scoreReq.negate()));
+            .and(
+                () ->
+                    L1Targets.getNearestLine(swerve.getPose())
+                            .getDistance(swerve.getPose().getTranslation())
+                        > 0.3)
+            .debounce(0.15)
+        // .and(Robot.scoreReq.negate())
+        );
 
     bindTransition(SuperState.POST_L4, SuperState.POST_POST_L4, new Trigger(this::atExtension));
 
