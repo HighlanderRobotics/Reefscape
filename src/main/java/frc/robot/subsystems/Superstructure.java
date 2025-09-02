@@ -63,13 +63,15 @@ public class Superstructure {
 
     // PRE_L4(ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0),
     // L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 20.0),
-    PRE_PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.HP, 0.0),
-    PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.PRE_L4, 0.0),
-    YAP_L4(ElevatorState.L4, ShoulderState.L4REAL, WristState.PRE_L4, 0.0),
-    L4(ElevatorState.L4, ShoulderState.L4REAL, WristState.L4, 20.0),
-    POST_L4(ElevatorState.L4, ShoulderState.L4, WristState.HP, 0.0),
+    // PRE_PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.HP, 0.0),
+    // PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.PRE_L4, 0.0),
+    // YAP_L4(ElevatorState.L4, ShoulderState.L4REAL, WristState.PRE_L4, 0.0),
+    PRE_PRE_L4(ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0),
+    PRE_L4(ElevatorState.L4, ShoulderState.PRE_L4, WristState.L4, 0.0),
+    L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 20.0),
+    POST_L4(ElevatorState.L4, ShoulderState.PRE_L4, WristState.HP, 0.0),
     POST_POST_L4(
-        ElevatorState.HP, ShoulderState.L4, WristState.HP, 0.0), // like do we see the vision
+        ElevatorState.HP, ShoulderState.PRE_L4, WristState.HP, 0.0), // like do we see the vision
 
     PRE_PRE_INTAKE_ALGAE(
         ElevatorState.HP,
@@ -254,7 +256,7 @@ public class Superstructure {
         .onTrue(Commands.parallel(changeStateTo(end), cmd));
   }
 
-  private boolean atExtension(SuperState state) {
+  public boolean atExtension(SuperState state) {
     return elevator.atExtension(state.elevatorState.getExtensionMeters())
         && shoulder.isNearAngle(state.shoulderState.getAngle())
         && wrist.isNearAngle(state.wristState.getAngle());
@@ -506,9 +508,7 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_PRE_L4, SuperState.PRE_L4, new Trigger(this::atExtension));
 
-    bindTransition(SuperState.PRE_L4, SuperState.YAP_L4, new Trigger(this::atExtension));
-
-    bindTransition(SuperState.YAP_L4, SuperState.L4, new Trigger(this::atExtension));   
+    bindTransition(SuperState.PRE_L4, SuperState.L4, new Trigger(this::atExtension));
 
     // TODO i don't think any of the cancels work
     // cancel

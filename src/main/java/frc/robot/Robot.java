@@ -30,6 +30,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -700,7 +701,11 @@ public class Robot extends LoggedRobot {
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(() -> superstructure.stateIsCoralAlike() && coralTarget != ReefTarget.L1)
+        .and(
+            () ->
+                superstructure.stateIsCoralAlike()
+                    && coralTarget != ReefTarget.L1
+                    && coralTarget != ReefTarget.L4)
         .whileTrue(
             Commands.parallel(
                 AutoAim.autoAimWithIntermediatePose(
@@ -744,6 +749,67 @@ public class Robot extends LoggedRobot {
                                     L1Targets.getNearestLine(swerve.getPose())
                                         .nearest(swerve.getPose().getTranslation()),
                                     L1Targets.getNearestLine(swerve.getPose()).getRotation())))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    // Auto align to score L4
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L4)
+        .and(() -> !superstructure.atExtension(SuperState.L4))
+        .whileTrue(
+            // AutoAim.alignToLine(
+            //         swerve,
+            //         () ->
+            //             modifyJoystick(driver.getLeftY())
+            //                 * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+            //         () ->
+            //             modifyJoystick(driver.getLeftX())
+            //                 * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+            //         () -> L1Targets.getNearestLine(swerve.getPose()))
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                              swerve
+                                  .getPose()
+                                  .plus(
+                                      new Transform2d(
+                                          twist.dx,
+                                          twist.dy,
+                                          Rotation2d.fromRadians(twist.dtheta))),
+                              driver.leftBumper().getAsBoolean())
+                          .exp(new Twist2d(-0.5, 0, 0));
+                    }),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInToleranceCoral(
+                                swerve.getPose())) // don't know if this does anything
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L4)
+        .and(() -> superstructure.atExtension(SuperState.L4))
+        .debounce(0.25)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                          swerve
+                              .getPose()
+                              .plus(
+                                  new Transform2d(
+                                      twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
+                          driver.leftBumper().getAsBoolean());
+                    }),
+                Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
     driver
