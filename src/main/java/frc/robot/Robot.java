@@ -10,6 +10,30 @@ import static edu.wpi.first.units.Units.Meter;
 import static edu.wpi.first.units.Units.Volts;
 import static frc.robot.subsystems.elevator.ElevatorSubsystem.ELEVATOR_ANGLE;
 
+import java.util.HashMap;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.BiConsumer;
+import java.util.function.Supplier;
+import java.util.stream.Stream;
+
+import org.ironmaple.simulation.SimulatedArena;
+import org.ironmaple.simulation.drivesims.GyroSimulation;
+import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
+import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
+import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.LogFileUtil;
+import org.littletonrobotics.junction.LoggedRobot;
+import org.littletonrobotics.junction.Logger;
+import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
+import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
+import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
+import org.littletonrobotics.junction.networktables.NT4Publisher;
+import org.littletonrobotics.junction.wpilog.WPILOGReader;
+import org.littletonrobotics.junction.wpilog.WPILOGWriter;
+
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.CANBus.CANBusStatus;
 import com.ctre.phoenix6.SignalLogger;
@@ -20,6 +44,7 @@ import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.Slot1Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.signals.InvertedValue;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
@@ -93,28 +118,6 @@ import frc.robot.utils.FieldUtils.CoralTargets;
 import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.Tracer;
 import frc.robot.utils.autoaim.AutoAim;
-import java.util.HashMap;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.BiConsumer;
-import java.util.function.Supplier;
-import java.util.stream.Stream;
-import org.ironmaple.simulation.SimulatedArena;
-import org.ironmaple.simulation.drivesims.GyroSimulation;
-import org.ironmaple.simulation.drivesims.SwerveDriveSimulation;
-import org.ironmaple.simulation.drivesims.configs.DriveTrainSimulationConfig;
-import org.ironmaple.simulation.drivesims.configs.SwerveModuleSimulationConfig;
-import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.LogFileUtil;
-import org.littletonrobotics.junction.LoggedRobot;
-import org.littletonrobotics.junction.Logger;
-import org.littletonrobotics.junction.mechanism.LoggedMechanism2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismLigament2d;
-import org.littletonrobotics.junction.mechanism.LoggedMechanismRoot2d;
-import org.littletonrobotics.junction.networktables.LoggedDashboardChooser;
-import org.littletonrobotics.junction.networktables.NT4Publisher;
-import org.littletonrobotics.junction.wpilog.WPILOGReader;
-import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 public class Robot extends LoggedRobot {
   public enum RobotType {
@@ -171,8 +174,6 @@ public class Robot extends LoggedRobot {
   @AutoLogOutput private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
   @AutoLogOutput private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.BARGE;
   private boolean leftHandedTarget = false;
-
-  @AutoLogOutput private boolean killVisionIK = true;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
@@ -555,6 +556,7 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
+    // Set auto scoring, etc bindings to false at the start of teleop
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoScore = false));
 
@@ -564,6 +566,7 @@ public class Robot extends LoggedRobot {
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoGroundCoralIntake = false));
 
+    // Zero elevator/wrist at the start of auto
     new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
         .onTrue(
             Commands.runOnce(
@@ -572,6 +575,7 @@ public class Robot extends LoggedRobot {
                   elevator.resetExtension(0.0);
                 }));
 
+    // Add autos on alliance change
     new Trigger(
             () -> {
               var allianceChange = !DriverStation.getAlliance().equals(lastAlliance);
@@ -583,6 +587,7 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
+    // Add autos when first connecting to DS
     new Trigger(
             () ->
                 DriverStation.isDSAttached()
@@ -594,6 +599,7 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
+    // Disable swerve current limits in auto I think?
     new Trigger(() -> DriverStation.isAutonomousEnabled())
         .onTrue(
             Commands.runOnce(
@@ -631,6 +637,11 @@ public class Robot extends LoggedRobot {
         Robot.isSimulation()
             ? Commands.runOnce(
                 () -> manipulator.setSimSecondBeambreak(!manipulator.getSecondBeambreak()))
+            : Commands.none());
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle Has Algae",
+        Robot.isSimulation()
+            ? Commands.runOnce(() -> manipulator.setSimHasAlgae(!manipulator.hasAlgae()))
             : Commands.none());
 
     elevator.setDefaultCommand(elevator.setStateExtension());
@@ -698,6 +709,8 @@ public class Robot extends LoggedRobot {
                             * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
                     .times(-1)));
 
+    // ----Controller bindings----
+    // Auto align for coral scoring L2/3
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -726,6 +739,7 @@ public class Robot extends LoggedRobot {
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align for coral scoring L1
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -751,7 +765,7 @@ public class Robot extends LoggedRobot {
                                     L1Targets.getNearestLine(swerve.getPose()).getRotation())))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    // Auto align to score L4
+    // Auto align to intermediate pose to score L4
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -780,6 +794,7 @@ public class Robot extends LoggedRobot {
                                 swerve.getPose())) // don't know if this does anything
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to score L4
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -803,6 +818,7 @@ public class Robot extends LoggedRobot {
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to intake algae (high, low, stack)
     driver
         .rightBumper()
         .and(
@@ -875,7 +891,9 @@ public class Robot extends LoggedRobot {
     //                     * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
     //             () ->
     //                 modifyJoystick(driver.getRightX())
-    //                     * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()))
+
+    // Auto align to processor
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -909,6 +927,7 @@ public class Robot extends LoggedRobot {
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to cage
     driver
         .rightBumper()
         .and(
@@ -926,6 +945,7 @@ public class Robot extends LoggedRobot {
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to barge
     driver
         .rightBumper()
         .and(
@@ -963,6 +983,7 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Set sim beambreak/algae
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
@@ -983,6 +1004,9 @@ public class Robot extends LoggedRobot {
     //     .onTrue(
     //         Commands.runOnce(() ->
     // manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
+    
+    // Reset sim pose (?)
+    // Has this literally ever been used
     driver
         .start()
         .onTrue(
@@ -992,8 +1016,11 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
                 }));
+
+    // Rezero shoulder
     driver.x().onTrue(Commands.runOnce(() -> shoulder.rezero()).ignoringDisable(true));
 
+    // Operator - Set scoring/intaking levels
     operator
         .a()
         .onTrue(
@@ -1035,14 +1062,12 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
+    //Enable/disable left handed auto align 
+    //TODO isn't this already accounted for by the autoaim method?
     operator.povLeft().onTrue(Commands.runOnce(() -> leftHandedTarget = true));
     operator.povRight().onTrue(Commands.runOnce(() -> leftHandedTarget = false));
 
-    operator
-        .back()
-        .and(operator.start())
-        .onTrue(Commands.runOnce(() -> killVisionIK = !killVisionIK));
-
+    // Set LEDs when the robot has an algae (alga?)
     new Trigger(() -> superstructure.stateIsAlgaeAlike())
         .whileTrue(
             leds.setBlinkingSplitCmd(
@@ -1052,6 +1077,7 @@ public class Robot extends LoggedRobot {
                         algaeScoreTarget == AlgaeScoreTarget.BARGE),
                 () -> Color.kBlack,
                 5.0));
+    
     // heading reset
     driver
         .leftStick()
