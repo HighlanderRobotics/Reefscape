@@ -758,15 +758,6 @@ public class Robot extends LoggedRobot {
         .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L4)
         .and(() -> !superstructure.atExtension(SuperState.L4))
         .whileTrue(
-            // AutoAim.alignToLine(
-            //         swerve,
-            //         () ->
-            //             modifyJoystick(driver.getLeftY())
-            //                 * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-            //         () ->
-            //             modifyJoystick(driver.getLeftX())
-            //                 * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-            //         () -> L1Targets.getNearestLine(swerve.getPose()))
             Commands.parallel(
                 AutoAim.translateToPose(
                     swerve,
@@ -781,7 +772,7 @@ public class Robot extends LoggedRobot {
                                           twist.dy,
                                           Rotation2d.fromRadians(twist.dtheta))),
                               driver.leftBumper().getAsBoolean())
-                          .exp(new Twist2d(-0.5, 0, 0));
+                          .exp(new Twist2d(-0.25, 0, 0));
                     }),
                 Commands.waitUntil(
                         () ->

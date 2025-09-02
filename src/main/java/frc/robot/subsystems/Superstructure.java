@@ -66,12 +66,12 @@ public class Superstructure {
     // PRE_PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.HP, 0.0),
     // PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.PRE_L4, 0.0),
     // YAP_L4(ElevatorState.L4, ShoulderState.L4REAL, WristState.PRE_L4, 0.0),
-    PRE_PRE_L4(ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0),
-    PRE_L4(ElevatorState.L4, ShoulderState.PRE_L4, WristState.L4, 0.0),
+    PRE_PRE_L4(ElevatorState.HP, ShoulderState.L4, WristState.L4, 0.0),
+    PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 0.0),
     L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 20.0),
     POST_L4(ElevatorState.L4, ShoulderState.PRE_L4, WristState.HP, 0.0),
-    POST_POST_L4(
-        ElevatorState.HP, ShoulderState.PRE_L4, WristState.HP, 0.0), // like do we see the vision
+    // POST_POST_L4(
+    //     ElevatorState.HP, ShoulderState.PRE_L4, WristState.HP, 0.0), // like do we see the vision
 
     PRE_PRE_INTAKE_ALGAE(
         ElevatorState.HP,
@@ -531,10 +531,11 @@ public class Superstructure {
         // .and(Robot.scoreReq.negate())
         );
 
-    bindTransition(SuperState.POST_L4, SuperState.POST_POST_L4, new Trigger(this::atExtension));
+    // bindTransition(SuperState.POST_L4, SuperState.POST_POST_L4, new Trigger(this::atExtension));
 
     bindTransition(
-        SuperState.POST_POST_L4,
+        // SuperState.POST_POST_L4,
+        SuperState.POST_L4,
         SuperState.IDLE,
         Robot.intakeAlgaeReq
             .negate()
@@ -549,7 +550,8 @@ public class Superstructure {
 
     // go straight to intaking algae from reef
     bindTransition(
-        SuperState.POST_POST_L4,
+        // SuperState.POST_POST_L4,
+        SuperState.POST_L4,
         SuperState.PRE_PRE_INTAKE_ALGAE,
         new Trigger(this::atExtension).and(Robot.intakeAlgaeReq).and(() -> intakeAlgaeFromReef()));
 
