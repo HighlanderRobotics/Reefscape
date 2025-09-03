@@ -66,7 +66,7 @@ public class ShoulderIOReal implements ShoulderIO {
 
     // guesses
     config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
-    config.MotionMagic.MotionMagicAcceleration = 4.0;
+    config.MotionMagic.MotionMagicAcceleration = 1.0;
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
@@ -105,7 +105,7 @@ public class ShoulderIOReal implements ShoulderIO {
   @Override
   public void updateInputs(ShoulderIOInputs inputs) {
     Logger.recordOutput(
-        "shoulder refreshall statuscode",
+        "Shoulder/Signal Refresh Status Code",
         BaseStatusSignal.refreshAll(
             angularVelocityRPS,
             temp,
@@ -115,7 +115,7 @@ public class ShoulderIOReal implements ShoulderIO {
             cancoderPositionRotations,
             appliedVoltage));
 
-    inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
+    inputs.motorPosition = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.cancoderPosition = cancoderPositionRotations.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
@@ -130,16 +130,17 @@ public class ShoulderIOReal implements ShoulderIO {
   }
 
   @Override
-  public void setMotorPosition(final Rotation2d targetPosition) {
+  public void setPivotAngle(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 
   @Override
-  public void resetEncoder(final Rotation2d rotation) {
+  public void setEncoderPosition(final Rotation2d rotation) {
     motor.setPosition(rotation.getRotations());
   }
 
   @Override
+  // TODO i hate this can we get rid of this
   public void setMotionMagicConfigs(final MotionMagicConfigs configs) {
     motor.getConfigurator().apply(configs);
   }

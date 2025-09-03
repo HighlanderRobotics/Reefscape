@@ -64,7 +64,7 @@ public class WristIOReal implements WristIO {
   @Override
   public void updateInputs(ArmIOInputs inputs) {
     Logger.recordOutput(
-        "wrist refreshall statuscode",
+        "Wrist/Signal Refresh Status Code",
         BaseStatusSignal.refreshAll(
             angularVelocityRPS,
             temp,
@@ -87,7 +87,7 @@ public class WristIOReal implements WristIO {
   }
 
   @Override
-  public void setMotorPosition(final Rotation2d targetPosition) {
+  public void setAngle(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 

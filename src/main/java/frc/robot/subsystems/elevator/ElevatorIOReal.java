@@ -9,7 +9,6 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.Follower;
-import com.ctre.phoenix6.controls.TorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.GravityTypeValue;
@@ -28,10 +27,10 @@ public class ElevatorIOReal implements ElevatorIO {
   private final TalonFX follower = new TalonFX(17, "*");
 
   private final VoltageOut voltageOut = new VoltageOut(0.0).withEnableFOC(true);
-  private final TorqueCurrentFOC torque = new TorqueCurrentFOC(0.0);
   private final DynamicMotionMagicVoltage positionVoltage;
 
   // misusing type system here - these correspond to linear meters, NOT rotations
+  // i hate this so much
   private final StatusSignal<Angle> position = motor.getPosition();
   private final StatusSignal<AngularVelocity> velocity = motor.getVelocity();
   private final StatusSignal<Voltage> voltage = motor.getMotorVoltage();
@@ -40,6 +39,7 @@ public class ElevatorIOReal implements ElevatorIO {
   private final StatusSignal<Temperature> temp = motor.getDeviceTemp();
 
   public ElevatorIOReal() {
+    // i'm just going to trust this for chezy i guess
     var config = new TalonFXConfiguration();
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
@@ -80,9 +80,9 @@ public class ElevatorIOReal implements ElevatorIO {
     config.CurrentLimits.SupplyCurrentLowerLimit = 40.0;
     config.CurrentLimits.SupplyCurrentLowerTime = 0.25;
 
-    config.MotionMagic.MotionMagicAcceleration = ElevatorSubsystem.MAX_ACCELERATION;
+    config.MotionMagic.MotionMagicAcceleration = ElevatorSubsystem.SLOW_ACCELERATION;
     // Estimated from slightly less than motor free speed
-    config.MotionMagic.MotionMagicCruiseVelocity = 4.5;
+    config.MotionMagic.MotionMagicCruiseVelocity = 2;
     // (5500.0 / 60.0) / config.Feedback.SensorToMechanismRatio;
 
     config.MotionMagic.MotionMagicExpo_kV = 1.9;
@@ -109,9 +109,10 @@ public class ElevatorIOReal implements ElevatorIO {
   @Override
   public void updateInputs(final ElevatorIOInputsAutoLogged inputs) {
     Logger.recordOutput(
-        "Elevator refreshall statuscode",
+        "Elevator/Signal Refresh Status Code",
         BaseStatusSignal.refreshAll(
             position, velocity, voltage, statorCurrent, supplyCurrent, temp));
+
     inputs.positionMeters = position.getValueAsDouble();
     inputs.velocityMetersPerSec = velocity.getValueAsDouble();
     inputs.appliedVolts = voltage.getValueAsDouble();
@@ -121,23 +122,13 @@ public class ElevatorIOReal implements ElevatorIO {
   }
 
   @Override
-  public void setTarget(final double meters, final double maxAccel) {
+  public void setPosition(final double meters, final double maxAccel) {
     motor.setControl(positionVoltage.withPosition(meters).withAcceleration(maxAccel));
-  }
-
-  @Override
-  public void setTarget(final double meters) {
-    motor.setControl(positionVoltage.withPosition(meters));
   }
 
   @Override
   public void setVoltage(final double voltage) {
     motor.setControl(voltageOut.withOutput(voltage));
-  }
-
-  @Override
-  public void setCurrent(final double amps) {
-    motor.setControl(torque.withOutput(amps));
   }
 
   @Override

@@ -39,7 +39,7 @@ public class ShoulderIOSim implements ShoulderIO {
 
     inputs.angularVelocityRPS =
         RadiansPerSecond.of(armSim.getVelocityRadPerSec()).in(RotationsPerSecond);
-    inputs.position = Rotation2d.fromRadians(armSim.getAngleRads());
+    inputs.motorPosition = Rotation2d.fromRadians(armSim.getAngleRads());
     inputs.statorCurrentAmps = armSim.getCurrentDrawAmps();
     inputs.supplyCurrentAmps = 0.0;
     inputs.tempDegreesC = 0.0;
@@ -53,7 +53,7 @@ public class ShoulderIOSim implements ShoulderIO {
   }
 
   @Override
-  public void setMotorPosition(final Rotation2d targetPosition) {
+  public void setPivotAngle(final Rotation2d targetPosition) {
     setMotorVoltage(
         pid.calculate(armSim.getAngleRads(), targetPosition.getRadians())
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));

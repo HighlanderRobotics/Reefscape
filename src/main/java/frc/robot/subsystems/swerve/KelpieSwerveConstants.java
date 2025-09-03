@@ -21,7 +21,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
-import frc.robot.subsystems.vision.Vision.VisionConstants;
+import frc.robot.subsystems.camera.Camera.CameraConstants;
 
 public class KelpieSwerveConstants extends SwerveConstants {
   private static boolean instantiated = false;
@@ -178,7 +178,7 @@ public class KelpieSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public VisionConstants[] getVisionConstants() {
+  public CameraConstants[] getCameraConstants() {
     final Matrix<N3, N3> BACK_LEFT_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(), Nat.N3(), 906.46, 0.0, 675.30, 0.0, 907.49, 394.45, 0.0, 0.0, 1.0);
@@ -203,8 +203,8 @@ public class KelpieSwerveConstants extends SwerveConstants {
     final Matrix<N8, N1> FRONT_LEFT_DIST_COEFFS =
         MatBuilder.fill(
             Nat.N8(), Nat.N1(), 0.057, -0.09, -0.001, 0.002, 0.043, -0.002, 0.004, -0.002);
-    final VisionConstants backLeftCamConstants =
-        new VisionConstants(
+    final CameraConstants backLeftCamConstants =
+        new CameraConstants(
             "Back_Left",
             new Transform3d(
                 new Translation3d(
@@ -217,8 +217,8 @@ public class KelpieSwerveConstants extends SwerveConstants {
                     Units.degreesToRadians(150))),
             BACK_LEFT_CAMERA_MATRIX,
             BACK_LEFT_DIST_COEFFS);
-    final VisionConstants backRightCamConstants =
-        new VisionConstants(
+    final CameraConstants backRightCamConstants =
+        new CameraConstants(
             "Back_Right",
             new Transform3d(
                 new Translation3d(
@@ -229,8 +229,8 @@ public class KelpieSwerveConstants extends SwerveConstants {
                     0, Units.degreesToRadians(-(90 - 76.875000)), Units.degreesToRadians(210))),
             BACK_RIGHT_CAMERA_MATRIX,
             BACK_RIGHT_DIST_COEFFS);
-    final VisionConstants frontRightCamConstants =
-        new VisionConstants(
+    final CameraConstants frontRightCamConstants =
+        new CameraConstants(
             "Front_Right_Camera",
             new Transform3d(
                 new Translation3d(
@@ -240,8 +240,8 @@ public class KelpieSwerveConstants extends SwerveConstants {
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(30))),
             FRONT_RIGHT_CAMERA_MATRIX,
             FRONT_RIGHT_DIST_COEFFS);
-    final VisionConstants frontLeftCamConstants =
-        new VisionConstants(
+    final CameraConstants frontLeftCamConstants =
+        new CameraConstants(
             "Front_Left_Camera",
             new Transform3d(
                 new Translation3d(
@@ -251,18 +251,18 @@ public class KelpieSwerveConstants extends SwerveConstants {
                 new Rotation3d(0, Units.degreesToRadians(-10), Units.degreesToRadians(-30))),
             FRONT_LEFT_CAMERA_MATRIX,
             FRONT_LEFT_DIST_COEFFS);
-    return new VisionConstants[] {frontRightCamConstants, frontLeftCamConstants};
+    return new CameraConstants[] {frontRightCamConstants, frontLeftCamConstants};
   }
 
   @Override
-  public VisionConstants getAlgaeVisionConstants() { // TODO calibrate
+  public CameraConstants getAlgaeCameraConstants() { // TODO calibrate
     final Matrix<N3, N3> ALGAE_CAMERA_MATRIX =
         MatBuilder.fill(
             Nat.N3(), Nat.N3(), 906.46, 0.0, 675.30, 0.0, 907.49, 394.45, 0.0, 0.0, 1.0);
     final Matrix<N8, N1> ALGAE_DIST_COEFFS =
         MatBuilder.fill(
             Nat.N8(), Nat.N1(), 0.039, -0.057, -0.005, 0.001, -0.004, -0.001, 0.003, 0.001);
-    return new VisionConstants(
+    return new CameraConstants(
         "Algae_Camera",
         new Transform3d(
             new Translation3d(

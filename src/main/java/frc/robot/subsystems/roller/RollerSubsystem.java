@@ -14,7 +14,8 @@ public class RollerSubsystem extends SubsystemBase {
   protected final RollerIOInputsAutoLogged inputs = new RollerIOInputsAutoLogged();
 
   private final String name;
-  public static final double INDEXING_VELOCITY = 10; // TODO
+
+  private double setpoint = 0.0;
 
   /**
    * Creates a new RollerSubsystem.
@@ -34,23 +35,24 @@ public class RollerSubsystem extends SubsystemBase {
     Logger.processInputs(name, inputs);
   }
 
-  public Command setVelocity(DoubleSupplier vel) {
+  public Command setRollerVoltage(DoubleSupplier voltage) {
+    return this.runOnce(
+        () -> {
+          io.setVoltage(voltage.getAsDouble());
+          setpoint = voltage.getAsDouble();
+          Logger.recordOutput(name + "/Roller Voltage Setpoint", setpoint);
+        });
+  }
+
+  public Command setRollerVoltage(double voltage) {
+    return setRollerVoltage(() -> voltage);
+  }
+
+  public Command setRollerVelocity(DoubleSupplier vel) {
     return this.run(() -> io.setVelocity(vel.getAsDouble()));
   }
 
-  public Command setVelocity(double vel) {
-    return this.setVelocity(() -> vel);
-  }
-
-  public Command setVoltage(DoubleSupplier volts) {
-    return this.run(() -> io.setVoltage(volts.getAsDouble()));
-  }
-
-  public Command setVoltage(double vel) {
-    return this.setVoltage(() -> vel);
-  }
-
-  public Command setCurrent(DoubleSupplier amps) {
-    return this.run(() -> io.setCurrent(amps.getAsDouble()));
+  public Command setRollerVelocity(double vel) {
+    return setRollerVelocity(() -> vel);
   }
 }

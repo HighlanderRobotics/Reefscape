@@ -24,12 +24,14 @@ import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
+import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorState;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem.ShoulderState;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
-import frc.robot.utils.autoaim.AlgaeIntakeTargets;
+import frc.robot.subsystems.wrist.WristSubsystem.WristState;
+import frc.robot.utils.FieldUtils;
 import frc.robot.utils.autoaim.AutoAim;
-import frc.robot.utils.autoaim.CoralTargets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.function.Supplier;
@@ -161,7 +163,7 @@ public class Autos {
     routine
         // run first path
         .active()
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("LOtoJ").resetOdometry(), steps.get("LOtoJ").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -188,7 +190,7 @@ public class Autos {
 
     routine
         .observe(steps.get("LtoPLM").done())
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L2)));
 
     return routine.cmd().alongWith(Commands.print("auto :("));
   }
@@ -209,7 +211,7 @@ public class Autos {
     routine
         // run first path
         .active()
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("ROtoE").resetOdometry(), steps.get("ROtoE").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -222,7 +224,7 @@ public class Autos {
 
     routine
         .observe(steps.get("CtoPRM").done())
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)));
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L2)));
 
     return routine.cmd();
   }
@@ -438,11 +440,11 @@ public class Autos {
     steps.put("AtoB", routine.trajectory("AtoB"));
     steps.put("BtoB", routine.trajectory("BtoB"));
 
-    if (Robot.isSimulation()) manipulator.setSecondBeambreak(true); // gah
+    if (Robot.isSimulation()) manipulator.setSimSecondBeambreak(true); // gah
     routine
         // run first path
         .active()
-        .onTrue(Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L4)))
+        .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L4)))
         .whileTrue(Commands.sequence(steps.get("LOtoA").resetOdometry(), steps.get("LOtoA").cmd()));
     routine
         .observe(
@@ -453,10 +455,10 @@ public class Autos {
                 AutoAim.translateToPose(swerve, () -> steps.get("AtoB").getInitialPose().get())
                     .until(
                         () ->
-                            elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)
+                            elevator.atExtension(ElevatorState.HP.getExtensionMeters())
                                 && AutoAim.isInTolerance(
                                     swerve.getPose(), steps.get("AtoB").getInitialPose().get())),
-                Commands.runOnce(() -> Robot.setCurrentTarget(ReefTarget.L2)),
+                Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L2)),
                 steps.get("AtoB").cmd()));
     routine
         .observe(
@@ -468,7 +470,7 @@ public class Autos {
             Commands.runOnce(
                 () -> {
                   autoGroundCoralIntake = false;
-                  Robot.setCurrentTarget(ReefTarget.L4);
+                  Robot.setCoralTarget(ReefTarget.L4);
                 }));
 
     routine
@@ -480,7 +482,7 @@ public class Autos {
                 AutoAim.translateToPose(swerve, () -> steps.get("BtoB").getInitialPose().get())
                     .until(
                         () ->
-                            elevator.isNearExtension(ElevatorSubsystem.GROUND_EXTENSION_METERS)
+                            elevator.atExtension(ElevatorState.HP.getExtensionMeters())
                                 && AutoAim.isInTolerance(
                                     swerve.getPose(), steps.get("BtoB").getInitialPose().get())),
                 Commands.runOnce(() -> autoGroundCoralIntake = true),
@@ -527,7 +529,7 @@ public class Autos {
                         () ->
                             AutoAim.isInTolerance(
                                     swerve.getPose(),
-                                    CoralTargets.getClosestTarget(trajEndPose.get()),
+                                    FieldUtils.CoralTargets.getClosestTarget(trajEndPose.get()),
                                     swerve.getVelocityFieldRelative(),
                                     Units.inchesToMeters(1.0),
                                     Units.degreesToRadians(1.0))
@@ -551,7 +553,7 @@ public class Autos {
             Commands.waitUntil(() -> !manipulator.getSecondBeambreak())
                 .alongWith(
                     Robot.isSimulation()
-                        ? Commands.runOnce(() -> manipulator.setSecondBeambreak(false))
+                        ? Commands.runOnce(() -> manipulator.setSimSecondBeambreak(false))
                         : Commands.none()),
             Commands.runOnce(
                 () -> {
@@ -563,7 +565,7 @@ public class Autos {
                 .andThen(
                     AutoAim.translateToPose(
                         swerve,
-                        () -> CoralTargets.getClosestTarget(trajEndPose.get()),
+                        () -> FieldUtils.CoralTargets.getClosestTarget(trajEndPose.get()),
                         ChassisSpeeds::new,
                         new Constraints(1.5, 1.0))));
   }
@@ -574,7 +576,7 @@ public class Autos {
     } else {
       return Commands.sequence(
           Robot.isSimulation()
-              ? Commands.runOnce(() -> manipulator.setSecondBeambreak(true))
+              ? Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true))
               : Commands.none(),
           Commands.print("intake - 2nd bb" + manipulator.getSecondBeambreak()),
           AutoAim.translateToPose(
@@ -665,13 +667,13 @@ public class Autos {
             Commands.print("Scoring algae"),
             Commands.runOnce(
                 () -> {
-                  Robot.setCurrentAlgaeScoreTarget(AlgaeScoreTarget.NET);
+                  Robot.setAlgaeScoreTarget(AlgaeScoreTarget.BARGE);
                   autoScore = true;
                 }),
             Commands.waitUntil(() -> !manipulator.hasAlgae())
                 .alongWith(
                     Robot.isSimulation()
-                        ? Commands.runOnce(() -> manipulator.setHasAlgae(false))
+                        ? Commands.runOnce(() -> manipulator.setSimHasAlgae(false))
                         : Commands.none())
                 .andThen(
                     Commands.runOnce(
@@ -699,30 +701,32 @@ public class Autos {
             Commands.runOnce(
                 () -> {
                   autoAlgaeIntake = true;
-                  Robot.setCurrentAlgaeIntakeTarget(
-                      AlgaeIntakeTargets.getClosestTarget(pose.get().get()) // wow
+                  Robot.setAlgaeIntakeTarget(
+                      FieldUtils.AlgaeIntakeTargets.getClosestTarget(pose.get().get()) // wow
                           .height);
                 }),
             AutoAim.translateToPose(
                     swerve,
                     () ->
-                        AlgaeIntakeTargets.getOffsetLocation(
-                            AlgaeIntakeTargets.getClosestTargetPose(pose.get().get())))
+                        FieldUtils.AlgaeIntakeTargets.getOffsetLocation(
+                            FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(pose.get().get())))
                 .until(
                     () ->
                         AutoAim.isInTolerance(
                                 swerve.getPose(),
-                                AlgaeIntakeTargets.getOffsetLocation(
-                                    AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose())),
+                                FieldUtils.AlgaeIntakeTargets.getOffsetLocation(
+                                    FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(
+                                        swerve.getPose())),
                                 swerve.getVelocityFieldRelative(),
                                 Units.inchesToMeters(0.5),
                                 Units.degreesToRadians(1.0))
-                            && elevator.isNearTarget()
-                            && shoulder.isNearAngle(
-                                ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
-                            && wrist.isNearAngle(WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
+                            && elevator.atExtension()
+                            && shoulder.isNearAngle(ShoulderState.INTAKE_ALGAE_REEF.getAngle())
+                            && wrist.isNearAngle(WristState.INTAKE_ALGAE_REEF.getAngle())),
             AutoAim.approachAlgae(
-                    swerve, () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()), 1)
+                    swerve,
+                    () -> FieldUtils.AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
+                    1)
                 .withTimeout(0.5))
         .andThen(
             Commands.runOnce(

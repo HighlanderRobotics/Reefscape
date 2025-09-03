@@ -13,7 +13,6 @@ import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 public class WristIOSim implements WristIO {
-  // TODO: UPDATE WITH VALUES WHEN CAD IS DONE
   private final SingleJointedArmSim armSim =
       new SingleJointedArmSim(
           DCMotor.getKrakenX60Foc(1),
@@ -52,7 +51,7 @@ public class WristIOSim implements WristIO {
   }
 
   @Override
-  public void setMotorPosition(final Rotation2d targetPosition) {
+  public void setAngle(final Rotation2d targetPosition) {
     setMotorVoltage(
         pid.calculate(armSim.getAngleRads(), targetPosition.getRadians())
             + feedforward.calculate(pid.getSetpoint().position, pid.getSetpoint().velocity));
