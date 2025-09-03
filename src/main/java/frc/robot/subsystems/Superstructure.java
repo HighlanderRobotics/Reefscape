@@ -19,10 +19,12 @@ import frc.robot.subsystems.shoulder.ShoulderSubsystem.ShoulderState;
 import frc.robot.subsystems.swerve.SwerveSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem;
 import frc.robot.subsystems.wrist.WristSubsystem.WristState;
+import frc.robot.utils.FieldUtils;
 import frc.robot.utils.FieldUtils.AlgaeIntakeTargets;
 import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.autoaim.AutoAim;
 import java.util.function.Supplier;
+import java.util.stream.Stream;
 import org.littletonrobotics.junction.Logger;
 
 public class Superstructure {
@@ -345,6 +347,7 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_L1, SuperState.L1, new Trigger(this::atExtension));
 
+    // manipulator stuff because ??
     Robot.scoreReq
         .and(() -> stateIsScoreCoral(state))
         // .onTrue(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)))
@@ -396,6 +399,20 @@ public class Superstructure {
         .debounce(1.0)
         .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
 
+    Robot.forceFunnelReq
+        .or(
+            new Trigger(
+                () ->
+                    (Stream.of(FieldUtils.HumanPlayerTargets.values())
+                            .map(
+                                (t) ->
+                                    t.location.minus(swerve.getPose()).getTranslation().getNorm())
+                            .min(Double::compare)
+                            .get()
+                        < 1.0)))
+        .and(manipulator::neitherBeambreak)
+        .whileTrue(manipulator.setRollerVelocity(-7.0))
+        .whileFalse(manipulator.setRollerVelocity(0.0));
     // cancel
     bindTransition(
         SuperState.PRE_L1,
