@@ -303,9 +303,8 @@ public class Superstructure {
     bindTransition(
         SuperState.IDLE,
         SuperState.READY_CORAL,
-        new Trigger(manipulator::eitherBeambreak).debounce(0.5),
-        // .and(() -> manipulator.getTimeSinceZero() < 1.0),
-        Commands.print("sdfklsdjf"));
+        new Trigger(manipulator::eitherBeambreak).debounce(0.5));
+    // .and(() -> manipulator.getTimeSinceZero() < 1.0),
 
     // ---Intake coral ground---
     bindTransition(SuperState.IDLE, SuperState.PRE_INTAKE_CORAL_GROUND, Robot.intakeCoralReq);

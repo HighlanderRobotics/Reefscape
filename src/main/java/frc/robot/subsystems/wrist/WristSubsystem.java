@@ -23,7 +23,7 @@ public class WristSubsystem extends SubsystemBase {
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1).withMotionMagicAcceleration(1);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(5);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(3);

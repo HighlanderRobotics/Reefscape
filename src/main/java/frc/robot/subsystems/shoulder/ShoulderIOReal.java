@@ -66,7 +66,7 @@ public class ShoulderIOReal implements ShoulderIO {
 
     // guesses
     config.MotionMagic.MotionMagicCruiseVelocity = 1.0;
-    config.MotionMagic.MotionMagicAcceleration = 1.0;
+    config.MotionMagic.MotionMagicAcceleration = 4.0;
 
     config.MotorOutput.NeutralMode = NeutralModeValue.Brake;
     config.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
