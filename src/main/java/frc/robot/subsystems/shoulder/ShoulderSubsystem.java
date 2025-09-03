@@ -38,16 +38,17 @@ public class ShoulderSubsystem extends SubsystemBase {
 
   public enum ShoulderState {
     HP(50.0),
-    PRE_INTAKE_CORAL_GROUND(35.0),
-    INTAKE_CORAL_GROUND(8.0),
+    PRE_INTAKE_CORAL_GROUND(15.0),
+    INTAKE_CORAL_GROUND(0.0),
     PRE_L1(35.0),
     L1(Units.radiansToDegrees(1.617)), // not sure about units tbh
     PRE_L2(35.0),
     L2(Rotation2d.fromRadians(0.569).plus(Rotation2d.fromDegrees(20)).getDegrees()),
     PRE_L3(35.0),
     L3(Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(3)).getDegrees()),
-    PRE_L4(8.0),
-    L4(25.0),
+    // PRE_L4(8.0),
+    PRE_L4(30.0),
+    L4(50),
     PRE_INTAKE_ALGAE_REEF(35.0),
     INTAKE_ALGAE_REEF(45.0),
     INTAKE_ALGAE_STACK(30.0),

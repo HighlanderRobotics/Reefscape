@@ -45,6 +45,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     L1(0.217),
     L2(0.23 + Units.inchesToMeters(1.5)),
     L3(0.60 + Units.inchesToMeters(2.0)),
+    PRE_L4(1),
     L4(1.383),
     INTAKE_ALGAE_LOW(Units.inchesToMeters(20.0)),
     INTAKE_ALGAE_HIGH(Units.inchesToMeters(35.0)),
@@ -85,7 +86,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public double currentFilterValue = 0.0;
 
   @AutoLogOutput(key = "Elevator/Has Zeroed")
-  public boolean hasZeroed = false;
+  public static boolean hasZeroed = false;
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
@@ -182,7 +183,9 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public void resetExtension(double extension) {
+    System.out.println("Elevator zeroing");
     io.resetEncoder(extension);
     hasZeroed = true;
+    System.out.println("Elevator zeroed!");
   }
 }

@@ -28,7 +28,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double JOG_POS = 0.75;
   public static final double ALGAE_INTAKE_VOLTAGE = 10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = 1.0;
-  public static final double ALGAE_CURRENT_THRESHOLD = 6.0;
+  public static final double ALGAE_CURRENT_THRESHOLD = 10.0;
 
   public static final double CORAL_HOLD_POS = 0.6;
 
@@ -41,11 +41,13 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private boolean bb1Sim = false;
   private boolean bb2Sim = false;
   @AutoLogOutput private boolean hasAlgaeSim = false;
+  @AutoLogOutput public boolean hasAlgaeReal = false;
 
+  @AutoLogOutput(key = "Manipulator State Velocity")
   private double stateVelocity = 0.0;
 
-  private LinearFilter currentFilter = LinearFilter.movingAverage(20);
-  private double currentFilterValue = 0.0;
+  private LinearFilter currentFilter = LinearFilter.movingAverage(10);
+  @AutoLogOutput private double currentFilterValue = 0.0;
 
   private Timer zeroTimer = new Timer();
 
@@ -95,12 +97,15 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
         .until(
             new Trigger(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
-                .debounce(0.75))
-        .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE)));
+                .debounce(0.25))
+        .andThen(
+            Commands.runOnce(() -> hasAlgaeReal = true)
+                .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE))));
   }
 
   public Command setStateVelocity(BooleanSupplier checkExtension) {
-    return Commands.waitUntil(checkExtension).andThen(setRollerVelocity(stateVelocity));
+    // return Commands.waitUntil(checkExtension).andThen(setRollerVelocity(stateVelocity));
+    return setRollerVelocity(stateVelocity);
   }
 
   public void setState(double vel) {
@@ -111,8 +116,12 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     return currentFilterValue;
   }
 
+  // @AutoLogOutput(key = "Manipulator/Has Algae")
   public boolean hasAlgae() { // TODO icky
-    return getStatorCurrentAmps() > ALGAE_CURRENT_THRESHOLD || hasAlgaeSim;
+    // return new Trigger(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
+    //         .debounce(0.75)
+    //         .getAsBoolean()
+    return hasAlgaeReal || hasAlgaeSim;
   }
 
   public boolean getFirstBeambreak() {

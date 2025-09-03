@@ -8,8 +8,6 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
-import frc.robot.Robot.RobotType;
 import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -17,14 +15,15 @@ import org.littletonrobotics.junction.Logger;
 
 public class WristSubsystem extends SubsystemBase {
   public static final double WRIST_GEAR_RATIO = 4.0 * 4.0 * (64.0 / 34.0);
-  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(220.0);
+  public static final Rotation2d MAX_ARM_ROTATION = Rotation2d.fromDegrees(160.0);
   public static final Rotation2d MIN_ARM_ROTATION =
-      Rotation2d.fromRadians(-0.687); // Rotation2d.fromDegrees(-90.0); //TODO find??
+      // Rotation2d.fromRadians(-0.687); // Rotation2d.fromDegrees(-90.0); //TODO find??
+      Rotation2d.fromDegrees(178).minus(Rotation2d.fromRadians(3.357));
   public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromRadians(1.451);
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
-      new MotionMagicConfigs().withMotionMagicCruiseVelocity(1).withMotionMagicAcceleration(1);
+      new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(5);
 
   public static MotionMagicConfigs SLOW_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(3);
@@ -35,13 +34,14 @@ public class WristSubsystem extends SubsystemBase {
   public enum WristState {
     PRE_INTAKE_CORAL_GROUND(30.0), // formerly WRIST_CLEARANCE_POS
     INTAKE_CORAL_GROUND(0.0),
-    HP(178.0),
-    L1(Units.radiansToDegrees(0.349)),
+    HP(160.0),
+    L1(Units.radiansToDegrees(0.349 - 0.1)),
     PRE_L2(170.0),
     L2(Units.radiansToDegrees(2.447)),
     PRE_L3(170.0),
     L3(Units.radiansToDegrees(2.427)),
-    L4(120.0), // ??
+    PRE_L4(140),
+    L4(98.0), // ??
     PRE_INTAKE_ALGAE_REEF(30.0),
     INTAKE_ALGAE_REEF(-20.0),
     INTAKE_ALGAE_STACK(-10),
@@ -50,7 +50,7 @@ public class WristSubsystem extends SubsystemBase {
     PRE_BARGE(100),
     SCORE_BARGE(110),
     PROCESSOR(-30.0),
-    HOME(Units.radiansToDegrees(-0.687 - 1.0)) // i dunno
+    HOME(Units.radiansToDegrees(-0.687 - 2.0)) // i dunno
   ;
 
     private final Supplier<Rotation2d> angle;
@@ -79,7 +79,7 @@ public class WristSubsystem extends SubsystemBase {
   public double currentFilterValue = 0.0;
 
   @AutoLogOutput(key = "Carriage/Wrist/Has Zeroed")
-  public boolean hasZeroed = false;
+  public static boolean hasZeroed = false;
 
   public WristSubsystem(WristIO io) {
     this.io = io;
@@ -188,8 +188,14 @@ public class WristSubsystem extends SubsystemBase {
     //             }));
   }
 
-  public void resetPosition(Rotation2d angle) {
+  public void rezero(Rotation2d angle) {
+    System.out.println("Wrist rezeroing");
     io.resetEncoder(angle);
     hasZeroed = true;
+    System.out.println("Wrist rezeroed!");
+  }
+
+  public void resetEncoder(Rotation2d angle) {
+    io.resetEncoder(angle);
   }
 }

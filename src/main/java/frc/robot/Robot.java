@@ -30,6 +30,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -171,8 +172,6 @@ public class Robot extends LoggedRobot {
   @AutoLogOutput private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.BARGE;
   private boolean leftHandedTarget = false;
 
-  @AutoLogOutput private boolean killVisionIK = true;
-
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
   private static CANBus canivore = new CANBus("*");
@@ -185,6 +184,7 @@ public class Robot extends LoggedRobot {
       new CommandXboxControllerSubsystem(1);
 
   private static Supplier<Pose2d> pose = () -> new Pose2d();
+  public static Supplier<SuperState> state = () -> SuperState.IDLE;
 
   @AutoLogOutput(key = "Superstructure/Pre Score Request")
   public static Trigger preScoreReq =
@@ -209,6 +209,7 @@ public class Robot extends LoggedRobot {
           .rightTrigger()
           .negate()
           .and(() -> DriverStation.isTeleop())
+          .and(() -> Superstructure.stateIsScoreCoral(state.get()) || state.get() == SuperState.L1)
           .or(() -> Autos.autoScore && DriverStation.isAutonomous());
 
   @AutoLogOutput(key = "Superstructure/Algae Intake Request")
@@ -458,8 +459,6 @@ public class Robot extends LoggedRobot {
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
 
-  public static Supplier<SuperState> state = () -> SuperState.IDLE;
-
   @SuppressWarnings({"resource", "unlikely-arg-type"})
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
@@ -535,7 +534,7 @@ public class Robot extends LoggedRobot {
         Commands.runOnce(
                 () -> {
                   elevator.resetExtension(0.0);
-                  wrist.resetPosition(Rotation2d.k180deg);
+                  wrist.rezero(Rotation2d.k180deg);
                 })
             .ignoringDisable(true));
 
@@ -554,6 +553,7 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
+    // Set auto scoring, etc bindings to false at the start of teleop
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoScore = false));
 
@@ -563,14 +563,16 @@ public class Robot extends LoggedRobot {
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoGroundCoralIntake = false));
 
+    // Zero elevator/wrist at the start of auto
     new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  wrist.resetPosition(Rotation2d.fromRadians(3.094));
+                  wrist.rezero(Rotation2d.fromRadians(3.094));
                   elevator.resetExtension(0.0);
                 }));
 
+    // Add autos on alliance change
     new Trigger(
             () -> {
               var allianceChange = !DriverStation.getAlliance().equals(lastAlliance);
@@ -582,6 +584,7 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
+    // Add autos when first connecting to DS
     new Trigger(
             () ->
                 DriverStation.isDSAttached()
@@ -593,6 +596,7 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
+    // Disable swerve current limits in auto I think?
     new Trigger(() -> DriverStation.isAutonomousEnabled())
         .onTrue(
             Commands.runOnce(
@@ -618,6 +622,24 @@ public class Robot extends LoggedRobot {
                   }
                 })
             .ignoringDisable(true));
+
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle First Beambreak",
+        Robot.isSimulation()
+            ? Commands.runOnce(
+                () -> manipulator.setSimFirstBeambreak(!manipulator.getFirstBeambreak()))
+            : Commands.none());
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle Second Beambreak",
+        Robot.isSimulation()
+            ? Commands.runOnce(
+                () -> manipulator.setSimSecondBeambreak(!manipulator.getSecondBeambreak()))
+            : Commands.none());
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle Has Algae",
+        Robot.isSimulation()
+            ? Commands.runOnce(() -> manipulator.setSimHasAlgae(!manipulator.hasAlgae()))
+            : Commands.none());
 
     elevator.setDefaultCommand(elevator.setStateExtension());
     shoulder.setDefaultCommand(shoulder.setStateAngle());
@@ -684,10 +706,16 @@ public class Robot extends LoggedRobot {
                             * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
                     .times(-1)));
 
+    // ----Controller bindings----
+    // Auto align for coral scoring L2/3
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(() -> superstructure.stateIsCoralAlike() && coralTarget != ReefTarget.L1)
+        .and(
+            () ->
+                superstructure.stateIsCoralAlike()
+                    && coralTarget != ReefTarget.L1
+                    && coralTarget != ReefTarget.L4)
         .whileTrue(
             Commands.parallel(
                 AutoAim.autoAimWithIntermediatePose(
@@ -708,6 +736,7 @@ public class Robot extends LoggedRobot {
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align for coral scoring L1
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -733,6 +762,60 @@ public class Robot extends LoggedRobot {
                                     L1Targets.getNearestLine(swerve.getPose()).getRotation())))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to intermediate pose to score L4
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L4)
+        .and(() -> !superstructure.atExtension(SuperState.L4))
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                              swerve
+                                  .getPose()
+                                  .plus(
+                                      new Transform2d(
+                                          twist.dx,
+                                          twist.dy,
+                                          Rotation2d.fromRadians(twist.dtheta))),
+                              driver.leftBumper().getAsBoolean())
+                          .exp(new Twist2d(-0.25, 0, 0));
+                    }),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInToleranceCoral(
+                                swerve.getPose())) // don't know if this does anything
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    // Auto align to score L4
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L4)
+        .and(() -> superstructure.atExtension(SuperState.L4))
+        .debounce(0.25)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                          swerve
+                              .getPose()
+                              .plus(
+                                  new Transform2d(
+                                      twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
+                          driver.leftBumper().getAsBoolean());
+                    }),
+                Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    // Auto align to intake algae (high, low, stack)
     driver
         .rightBumper()
         .and(
@@ -805,7 +888,9 @@ public class Robot extends LoggedRobot {
     //                     * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
     //             () ->
     //                 modifyJoystick(driver.getRightX())
-    //                     * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()))
+
+    // Auto align to processor
     driver
         .rightBumper()
         .or(driver.leftBumper())
@@ -839,6 +924,7 @@ public class Robot extends LoggedRobot {
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to cage
     driver
         .rightBumper()
         .and(
@@ -856,6 +942,7 @@ public class Robot extends LoggedRobot {
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to barge
     driver
         .rightBumper()
         .and(
@@ -893,6 +980,7 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Set sim beambreak/algae
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
@@ -908,10 +996,14 @@ public class Robot extends LoggedRobot {
         .and(() -> ROBOT_TYPE == RobotType.SIM)
         .onTrue(Commands.runOnce(() -> manipulator.setSimHasAlgae(!manipulator.hasAlgae())));
 
-    RobotModeTriggers.autonomous()
-        .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(
-            Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
+    // RobotModeTriggers.autonomous()
+    //     .and(() -> ROBOT_TYPE == RobotType.SIM)
+    //     .onTrue(
+    //         Commands.runOnce(() ->
+    // manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
+
+    // Reset sim pose (?)
+    // Has this literally ever been used
     driver
         .start()
         .onTrue(
@@ -921,8 +1013,11 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
                 }));
+
+    // Rezero shoulder
     driver.x().onTrue(Commands.runOnce(() -> shoulder.rezero()).ignoringDisable(true));
 
+    // Operator - Set scoring/intaking levels
     operator
         .a()
         .onTrue(
@@ -964,14 +1059,12 @@ public class Robot extends LoggedRobot {
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
+    // Enable/disable left handed auto align
+    // TODO isn't this already accounted for by the autoaim method?
     operator.povLeft().onTrue(Commands.runOnce(() -> leftHandedTarget = true));
     operator.povRight().onTrue(Commands.runOnce(() -> leftHandedTarget = false));
 
-    operator
-        .back()
-        .and(operator.start())
-        .onTrue(Commands.runOnce(() -> killVisionIK = !killVisionIK));
-
+    // Set LEDs when the robot has an algae (alga?)
     new Trigger(() -> superstructure.stateIsAlgaeAlike())
         .whileTrue(
             leds.setBlinkingSplitCmd(
@@ -981,6 +1074,7 @@ public class Robot extends LoggedRobot {
                         algaeScoreTarget == AlgaeScoreTarget.BARGE),
                 () -> Color.kBlack,
                 5.0));
+
     // heading reset
     driver
         .leftStick()
