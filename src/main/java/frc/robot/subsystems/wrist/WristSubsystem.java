@@ -41,7 +41,7 @@ public class WristSubsystem extends SubsystemBase {
     PRE_L3(170.0),
     L3(Units.radiansToDegrees(2.427)),
     PRE_L4(140),
-    L4(90.0), // ??
+    L4(98.0), // ??
     PRE_INTAKE_ALGAE_REEF(30.0),
     INTAKE_ALGAE_REEF(-20.0),
     INTAKE_ALGAE_STACK(-10),

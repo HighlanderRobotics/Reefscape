@@ -48,7 +48,7 @@ public class ShoulderSubsystem extends SubsystemBase {
     L3(Rotation2d.fromRadians(1.022).minus(Rotation2d.fromDegrees(3)).getDegrees()),
     // PRE_L4(8.0),
     PRE_L4(30.0),
-    L4(42),
+    L4(50),
     PRE_INTAKE_ALGAE_REEF(35.0),
     INTAKE_ALGAE_REEF(45.0),
     INTAKE_ALGAE_STACK(30.0),
