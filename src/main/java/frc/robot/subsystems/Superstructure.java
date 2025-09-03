@@ -574,7 +574,11 @@ public class Superstructure {
     bindTransition(
         SuperState.INTAKE_ALGAE_LOW,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.LOW));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.LOW)
+            .or(Robot.intakeAlgaeReq)
+            .negate()
+            .and(() -> !manipulator.hasAlgae())
+            .debounce(0.25));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
     bindTransition(
@@ -601,7 +605,11 @@ public class Superstructure {
     bindTransition(
         SuperState.INTAKE_ALGAE_HIGH,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.HIGH));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.HIGH)
+            .or(Robot.intakeAlgaeReq)
+            .negate()
+            .and(() -> !manipulator.hasAlgae())
+            .debounce(0.25));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
     bindTransition(
@@ -628,7 +636,11 @@ public class Superstructure {
     bindTransition(
         SuperState.INTAKE_ALGAE_STACK,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.STACK));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.STACK)
+            .or(Robot.intakeAlgaeReq)
+            .negate()
+            .and(() -> !manipulator.hasAlgae())
+            .debounce(0.25));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
     bindTransition(
@@ -647,9 +659,14 @@ public class Superstructure {
     bindTransition(
         SuperState.INTAKE_ALGAE_GROUND,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.GROUND));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.GROUND)
+            .or(Robot.intakeAlgaeReq)
+            .negate()
+            .and(() -> !manipulator.hasAlgae())
+            .debounce(0.25));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
+    // TODO tune intake algae ground
     bindTransition(
         SuperState.INTAKE_ALGAE_GROUND,
         SuperState.READY_ALGAE,
