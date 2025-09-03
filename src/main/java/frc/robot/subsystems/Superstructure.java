@@ -159,7 +159,8 @@ public class Superstructure {
     public final ElevatorState elevatorState;
     public final ShoulderState shoulderState;
     public final WristState wristState;
-    public final double manipulatorVelocity;
+    public final double
+        manipulatorVelocity; // negative is scoring coral l2-4 positive is intaking algae
     public final double climberPosition;
     public final double climberSpeed;
 
@@ -363,6 +364,37 @@ public class Superstructure {
     // Commands.runOnce(
     //     (() -> manipulator.setState(SuperState.INTAKE_CORAL_GROUND.manipulatorVelocity))));
     // .onFalse(Commands.runOnce((() -> manipulator.setState(0))));
+
+    // Robot.intakeAlgaeReq
+    //     .and(() -> !manipulator.hasAlgae())
+    //     // .whileTrue(manipulator.setRollerVelocity(5.0));
+    //     .whileTrue(manipulator.intakeAlgae());
+
+    // new Trigger(() -> manipulator.hasAlgae())
+    //     .debounce(0.75)
+    //     .and(Robot.scoreReq)
+    //     .negate()
+    //     .whileTrue(manipulator.setRollerVoltage(ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE));
+
+    // Robot.intakeAlgaeReq.and(this::stateIsIntakeAlgae).whileTrue(manipulator.setRollerVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
+
+    // Robot.intakeAlgaeReq.negate().and(()->
+    // stateTimer.hasElapsed(1.0)).whileTrue(manipulator.intakeAlgae());
+
+    new Trigger(
+            () ->
+                state == SuperState.INTAKE_ALGAE_HIGH
+                    || state == SuperState.INTAKE_ALGAE_LOW
+                    || state == SuperState.READY_ALGAE)
+        .whileTrue(manipulator.intakeAlgae());
+
+    // The way i'm handling the manipulator rn completely undermines the states i was trying to get
+    // at tbh
+
+    new Trigger(() -> state == SuperState.READY_ALGAE)
+        .and(() -> manipulator.getStatorCurrentAmps() < 20.0)
+        .debounce(1.0)
+        .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
 
     // cancel
     bindTransition(
@@ -571,14 +603,18 @@ public class Superstructure {
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.LOW)));
 
     // cancel
+    // bindTransition(
+    //     SuperState.INTAKE_ALGAE_LOW,
+    //     SuperState.IDLE,
+    //     new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.LOW)
+    //         .or(Robot.intakeAlgaeReq.negate())
+    //         .and(() -> !manipulator.hasAlgae())
+    //         .debounce(0.25));
+
     bindTransition(
         SuperState.INTAKE_ALGAE_LOW,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.LOW)
-            .or(Robot.intakeAlgaeReq)
-            .negate()
-            .and(() -> !manipulator.hasAlgae())
-            .debounce(0.25));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.LOW));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
     bindTransition(
@@ -602,14 +638,18 @@ public class Superstructure {
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.HIGH)));
 
     // cancel
+    // bindTransition(
+    //     SuperState.INTAKE_ALGAE_HIGH,
+    //     SuperState.IDLE,
+    //     new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.HIGH)
+    //         .or(Robot.intakeAlgaeReq.negate())
+    //         .and(() -> !manipulator.hasAlgae())
+    //         .debounce(0.25));
+
     bindTransition(
         SuperState.INTAKE_ALGAE_HIGH,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.HIGH)
-            .or(Robot.intakeAlgaeReq)
-            .negate()
-            .and(() -> !manipulator.hasAlgae())
-            .debounce(0.25));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.HIGH));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
     bindTransition(
@@ -633,14 +673,18 @@ public class Superstructure {
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.STACK)));
 
     // cancel
+    // bindTransition(
+    //     SuperState.INTAKE_ALGAE_STACK,
+    //     SuperState.IDLE,
+    //     new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.STACK)
+    //         .or(Robot.intakeAlgaeReq.negate())
+    //         .and(() -> !manipulator.hasAlgae())
+    //         .debounce(0.25));
+
     bindTransition(
         SuperState.INTAKE_ALGAE_STACK,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.STACK)
-            .or(Robot.intakeAlgaeReq)
-            .negate()
-            .and(() -> !manipulator.hasAlgae())
-            .debounce(0.25));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.STACK));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
     bindTransition(
@@ -656,14 +700,18 @@ public class Superstructure {
             .and(new Trigger(() -> Robot.getAlgaeIntakeTarget() == AlgaeIntakeTarget.GROUND)));
 
     // cancel
+    // bindTransition(
+    //     SuperState.INTAKE_ALGAE_GROUND,
+    //     SuperState.IDLE,
+    //     new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.GROUND)
+    //         .or(Robot.intakeAlgaeReq.negate())
+    //         .and(() -> !manipulator.hasAlgae())
+    //         .debounce(0.25));
+
     bindTransition(
         SuperState.INTAKE_ALGAE_GROUND,
         SuperState.IDLE,
-        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.GROUND)
-            .or(Robot.intakeAlgaeReq)
-            .negate()
-            .and(() -> !manipulator.hasAlgae())
-            .debounce(0.25));
+        new Trigger(() -> Robot.getAlgaeIntakeTarget() != AlgaeIntakeTarget.GROUND));
 
     // seems like the post pickup state is different for reef/ground?? why would you do this
     // TODO tune intake algae ground
@@ -867,6 +915,13 @@ public class Superstructure {
         || state == SuperState.POST_POST_BARGE
         || state == SuperState.PROCESSOR;
     // SPIT_ALGAE,
+  }
+
+  public boolean stateIsIntakeAlgae() {
+    return state == SuperState.INTAKE_ALGAE_HIGH
+        || state == SuperState.INTAKE_ALGAE_LOW
+        || state == SuperState.INTAKE_ALGAE_STACK
+        || state == SuperState.INTAKE_ALGAE_GROUND;
   }
 
   public boolean antiJamCoral() {
