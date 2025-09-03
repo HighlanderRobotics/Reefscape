@@ -4,9 +4,13 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
+import frc.robot.Robot.RobotType;
+import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -29,34 +33,36 @@ public class WristSubsystem extends SubsystemBase {
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(2);
 
   public enum WristState {
-    PRE_INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(30.0)), // formerly WRIST_CLEARANCE_POS
-    INTAKE_CORAL_GROUND(Rotation2d.fromDegrees(0.0)),
-    HP(Rotation2d.fromDegrees(178.0)),
-    L1(Rotation2d.fromRadians(0.349)),
-    PRE_L2(Rotation2d.fromDegrees(170.0)),
-    L2(Rotation2d.fromRadians(2.447)),
-    PRE_L3(Rotation2d.fromDegrees(170.0)),
-    L3(Rotation2d.fromRadians(2.427)),
-    L4(Rotation2d.fromDegrees(120.0)), // ??
-    PRE_INTAKE_ALGAE_REEF(Rotation2d.fromDegrees(30.0)),
-    INTAKE_ALGAE_REEF(Rotation2d.fromDegrees(-20.0)),
-    INTAKE_ALGAE_STACK(Rotation2d.fromDegrees(-10)),
-    INTAKE_ALGAE_GROUND(Rotation2d.fromDegrees(-65)),
-    READY_ALGAE(Rotation2d.fromDegrees(20)),
-    PRE_BARGE(Rotation2d.fromDegrees(100)),
-    SCORE_BARGE(Rotation2d.fromDegrees(110)),
-    PROCESSOR(Rotation2d.fromDegrees(-30.0)),
-    HOME(Rotation2d.fromRadians(-0.687 - 1.0)) // i dunno
+    PRE_INTAKE_CORAL_GROUND(30.0), // formerly WRIST_CLEARANCE_POS
+    INTAKE_CORAL_GROUND(0.0),
+    HP(178.0),
+    L1(Units.radiansToDegrees(0.349)),
+    PRE_L2(170.0),
+    L2(Units.radiansToDegrees(2.447)),
+    PRE_L3(170.0),
+    L3(Units.radiansToDegrees(2.427)),
+    L4(120.0), // ??
+    PRE_INTAKE_ALGAE_REEF(30.0),
+    INTAKE_ALGAE_REEF(-20.0),
+    INTAKE_ALGAE_STACK(-10),
+    INTAKE_ALGAE_GROUND(-65),
+    READY_ALGAE(20),
+    PRE_BARGE(100),
+    SCORE_BARGE(110),
+    PROCESSOR(-30.0),
+    HOME(Units.radiansToDegrees(-0.687 - 1.0)) // i dunno
   ;
 
-    private final Rotation2d angle;
+    private final Supplier<Rotation2d> angle;
 
-    private WristState(Rotation2d angle) {
-      this.angle = angle;
+    private WristState(double defaultAngle) {
+      LoggedTunableNumber ltn = new LoggedTunableNumber("Wrist/" + this.name(), defaultAngle);
+      // we're in real life!! use degrees
+      this.angle = () -> Rotation2d.fromDegrees(ltn.get());
     }
 
     public Rotation2d getAngle() {
-      return angle;
+      return angle.get();
     }
   }
 

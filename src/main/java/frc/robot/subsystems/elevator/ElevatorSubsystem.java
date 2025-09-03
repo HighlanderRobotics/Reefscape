@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -45,7 +46,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     L2(0.23 + Units.inchesToMeters(1.5)),
     L3(0.60 + Units.inchesToMeters(2.0)),
     L4(1.383),
-    INTAKE_ALGAE_LOW(Units.inchesToMeters(Units.inchesToMeters(20.0))),
+    INTAKE_ALGAE_LOW(Units.inchesToMeters(20.0)),
     INTAKE_ALGAE_HIGH(Units.inchesToMeters(35.0)),
     INTAKE_ALGAE_STACK(Units.inchesToMeters(9.0)),
     INTAKE_ALGAE_GROUND(0.14 - Units.inchesToMeters(0.75)),
@@ -56,14 +57,16 @@ public class ElevatorSubsystem extends SubsystemBase {
     ANTIJAM_ALGAE(0.0) // NOT ACTUALLY 0!!!
   ;
 
-    private final double extensionMeters;
+    private final DoubleSupplier extensionMeters;
 
-    private ElevatorState(double extensionMeters) {
-      this.extensionMeters = extensionMeters;
+    private ElevatorState(double defaultExtensionMeters) {
+      // this.extensionMeters = extensionMeters;
+      this.extensionMeters =
+          new LoggedTunableNumber("Elevator/" + this.name(), defaultExtensionMeters);
     }
 
     public double getExtensionMeters() {
-      return extensionMeters;
+      return extensionMeters.getAsDouble();
     }
   }
 
