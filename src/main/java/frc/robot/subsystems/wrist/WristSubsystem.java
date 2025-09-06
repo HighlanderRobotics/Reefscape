@@ -8,6 +8,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -50,7 +51,7 @@ public class WristSubsystem extends SubsystemBase {
     PRE_BARGE(100),
     SCORE_BARGE(110),
     PROCESSOR(-30.0),
-    HOME(Units.radiansToDegrees(-0.687 - 2.0)) // i dunno
+    HOME(Units.radiansToDegrees(-0.687 - 5.0)) // i dunno
   ;
 
     private final Supplier<Rotation2d> angle;
@@ -100,7 +101,11 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command setStateAngle() {
-    return setAngle(() -> state.getAngle());
+    if (state == SuperState.HOME_WRIST.wristState) {
+      return currentZero();
+    } else {
+      return setAngle(() -> state.getAngle());
+    }
   }
 
   public Command setAngle(final Supplier<Rotation2d> target) {
@@ -164,7 +169,7 @@ public class WristSubsystem extends SubsystemBase {
                 .finallyDo(
                     (interrupted) -> {
                       if (!interrupted) {
-                        io.resetEncoder(Rotation2d.fromRadians(-0.687));
+                        io.resetEncoder(Rotation2d.fromDegrees(160).minus(Rotation2d.fromRadians(3.357))); //TODO zero position may need tuning
                         hasZeroed = true;
                       }
                     }));

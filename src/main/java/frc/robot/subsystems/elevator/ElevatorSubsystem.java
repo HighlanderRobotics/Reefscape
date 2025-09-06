@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
+import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -135,7 +136,11 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command setStateExtension() {
-    return setExtension(() -> state.getExtensionMeters());
+    if (state == SuperState.HOME_ELEVATOR.elevatorState) {
+      return runCurrentZeroing();
+    } else {
+      return setExtension(() -> state.getExtensionMeters());
+    }
   }
 
   public boolean atExtension(double expected) {

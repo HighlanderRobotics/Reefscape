@@ -241,8 +241,11 @@ public class Robot extends LoggedRobot {
   @AutoLogOutput(key = "Superstructure/Anti Algae Jam Request")
   public static final Trigger antiAlgaeJamReq = driver.b();
 
-  @AutoLogOutput(key = "Superstructure/Home Request")
-  public static Trigger homeReq = driver.start();
+  @AutoLogOutput(key = "Superstructure/Home Elevator Request")
+  public static Trigger homeElevatorReq = driver.start();
+
+  @AutoLogOutput(key = "Superstructure/Home Wrist Request")
+  public static Trigger homeWristReq = driver.povDown(); //TODO i want to use the back button but it didn't seem to work
 
   @AutoLogOutput(key = "Superstructure/Rev Funnel Req")
   public static Trigger revFunnelReq = operator.rightBumper();
