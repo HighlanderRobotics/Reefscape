@@ -25,6 +25,7 @@ import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.autoaim.AutoAim;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 public class Superstructure {
@@ -49,6 +50,7 @@ public class Superstructure {
         ShoulderState.PRE_INTAKE_CORAL_GROUND,
         WristState.PRE_INTAKE_CORAL_GROUND,
         0.0),
+    CHECK_CORAL(ElevatorState.HP, ShoulderState.HP, WristState.HP, 0.0),
     READY_CORAL(ElevatorState.HP, ShoulderState.HP, WristState.HP, 0.0),
     // TODO make manipulator stuff less ugly
     PRE_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.L1, 0.0),
@@ -209,6 +211,8 @@ public class Superstructure {
 
   public static boolean antiJamCoral;
 
+  @AutoLogOutput public static boolean coralIndexed;
+
   /** Creates a new Superstructure. */
   public Superstructure(
       ElevatorSubsystem elevator,
@@ -302,8 +306,30 @@ public class Superstructure {
     // ---Funnel---
     bindTransition(
         SuperState.IDLE,
+        SuperState.CHECK_CORAL,
+        new Trigger(manipulator::getSecondBeambreak).debounce(0.1));
+
+    new Trigger(() -> state == SuperState.CHECK_CORAL)
+        .onTrue(
+            Commands.runOnce(() -> coralIndexed = false)
+                .andThen(
+                    manipulator
+                        .setRollerVelocity(2)
+                        .until(
+                            () ->
+                                manipulator.getSecondBeambreak()
+                                    && !manipulator.getFirstBeambreak())
+                        .andThen(manipulator.setRollerVelocity(-1.5))
+                        .until(new Trigger(manipulator::bothBeambreaks).debounce(0.2))
+                        .andThen(Commands.runOnce(() -> coralIndexed = true))));
+
+    // first beambreak is the one closest to the outside when scoring l2-4
+    // second beambreak is the one closer to the funnel when scoring l2-4
+    bindTransition(
+        SuperState.CHECK_CORAL,
         SuperState.READY_CORAL,
-        new Trigger(manipulator::eitherBeambreak).debounce(0.5));
+        // new Trigger(manipulator::bothBeambreaks).debounce(0.5));
+        new Trigger(() -> coralIndexed));
     // .and(() -> manipulator.getTimeSinceZero() < 1.0),
 
     // ---Intake coral ground---

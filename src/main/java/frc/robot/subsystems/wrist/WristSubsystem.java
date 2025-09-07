@@ -50,7 +50,7 @@ public class WristSubsystem extends SubsystemBase {
     PRE_BARGE(100),
     SCORE_BARGE(110),
     PROCESSOR(-30.0),
-    HOME(Units.radiansToDegrees(-0.687 - 2.0)) // i dunno
+    HOME(Units.radiansToDegrees(-0.687 - 6.0)) // i dunno
   ;
 
     private final Supplier<Rotation2d> angle;
