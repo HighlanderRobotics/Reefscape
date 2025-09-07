@@ -800,26 +800,19 @@ public class Superstructure {
     bindTransition(
         SuperState.IDLE,
         SuperState.HOME_ELEVATOR,
-        new Trigger(() -> !ElevatorSubsystem.hasZeroed 
-        // || !WristSubsystem.hasZeroed
-        )
+        new Trigger(() -> !ElevatorSubsystem.hasZeroed || !WristSubsystem.hasZeroed)
             .and(() -> DriverStation.isEnabled()));
 
-    // // manual request
-    // bindTransition(
-    //     SuperState.IDLE,
-    //     SuperState.HOME_ELEVATOR,
-    //     Robot.homeElevatorReq,
-    //     Commands.runOnce(
-    //         () -> {
-    //           elevator.hasZeroed = false;
-    //         //   wrist.hasZeroed = false;
-    //         }));
-    Robot.homeElevatorReq.onTrue(Commands.runOnce(
-        () -> {
-          elevator.hasZeroed = false;
-        //   wrist.hasZeroed = false;
-        }));
+    // manual request
+    bindTransition(
+        SuperState.IDLE,
+        SuperState.HOME_ELEVATOR,
+        Robot.homeReq,
+        Commands.runOnce(
+            () -> {
+              elevator.hasZeroed = false;
+              wrist.hasZeroed = false;
+            }));
 
     // bindTransition(
     //     SuperState.READY_CORAL,
@@ -829,34 +822,19 @@ public class Superstructure {
 
     bindTransition(
         SuperState.HOME_ELEVATOR,
-        // SuperState.HOME_WRIST,
-        SuperState.IDLE,
+        SuperState.HOME_WRIST,
+        // SuperState.IDLE,
         new Trigger(() -> Math.abs(elevator.currentFilterValue) > 50.0).debounce(0.1),
-        Commands.runOnce(() -> elevator.resetExtension(0.0)) //not sure if i still need this but
+        Commands.runOnce(() -> elevator.resetExtension(0.0))
         //     .andThen(Commands.runOnce(() -> elevator.resetExtension(0.0)))
         );
 
-    Robot.homeWristReq.onTrue(Commands.runOnce(
-            () -> {
-              wrist.hasZeroed = false;
-            }));
-
-    bindTransition(
-        SuperState.IDLE,
-        SuperState.HOME_WRIST,
-        new Trigger(() -> !WristSubsystem.hasZeroed && ElevatorSubsystem.hasZeroed)
-            .and(() -> DriverStation.isEnabled()));
-
     bindTransition(
         SuperState.HOME_WRIST,
         SuperState.IDLE,
-        // Robot.homeElevatorReq.negate().and
-        new Trigger
-        (() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.5),
+        Robot.homeReq.negate().and(() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.5),
         Commands.runOnce(
             () -> wrist.rezero(Rotation2d.fromDegrees(160).minus(Rotation2d.fromRadians(3.357)))));
-
-    //i shall just hope and pray
 
     // getting rid of SPIT_CORAL and SPIT_ALGAE as explicit states- all they do is run the
     // manipulator wheels
