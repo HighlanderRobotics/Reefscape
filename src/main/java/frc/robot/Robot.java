@@ -209,7 +209,6 @@ public class Robot extends LoggedRobot {
           .rightTrigger()
           .negate()
           .and(() -> DriverStation.isTeleop())
-          .and(() -> Superstructure.stateIsScoreCoral(state.get()) || state.get() == SuperState.L1)
           .or(() -> Autos.autoScore && DriverStation.isAutonomous());
 
   @AutoLogOutput(key = "Superstructure/Algae Intake Request")

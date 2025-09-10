@@ -28,7 +28,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   public static final double JOG_POS = 0.75;
   public static final double ALGAE_INTAKE_VOLTAGE = 10.0;
   public static final double ALGAE_HOLDING_VOLTAGE = 1.0;
-  public static final double ALGAE_CURRENT_THRESHOLD = 10.0;
+  public static final double ALGAE_CURRENT_THRESHOLD = 15.0;
 
   public static final double CORAL_HOLD_POS = 0.6;
 

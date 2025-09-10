@@ -704,7 +704,7 @@ public class Superstructure {
                             .getTranslation()
                             .minus(swerve.getPose().getTranslation())
                             .getNorm()
-                        > 0.3));
+                        > 0.4));
 
     // ---Intake Stack Algae---
     bindTransition(
