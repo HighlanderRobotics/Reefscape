@@ -790,7 +790,20 @@ public class Superstructure {
         SuperState.READY_ALGAE,
         SuperState.PROCESSOR,
         new Trigger(() -> Robot.getAlgaeScoreTarget() == AlgaeScoreTarget.PROCESSOR)
-            .and(Robot.preScoreReq));
+            .and(Robot.preScoreReq)
+            .and(() ->
+            MathUtil.isNear(
+                    swerve.getPose().getX(),
+                    DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                        ? AutoAim.BLUE_PROCESSOR_POS.getX()
+                        : AutoAim.RED_PROCESSOR_POS.getX(),
+                    2)
+                || MathUtil.isNear(
+                    swerve.getPose().getY(),
+                    DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                        ? AutoAim.BLUE_PROCESSOR_POS.getY()
+                        : AutoAim.RED_PROCESSOR_POS.getY(),
+                    2)));
 
     // TODO manipulator voltage gets set elsewhere i guess
     bindTransition(
