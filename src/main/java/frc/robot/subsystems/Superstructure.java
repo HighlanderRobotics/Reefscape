@@ -803,13 +803,13 @@ public class Superstructure {
                         DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
                             ? AutoAim.BLUE_PROCESSOR_POS.getX()
                             : AutoAim.RED_PROCESSOR_POS.getX(),
-                        0.5)
+                        2)
                     || !MathUtil.isNear(
                         swerve.getPose().getY(),
                         DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
                             ? AutoAim.BLUE_PROCESSOR_POS.getY()
                             : AutoAim.RED_PROCESSOR_POS.getY(),
-                        0.5)));
+                        2)));
 
     // bindTransition(
     //     SuperState.IDLE,

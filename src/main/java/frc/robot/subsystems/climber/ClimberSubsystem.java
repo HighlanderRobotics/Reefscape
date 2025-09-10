@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class ClimberSubsystem extends SubsystemBase {
@@ -38,8 +39,13 @@ public class ClimberSubsystem extends SubsystemBase {
     Logger.processInputs("Climber", inputs);
   }
 
-  public Command setPosition(double position, double vel) {
-    return this.run(() -> io.setPosition(position, vel));
+  public Command setPosition(DoubleSupplier position, DoubleSupplier vel) {
+    return this.run(
+        () -> {
+          Logger.recordOutput("Climber/Setpoint/Pos", position);
+          Logger.recordOutput("Climber/Setpoint/Velocity", vel);
+          io.setPosition(position.getAsDouble(), vel.getAsDouble());
+        });
   }
 
   public Command resetClimber() {

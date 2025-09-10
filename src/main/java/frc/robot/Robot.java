@@ -668,8 +668,8 @@ public class Robot extends LoggedRobot {
                             : 0.0)))); // at what point do ternary operators do more harm than good
     climber.setDefaultCommand(
         climber.setPosition(
-            superstructure.getState().climberPosition,
-            superstructure.getState().climberSpeed)); // why does it need to be slow
+            () -> superstructure.getState().climberPosition,
+            () -> superstructure.getState().climberSpeed)); // why does it need to be slow
     leds.setDefaultCommand(
         Commands.either(
                 leds.setBlinkingCmd(
