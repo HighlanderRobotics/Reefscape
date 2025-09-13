@@ -340,7 +340,7 @@ public class Autos {
         .whileTrue(
             Commands.sequence(
                 steps.get("CMtoG").resetOdometry(),
-                Commands.waitSeconds(1.5),
+                // Commands.waitSeconds(1.5),
                 steps.get("CMtoG").cmd()));
 
     routine

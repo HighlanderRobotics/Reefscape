@@ -420,7 +420,10 @@ public class Superstructure {
             () ->
                 state == SuperState.INTAKE_ALGAE_HIGH
                     || state == SuperState.INTAKE_ALGAE_LOW
-                    || state == SuperState.READY_ALGAE)
+                    || state == SuperState.INTAKE_ALGAE_GROUND
+                    || state == SuperState.INTAKE_ALGAE_STACK
+                    || state == SuperState.READY_ALGAE
+                    || state == SuperState.PRE_BARGE)
         .whileTrue(manipulator.intakeAlgae());
 
     // The way i'm handling the manipulator rn completely undermines the states i was trying to get
