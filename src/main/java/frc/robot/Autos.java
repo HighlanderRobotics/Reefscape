@@ -47,7 +47,7 @@ public class Autos {
   private final ShoulderSubsystem shoulder;
   private final WristSubsystem wrist;
 
-  @AutoLogOutput public static boolean autoPreScore = true;
+  @AutoLogOutput public static boolean autoPreScore = false; // true;
   @AutoLogOutput public static boolean autoScore = false; // TODO perhaps this should not be static
   @AutoLogOutput public static boolean autoGroundCoralIntake = false;
   @AutoLogOutput public static boolean autoAlgaeIntake = false;
