@@ -596,7 +596,7 @@ public class Superstructure {
                 () ->
                     L1Targets.getNearestLine(swerve.getPose())
                             .getDistance(swerve.getPose().getTranslation())
-                        > 0.3)
+                        > 0.2) // TODO tune
             .debounce(0.15)
         // .and(Robot.scoreReq.negate())
         );

@@ -562,6 +562,10 @@ public class Robot extends LoggedRobot {
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoGroundCoralIntake = false));
 
+    new Trigger(Robot::isSimulation)
+        .and(() -> DriverStation.isAutonomousEnabled())
+        .onTrue(Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true)));
+
     // Zero elevator/wrist at the start of auto
     new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
         .onTrue(
