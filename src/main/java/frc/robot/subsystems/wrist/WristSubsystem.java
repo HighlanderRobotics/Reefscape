@@ -34,7 +34,7 @@ public class WristSubsystem extends SubsystemBase {
   public enum WristState {
     PRE_INTAKE_CORAL_GROUND(30.0), // formerly WRIST_CLEARANCE_POS
     INTAKE_CORAL_GROUND(0.0),
-    HP(160.0),
+    HP(170.0),
     L1(Units.radiansToDegrees(0.349 - 0.1)),
     PRE_L2(170.0),
     L2(Units.radiansToDegrees(2.447)),

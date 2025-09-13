@@ -37,7 +37,7 @@ public class ShoulderSubsystem extends SubsystemBase {
           .withMotionMagicAcceleration(4.0);
 
   public enum ShoulderState {
-    HP(50.0),
+    HP(55.0),
     PRE_INTAKE_CORAL_GROUND(15.0),
     INTAKE_CORAL_GROUND(0.0),
     PRE_L1(35.0),
