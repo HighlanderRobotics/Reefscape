@@ -347,10 +347,10 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().getModules()[3])
               },
           PhoenixOdometryThread.getInstance(),
-          swerveDriveSimulation,
-          ROBOT_TYPE != RobotType.SIM
-              ? new CameraIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants())
-              : new CameraIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants()));
+          swerveDriveSimulation);
+  //   ROBOT_TYPE != RobotType.SIM
+  //       ? new CameraIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants())
+  //       : new CameraIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants()));
 
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(

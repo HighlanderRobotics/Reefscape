@@ -62,7 +62,7 @@ public class SwerveSubsystem extends SubsystemBase {
   private final Module[] modules; // FL, FR, BL, BR
   private final OdometryThreadIO odoThread;
   private final OdometryThreadIOInputs odoThreadInputs = new OdometryThreadIOInputs();
-  private final Camera algaeCamera;
+  // private final Camera algaeCamera;
 
   private SwerveDriveKinematics kinematics;
 
@@ -100,8 +100,9 @@ public class SwerveSubsystem extends SubsystemBase {
       CameraIO[] CameraIOs,
       ModuleIO[] moduleIOs,
       OdometryThreadIO odoThread,
-      Optional<SwerveDriveSimulation> simulation,
-      CameraIO algaeCameraIO) {
+      Optional<SwerveDriveSimulation> simulation
+      // CameraIO algaeCameraIO) {
+      ) {
     this.constants = constants;
     this.kinematics = new SwerveDriveKinematics(constants.getModuleTranslations());
     estimator =
@@ -115,7 +116,7 @@ public class SwerveSubsystem extends SubsystemBase {
     this.gyroIO = gyroIO;
     this.odoThread = odoThread;
     this.simulation = simulation;
-    this.algaeCamera = new Camera(algaeCameraIO);
+    // this.algaeCamera = new Camera(algaeCameraIO);
     cameras = new Camera[CameraIOs.length];
     modules = new Module[moduleIOs.length];
 
@@ -145,7 +146,7 @@ public class SwerveSubsystem extends SubsystemBase {
             Tracer.trace("Update cam inputs", camera::updateInputs);
             Tracer.trace("Process cam inputs", camera::processApriltagInputs);
           }
-          Tracer.trace("Update algae cam inputs", algaeCamera::updateInputs);
+          // Tracer.trace("Update algae cam inputs", algaeCamera::updateInputs);
           // Tracer.trace("Process algae cam inputs", algaeCamera::processAlgaeInputs);
           Tracer.trace(
               "Update odo inputs",
