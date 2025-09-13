@@ -47,8 +47,8 @@ public class Superstructure {
         -5.0),
     POST_INTAKE_CORAL_GROUND(
         ElevatorState.INTAKE_CORAL_GROUND,
-        ShoulderState.PRE_INTAKE_CORAL_GROUND,
-        WristState.PRE_INTAKE_CORAL_GROUND,
+        ShoulderState.INTAKE_CORAL_GROUND,
+        WristState.POST_INTAKE_CORAL_GROUND,
         0.0),
     CHECK_CORAL(ElevatorState.HP, ShoulderState.HP, WristState.HP, 0.0),
     READY_CORAL(ElevatorState.HP, ShoulderState.HP, WristState.HP, 0.0),
@@ -57,13 +57,13 @@ public class Superstructure {
     L1(ElevatorState.L1, ShoulderState.L1, WristState.L1, 3.0),
     POST_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.L1, 0.0),
 
-    PRE_L2(ElevatorState.L2, ShoulderState.PRE_L2, WristState.L2, 0.0),
+    PRE_L2(ElevatorState.L2, ShoulderState.PRE_L2, WristState.PRE_L2, 0.0),
     L2(ElevatorState.L2, ShoulderState.L2, WristState.L2, -15.0),
-    POST_L2(ElevatorState.L2, ShoulderState.PRE_L2, WristState.PRE_L2, 0.0),
+    POST_L2(ElevatorState.HP, ShoulderState.PRE_L2, WristState.PRE_L2, 0.0),
 
-    PRE_L3(ElevatorState.L3, ShoulderState.PRE_L3, WristState.L3, 0.0),
+    PRE_L3(ElevatorState.L3, ShoulderState.PRE_L3, WristState.PRE_L3, 0.0),
     L3(ElevatorState.L3, ShoulderState.L3, WristState.L3, -15.0),
-    POST_L3(ElevatorState.L3, ShoulderState.PRE_L3, WristState.PRE_L3, 0.0),
+    POST_L3(ElevatorState.HP, ShoulderState.PRE_L3, WristState.PRE_L3, 0.0),
 
     // PRE_L4(ElevatorState.HP, ShoulderState.PRE_L4, WristState.L4, 0.0),
     // L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 20.0),
@@ -340,8 +340,8 @@ public class Superstructure {
         SuperState.INTAKE_CORAL_GROUND,
         new Trigger(this::atExtension));
 
-    bindTransition(
-        SuperState.PRE_INTAKE_CORAL_GROUND, SuperState.IDLE, Robot.intakeCoralReq.negate());
+    // bindTransition(
+    //     SuperState.PRE_INTAKE_CORAL_GROUND, SuperState.IDLE, Robot.intakeCoralReq.negate());
 
     bindTransition(
         SuperState.INTAKE_CORAL_GROUND,
@@ -351,15 +351,23 @@ public class Superstructure {
             .debounce(0.060)
             .and(manipulator::bothBeambreaks)
             .debounce(0.12)); // TODO i'm lowkey losing my shit
+
     bindTransition(
         SuperState.INTAKE_CORAL_GROUND,
-        SuperState.PRE_INTAKE_CORAL_GROUND,
+        SuperState.POST_INTAKE_CORAL_GROUND,
         Robot.intakeCoralReq.negate().and(manipulator::neitherBeambreak));
 
+    // has coral
     bindTransition(
         SuperState.POST_INTAKE_CORAL_GROUND,
         SuperState.READY_CORAL,
-        new Trigger(this::atExtension));
+        new Trigger(this::atExtension).and(manipulator::bothBeambreaks));
+
+    // cancel
+    bindTransition(
+        SuperState.POST_INTAKE_CORAL_GROUND,
+        SuperState.IDLE,
+        new Trigger(this::atExtension).and(manipulator::neitherBeambreak));
 
     bindTransition(
         SuperState.READY_CORAL, SuperState.IDLE, new Trigger(manipulator::neitherBeambreak));
