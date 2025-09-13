@@ -164,6 +164,14 @@ public class Autos {
         // run first path
         .active()
         .onTrue(Commands.runOnce(() -> Robot.setCoralTarget(ReefTarget.L4)))
+        .onTrue(
+            Commands.runOnce(
+                () -> {
+                  if (Robot.isSimulation()) {
+                    // manipulator.setSimFirstBeambreak(true);
+                    manipulator.setSimSecondBeambreak(true);
+                  }
+                }))
         .whileTrue(Commands.sequence(steps.get("LOtoJ").resetOdometry(), steps.get("LOtoJ").cmd()));
     // run middle paths
     // and puts that name + corresponding traj to the map
@@ -597,7 +605,7 @@ public class Autos {
   }
 
   public void bindCoralElevatorExtension(AutoRoutine routine) {
-    bindCoralElevatorExtension(routine, 3.75); // TODO tune
+    bindCoralElevatorExtension(routine, 3.25); // TODO tune
   }
 
   public void bindCoralElevatorExtension(AutoRoutine routine, double toleranceMeters) {
