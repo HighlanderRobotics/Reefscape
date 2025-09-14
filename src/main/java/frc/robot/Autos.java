@@ -342,7 +342,6 @@ public class Autos {
                 steps.get("CMtoG").resetOdometry(),
                 // Commands.waitSeconds(1.5),
                 steps.get("CMtoG").cmd()));
-
     routine
         .observe(steps.get("CMtoG").done()) // TODO change to time based
         .onTrue(Commands.sequence(scoreCoralInAuto(() -> steps.get("CMtoG").getFinalPose().get())));
@@ -365,7 +364,14 @@ public class Autos {
         .onTrue(
             Commands.sequence(
                 intakeAlgaeInAuto(() -> steps.get("NItoIJ").getFinalPose()),
-                swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2)));
+                swerve.driveTeleop(() -> new ChassisSpeeds(-0.5, 0, 0)).withTimeout(0.2),
+                steps.get("IJtoNI").cmd()));
+    routine.observe(
+        steps
+            .get("IJtoNI")
+            .atTime(steps.get("IJtoNI").getRawTrajectory().getTotalTime() - 0.2)
+            .onTrue(Commands.sequence(scoreAlgaeInAuto(), steps.get("NItoEF").cmd())));
+    return routine.cmd();
 
     // routine
     //     .observe(
@@ -428,7 +434,6 @@ public class Autos {
     // routine
     //     .observe(steps.get("NItoEF").done())
     //     .onTrue(intakeAlgaeInAuto(() -> steps.get("NItoEF").getFinalPose()));
-    return routine.cmd();
   }
 
   public Command LOtoA() { // 2910
