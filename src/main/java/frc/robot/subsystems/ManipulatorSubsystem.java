@@ -15,7 +15,6 @@ import frc.robot.subsystems.beambreak.BeambreakIO;
 import frc.robot.subsystems.beambreak.BeambreakIOInputsAutoLogged;
 import frc.robot.subsystems.roller.RollerIO;
 import frc.robot.subsystems.roller.RollerSubsystem;
-import java.util.function.BooleanSupplier;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -24,11 +23,11 @@ public class ManipulatorSubsystem extends RollerSubsystem {
 
   public static final double MAX_VELOCITY = 20; // holy cooked
 
-  public static final double CORAL_INTAKE_VELOCITY = -18.0;
+  public static final double CORAL_INTAKE_VELOCITY = -10.0;
   public static final double JOG_POS = 0.75;
-  public static final double ALGAE_INTAKE_VOLTAGE = 10.0;
-  public static final double ALGAE_HOLDING_VOLTAGE = 1.0;
-  public static final double ALGAE_CURRENT_THRESHOLD = 40.0;
+  public static final double ALGAE_INTAKE_VOLTAGE = 8.0;
+  public static final double ALGAE_HOLDING_VOLTAGE = 2.0;
+  public static final double ALGAE_CURRENT_THRESHOLD = 30.0;
 
   public static final double CORAL_HOLD_POS = 0.6;
 
@@ -42,9 +41,6 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   private boolean bb2Sim = false;
   @AutoLogOutput private boolean hasAlgaeSim = false;
   @AutoLogOutput public boolean hasAlgaeReal = false;
-
-  @AutoLogOutput(key = "Manipulator State Velocity")
-  private double stateVelocity = 0.0;
 
   private LinearFilter currentFilter = LinearFilter.movingAverage(10);
   @AutoLogOutput private double currentFilterValue = 0.0;
@@ -89,34 +85,39 @@ public class ManipulatorSubsystem extends RollerSubsystem {
     }
   }
 
-  public void resetPosition(final double rotations) {
-    io.resetEncoder(rotations);
-  }
-
   public Command intakeAlgae() {
     return this.run(() -> io.setVoltage(ALGAE_INTAKE_VOLTAGE))
         .until(
             new Trigger(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
                 .debounce(0.25))
-        .andThen(
-            Commands.runOnce(() -> hasAlgaeReal = true)
-                .andThen(this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE))));
+        .andThen(Commands.runOnce(() -> hasAlgaeReal = true));
   }
 
-  public Command setStateVelocity(BooleanSupplier checkExtension) {
-    // return Commands.waitUntil(checkExtension).andThen(setRollerVelocity(stateVelocity));
-    return setRollerVelocity(stateVelocity);
+  public Command holdAlgae() {
+    return this.run(() -> io.setVoltage(ALGAE_HOLDING_VOLTAGE));
   }
 
-  public void setState(double vel) {
-    stateVelocity = vel;
+  public Command holdAlgaeExtra() {
+    return this.run(() -> io.setVoltage(3 * ALGAE_HOLDING_VOLTAGE));
+  }
+
+  public Command scoreAlgaeProcessor() {
+    return this.run(() -> io.setVoltage(-2.0));
+  }
+
+  public Command scoreAlgaeBarge() {
+    return this.run(() -> io.setVoltage(-13.0));
+  }
+
+  public Command intakeCoral() {
+    return setRollerVelocity(CORAL_INTAKE_VELOCITY);
   }
 
   public double getStatorCurrentAmps() {
     return currentFilterValue;
   }
 
-  // @AutoLogOutput(key = "Manipulator/Has Algae")
+  @AutoLogOutput(key = "Manipulator/Has Algae")
   public boolean hasAlgae() { // TODO icky
     // return new Trigger(() -> Math.abs(currentFilterValue) > ALGAE_CURRENT_THRESHOLD)
     //         .debounce(0.75)

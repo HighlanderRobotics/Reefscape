@@ -249,8 +249,14 @@ public class Robot extends LoggedRobot {
   @AutoLogOutput(key = "Superstructure/Force Funnel Req")
   public static Trigger forceFunnelReq = operator.leftBumper();
 
-  @AutoLogOutput(key = "Superstructure/Force Index Req") // TODO what?
-  public static Trigger forceIndexReq = operator.povDown();
+  //   @AutoLogOutput(key = "Superstructure/Force Index Req") // TODO what?
+  //   public static Trigger forceIndexReq = operator.povDown();
+
+  @AutoLogOutput(key = "Superstructure/Jog Coral Up Req") // i dont like it either
+  public static Trigger jogCoralUpReq = operator.povUp();
+
+  @AutoLogOutput(key = "Superstructure/Jog Coral Down Req") // i dont like it either
+  public static Trigger jogCoralDownReq = operator.povDown();
 
   // killVisionIK, DoubleSupplier coralAdjust)
   //          new Trigger(() -> killVisionIK)
@@ -647,9 +653,9 @@ public class Robot extends LoggedRobot {
     elevator.setDefaultCommand(elevator.setStateExtension());
     shoulder.setDefaultCommand(shoulder.setStateAngle());
     wrist.setDefaultCommand(wrist.setStateAngle());
-    manipulator.setDefaultCommand(
-        manipulator.setStateVelocity(
-            () -> superstructure.atExtension() || superstructure.antiJamCoral()));
+    // manipulator.setDefaultCommand(
+    //     manipulator.setStateVelocity(
+    //         () -> superstructure.atExtension() || superstructure.antiJamCoral()));
     funnel.setDefaultCommand(
         funnel.setRollerVoltage(
             () ->

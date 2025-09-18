@@ -52,7 +52,6 @@ public class Superstructure {
         0.0),
     CHECK_CORAL(ElevatorState.HP, ShoulderState.HP, WristState.HP, 0.0),
     READY_CORAL(ElevatorState.HP, ShoulderState.HP, WristState.HP, 0.0),
-    // TODO make manipulator stuff less ugly
     PRE_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.L1, 0.0),
     L1(ElevatorState.L1, ShoulderState.L1, WristState.L1, 3.0),
     POST_L1(ElevatorState.L1, ShoulderState.PRE_L1, WristState.L1, 0.0),
@@ -229,6 +228,7 @@ public class Superstructure {
     this.swerve = swerve;
 
     addTransitions();
+    addManipulatorStates();
 
     stateTimer.start();
   }
@@ -301,7 +301,7 @@ public class Superstructure {
     // Prob a better way to impl this
     // Vaughn says he wants this available anytime
     // TODO this will probably not still work
-    Robot.forceIndexReq.whileTrue(manipulator.setRollerVelocity(1.0));
+    // Robot.forceIndexReq.whileTrue(manipulator.setRollerVelocity(1.0));
 
     // ---Funnel---
     bindTransition(
@@ -379,75 +379,6 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_L1, SuperState.L1, new Trigger(this::atExtension));
 
-    // manipulator stuff because ??
-    Robot.scoreReq
-        .and(() -> stateIsScoreCoral(state))
-        // .onTrue(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)))
-        // .onFalse(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)));
-        .whileTrue(manipulator.setRollerVelocity(state.manipulatorVelocity));
-
-    Robot.scoreReq
-        .and(() -> state == SuperState.L1)
-        // .onTrue(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)))
-        // .onFalse(Commands.runOnce(() -> manipulator.setState(state.manipulatorVelocity)));
-        .whileTrue(manipulator.setRollerVelocity(3.0));
-
-    Robot.intakeCoralReq
-        .and(() -> !manipulator.bothBeambreaks())
-        .onTrue(manipulator.setRollerVelocity(-10))
-        .onFalse(manipulator.setRollerVelocity(0));
-    // Commands.runOnce(
-    //     (() -> manipulator.setState(SuperState.INTAKE_CORAL_GROUND.manipulatorVelocity))));
-    // .onFalse(Commands.runOnce((() -> manipulator.setState(0))));
-
-    // Robot.intakeAlgaeReq
-    //     .and(() -> !manipulator.hasAlgae())
-    //     // .whileTrue(manipulator.setRollerVelocity(5.0));
-    //     .whileTrue(manipulator.intakeAlgae());
-
-    // new Trigger(() -> manipulator.hasAlgae())
-    //     .debounce(0.75)
-    //     .and(Robot.scoreReq)
-    //     .negate()
-    //     .whileTrue(manipulator.setRollerVoltage(ManipulatorSubsystem.ALGAE_HOLDING_VOLTAGE));
-
-    // Robot.intakeAlgaeReq.and(this::stateIsIntakeAlgae).whileTrue(manipulator.setRollerVoltage(ManipulatorSubsystem.ALGAE_INTAKE_VOLTAGE));
-
-    // Robot.intakeAlgaeReq.negate().and(()->
-    // stateTimer.hasElapsed(1.0)).whileTrue(manipulator.intakeAlgae());
-
-    new Trigger(
-            () ->
-                state == SuperState.INTAKE_ALGAE_HIGH
-                    || state == SuperState.INTAKE_ALGAE_LOW
-                    || state == SuperState.INTAKE_ALGAE_GROUND
-                    || state == SuperState.INTAKE_ALGAE_STACK
-                    || state == SuperState.READY_ALGAE
-                    || state == SuperState.PRE_BARGE)
-        .whileTrue(manipulator.intakeAlgae());
-
-    // The way i'm handling the manipulator rn completely undermines the states i was trying to get
-    // at tbh
-
-    new Trigger(() -> state == SuperState.READY_ALGAE)
-        .and(() -> manipulator.getStatorCurrentAmps() < 20.0)
-        .debounce(1.0)
-        .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
-
-    Robot.forceFunnelReq
-        .or(
-            new Trigger(
-                () ->
-                    (Stream.of(FieldUtils.HumanPlayerTargets.values())
-                            .map(
-                                (t) ->
-                                    t.location.minus(swerve.getPose()).getTranslation().getNorm())
-                            .min(Double::compare)
-                            .get()
-                        < 1.0)))
-        .and(manipulator::neitherBeambreak)
-        .whileTrue(manipulator.setRollerVelocity(-7.0))
-        .whileFalse(manipulator.setRollerVelocity(0.0));
     // cancel
     bindTransition(
         SuperState.PRE_L1,
@@ -907,6 +838,112 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_CLIMB, SuperState.IDLE, Robot.preClimbReq.negate());
 
+    Robot.antiAlgaeJamReq.onTrue(this.changeStateTo(SuperState.ANTIJAM_ALGAE));
+
+    bindTransition(SuperState.ANTIJAM_ALGAE, SuperState.IDLE, Robot.antiAlgaeJamReq.negate());
+  }
+
+  private void addManipulatorStates() {
+    // Score coral
+    Robot.scoreReq
+        .and(() -> stateIsScoreCoral(state))
+        .whileTrue(manipulator.setRollerVelocity(() -> state.manipulatorVelocity));
+
+    Robot.intakeCoralReq
+        .and(() -> !manipulator.bothBeambreaks())
+        .onTrue(manipulator.setRollerVelocity(-10))
+        .onFalse(manipulator.setRollerVelocity(0));
+
+    new Trigger(
+            () ->
+                state == SuperState.INTAKE_ALGAE_HIGH
+                    || state == SuperState.INTAKE_ALGAE_LOW
+                    || state == SuperState.INTAKE_ALGAE_GROUND
+                    || state == SuperState.INTAKE_ALGAE_STACK
+                    || state == SuperState.READY_ALGAE
+                    || state == SuperState.PRE_BARGE)
+        .whileTrue(manipulator.intakeAlgae());
+
+    new Trigger(() -> state == SuperState.READY_ALGAE)
+        .and(() -> manipulator.getStatorCurrentAmps() < 20.0)
+        .debounce(1.0)
+        .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
+
+    Robot.forceFunnelReq
+        .or(
+            new Trigger(
+                () ->
+                    (Stream.of(FieldUtils.HumanPlayerTargets.values())
+                            .map(
+                                (t) ->
+                                    t.location.minus(swerve.getPose()).getTranslation().getNorm())
+                            .min(Double::compare)
+                            .get()
+                        < 1.0)))
+        .and(manipulator::neitherBeambreak)
+        .whileTrue(manipulator.setRollerVelocity(-7.0))
+        .whileFalse(manipulator.setRollerVelocity(0.0));
+
+    // // Intake coral ground
+    // Robot.intakeCoralReq
+    //     .and(() -> !manipulator.bothBeambreaks())
+    //     // .whileTrue(manipulator.intakeCoral());
+    //     .onTrue(manipulator.setRollerVelocity(-10))
+    //     .onFalse(manipulator.setRollerVelocity(0));
+
+    // // intake coral funnel
+    // Robot.forceFunnelReq
+    //     .or( // near hp station
+    //         new Trigger(
+    //             () ->
+    //                 (Stream.of(FieldUtils.HumanPlayerTargets.values())
+    //                         .map(
+    //                             (t) ->
+    //
+    // t.location.minus(swerve.getPose()).getTranslation().getNorm())
+    //                         .min(Double::compare)
+    //                         .get()
+    //                     < 1.0)))
+    //     .and(manipulator::neitherBeambreak)
+    //     .whileTrue(manipulator.setRollerVelocity(-7.0));
+
+    // intake algae
+    new Trigger(this::stateIsIntakeAlgae).whileTrue(manipulator.intakeAlgae());
+
+    // hold algae
+    new Trigger(() -> state == SuperState.READY_ALGAE).whileTrue(manipulator.holdAlgae());
+
+    // hold algae extra hard
+    new Trigger(() -> state == SuperState.PRE_BARGE).whileTrue(manipulator.holdAlgaeExtra());
+
+    // score algae processor
+    new Trigger(() -> state == SuperState.PROCESSOR).whileTrue(manipulator.scoreAlgaeProcessor());
+
+    // score algae barge
+    new Trigger(() -> state == SuperState.BARGE)
+        .and(
+            () ->
+                shoulder.getVelocity()
+                    > ShoulderSubsystem.TOSS_CONFIGS.MotionMagicCruiseVelocity - 0.1)
+        .whileTrue(manipulator.scoreAlgaeBarge());
+
+    // in case algae drops
+    new Trigger(this::stateIsAlgaeAlike)
+        .and(
+            () ->
+                manipulator.getStatorCurrentAmps()
+                    < ManipulatorSubsystem
+                        .ALGAE_CURRENT_THRESHOLD) // TODO might be 20? need to check what the normal
+        // holding amperage is
+        .debounce(1.0)
+        .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
+
+    // // goofy ahh jog
+    // new
+    // Trigger(Robot.jogCoralUpReq).whileTrue(manipulator.setRollerVelocity(3.0).withTimeout(0.1));
+    // new Trigger(Robot.jogCoralDownReq)
+    //     .whileTrue(manipulator.setRollerVelocity(-3.0).withTimeout(0.1));
+
     // ANTI_JAM logic
 
     // anti coral jam could start from any state, so there's no explicit transition
@@ -916,23 +953,22 @@ public class Superstructure {
     // normal value for that state
     // setSubstates isn't called every loop, so I don't think it can be set there
     // i have a bad feeling about this though
-    Robot.antiCoralJamReq
-        .onTrue(
-            Commands.runOnce(
-                () -> {
-                  antiJamCoral = true;
-                  manipulator.setState(-10);
-                }))
-        .onFalse(
-            Commands.runOnce(
-                () -> {
-                  antiJamCoral = false;
-                  manipulator.setState(state.manipulatorVelocity);
-                }));
 
-    Robot.antiAlgaeJamReq.onTrue(this.changeStateTo(SuperState.ANTIJAM_ALGAE));
+    // the bad feeling did not go away so i'm just going to ignore this
 
-    bindTransition(SuperState.ANTIJAM_ALGAE, SuperState.IDLE, Robot.antiAlgaeJamReq.negate());
+    // Robot.antiCoralJamReq
+    //     .onTrue(
+    //         Commands.runOnce(
+    //             () -> {
+    //               antiJamCoral = true;
+    //               manipulator.setState(-10);
+    //             }))
+    //     .onFalse(
+    //         Commands.runOnce(
+    //             () -> {
+    //               antiJamCoral = false;
+    //               manipulator.setState(state.manipulatorVelocity);
+    //             }));
   }
 
   public SuperState getState() {
@@ -957,10 +993,10 @@ public class Superstructure {
   }
 
   public static boolean stateIsScoreCoral(SuperState state) {
-    return
-    // state == SuperState.L1
-    //     ||
-    state == SuperState.L2 || state == SuperState.L3 || state == SuperState.L4;
+    return state == SuperState.L1
+        || state == SuperState.L2
+        || state == SuperState.L3
+        || state == SuperState.L4;
   }
 
   public boolean stateIsAlgaeAlike() {
