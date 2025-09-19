@@ -779,7 +779,7 @@ public class Superstructure {
     bindTransition(
         SuperState.IDLE,
         SuperState.HOME_ELEVATOR,
-        new Trigger(() -> !ElevatorSubsystem.hasZeroed || !WristSubsystem.hasZeroed)
+        new Trigger(() -> !elevator.hasZeroed || !wrist.hasZeroed)
             .and(() -> DriverStation.isEnabled()));
 
     // manual request
@@ -811,7 +811,8 @@ public class Superstructure {
     bindTransition(
         SuperState.HOME_WRIST,
         SuperState.IDLE,
-        Robot.homeReq.negate().and(() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.5),
+        // Robot.homeReq.negate().and(() -> Math.abs(wrist.currentFilterValue) > 7.0).debounce(0.5),
+        Robot.homeReq.negate().and(() -> elevator.hasZeroed && wrist.hasZeroed),
         Commands.runOnce(
             () -> wrist.rezero(Rotation2d.fromDegrees(160).minus(Rotation2d.fromRadians(3.357)))));
 

@@ -86,7 +86,7 @@ public class ElevatorSubsystem extends SubsystemBase {
   public double currentFilterValue = 0.0;
 
   @AutoLogOutput(key = "Elevator/Has Zeroed")
-  public static boolean hasZeroed = false;
+  public boolean hasZeroed = false;
 
   // For dashboard
   private final LoggedMechanism2d mech2d = new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));

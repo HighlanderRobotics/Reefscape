@@ -8,6 +8,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -72,6 +73,7 @@ public class WristSubsystem extends SubsystemBase {
 
   @AutoLogOutput(key = "Carriage/Wrist/State")
   private WristState state = WristState.HP;
+  private Supplier<WristState> stateSupplier = () -> state; // :(
 
   private final WristIO io;
   private final ArmIOInputsAutoLogged inputs = new ArmIOInputsAutoLogged();
@@ -80,7 +82,7 @@ public class WristSubsystem extends SubsystemBase {
   public double currentFilterValue = 0.0;
 
   @AutoLogOutput(key = "Carriage/Wrist/Has Zeroed")
-  public static boolean hasZeroed = false;
+  public boolean hasZeroed = false;
 
   public WristSubsystem(WristIO io) {
     this.io = io;
@@ -101,7 +103,11 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command setStateAngle() {
-    return setAngle(() -> state.getAngle());
+    if ((stateSupplier.get()) == WristState.HOME) {
+      return currentZero().onlyWhile(() -> (stateSupplier.get()) == WristState.HOME); //what is even happening
+    } else {
+      return setAngle(() -> state.getAngle());
+    }
   }
 
   public Command setAngle(final Supplier<Rotation2d> target) {
@@ -134,59 +140,17 @@ public class WristSubsystem extends SubsystemBase {
   }
 
   public Command currentZero() {
-    // return Commands.sequence(
-    //         this.runOnce(
-    //             () -> {
-    //               currentFilter.reset();
-    //               System.out.println("Wrist Zeroing");
-    //             }),
-    //         this.run(() -> io.setMotorVoltage(-1.0))
-    //             .raceWith(
-    //                 Commands.waitSeconds(0.5)
-    //                     .andThen(
-    //                         Commands.waitUntil(
-    //                             () ->
-    //                                 Math.abs(currentFilter.calculate(inputs.statorCurrentAmps))
-    //                                     > 7.0))),
-    //         this.runOnce(
-    //             () -> {
-    //               // Logger.recordOutput(
-    //               //     "shoulder zero pos",
-    // shoulderInputs.get().position.minus(ZEROING_OFFSET));
-    //               hasZeroed = true;
-    //               // io.resetEncoder(shoulderInputs.get().position.minus(ZEROING_OFFSET));
-    //               io.resetEncoder(Rotation2d.fromRadians(-0.687));
-    //             }))
-    //     .finallyDo(() -> Commands.print("DONE"));
     return Commands.print("Wrist Zeroing")
         .andThen(
             this.run(() -> io.setMotorVoltage(-1.0))
+              .raceWith(
+                      Commands.waitSeconds(0.5))
                 .until(() -> Math.abs(currentFilterValue) > 7.0)
-                .finallyDo(
-                    (interrupted) -> {
-                      if (!interrupted) {
+                .andThen(Commands.runOnce(() -> {
                         io.resetEncoder(Rotation2d.fromRadians(-0.687));
                         hasZeroed = true;
-                      }
-                    }));
-
-    // return Commands.print("Elevator Zeroing")
-    // .andThen(
-    //     this.run(
-    //             () -> {
-    //               io.setVoltage(-2.0);
-    //               setpoint = 0.0;
-    //               if (Robot.ROBOT_TYPE != RobotType.REAL)
-    //                 Logger.recordOutput("Elevator/Setpoint", Double.NaN);
-    //             })
-    //         .until(() -> Math.abs(currentFilterValue) > 50.0)
-    //         .finallyDo(
-    //             (interrupted) -> {
-    //               if (!interrupted) {
-    //                 io.resetEncoder(0.0);
-    //                 hasZeroed = true;
-    //               }
-    //             }));
+                }
+        )));
   }
 
   public void rezero(Rotation2d angle) {
