@@ -55,4 +55,8 @@ public class ClimberSubsystem extends SubsystemBase {
   public Command zeroClimber() {
     return Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true);
   }
+
+  public double getAngle() {
+    return inputs.position;
+  }
 }

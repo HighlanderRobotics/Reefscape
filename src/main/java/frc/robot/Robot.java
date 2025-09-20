@@ -42,6 +42,7 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
@@ -455,7 +456,13 @@ public class Robot extends LoggedRobot {
       new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
   private final LoggedMechanismRoot2d
       elevatorRoot = // CAD distance from origin to center of carriage at full retraction
-      elevatorMech2d.getRoot("Elevator", Units.inchesToMeters(21.5), 0.0);
+      elevatorMech2d.getRoot(
+              "Elevator", Units.inchesToMeters(21.5), 0.0); // now what on earth is this number
+  // doesn't get updated or actually do anything it's just so i remember there's actually an
+  // elevator there when i'm looking at glass
+  private final LoggedMechanismLigament2d firstStage =
+      new LoggedMechanismLigament2d(
+          "First Stage", Units.inchesToMeters(41.925), ELEVATOR_ANGLE.getDegrees());
   private final LoggedMechanismLigament2d carriageLigament =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
   private final LoggedMechanismLigament2d shoulderLigament =
@@ -463,6 +470,13 @@ public class Robot extends LoggedRobot {
   private final LoggedMechanismLigament2d wristLigament =
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
+
+  private final LoggedMechanismRoot2d climberRoot =
+      elevatorMech2d.getRoot("Climber", Units.inchesToMeters(2), 0);
+  private final LoggedMechanismLigament2d climberBase =
+      new LoggedMechanismLigament2d("Climber Base", Units.inchesToMeters(9.5), 90);
+  private final LoggedMechanismLigament2d climberLigament =
+      new LoggedMechanismLigament2d("Climber", Units.inchesToMeters(12), 0.0);
 
   @SuppressWarnings({"resource", "unlikely-arg-type"})
   public Robot() {
@@ -527,9 +541,16 @@ public class Robot extends LoggedRobot {
       CameraIOSim.pose = () -> new Pose3d();
     }
     // Add the arms and stuff
+    elevatorRoot.append(firstStage);
     elevatorRoot.append(carriageLigament);
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
+    shoulderLigament.setColor(new Color8Bit(Color.kBlue));
+    wristLigament.setColor(new Color8Bit(Color.kGreen));
+
+    climberRoot.append(climberBase);
+    climberBase.append(climberLigament);
+    climberLigament.setColor(new Color8Bit(Color.kPurple));
 
     autos = new Autos(swerve, manipulator, funnel, elevator, shoulder, wrist);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
@@ -1292,6 +1313,8 @@ public class Robot extends LoggedRobot {
     // Minus 90 to make it relative to horizontal
     shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
+    climberLigament.setAngle(climber.getAngle() - 90 - 18);
+
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
