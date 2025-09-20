@@ -10,9 +10,12 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Robot;
 import frc.robot.Robot.RobotType;
 import frc.robot.utils.LoggedTunableNumber;
@@ -38,6 +41,9 @@ public class ElevatorSubsystem extends SubsystemBase {
   public static final double MAX_ACCELERATION = 10.0;
   public static final double SLOW_ACCELERATION = 5.0;
   public static final double MEDIUM_ACCELERATION = 8.5;
+
+  public static final double CHECK_ZERO_SECONDS = 2;
+
 
   public enum ElevatorState {
     HP(Units.inchesToMeters(0.0)),
@@ -97,9 +103,18 @@ public class ElevatorSubsystem extends SubsystemBase {
   private final LoggedMechanismLigament2d carriage =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
 
+  private final Alert notZeroedAlert = new Alert("Elevator may not be zeroed!", AlertType.kWarning);
+
   /** Creates a new ElevatorSubsystem. */
   public ElevatorSubsystem(ElevatorIO io) {
     this.io = io;
+
+    new Trigger(this::atExtension)
+        .negate()
+        .debounce(CHECK_ZERO_SECONDS)
+        .or(() -> !hasZeroed)
+        .onTrue(Commands.runOnce(() -> notZeroedAlert.set(true)))
+        .onFalse(Commands.runOnce(() -> notZeroedAlert.set(false)));
   }
 
   @Override

@@ -5,9 +5,12 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.Alert;
+import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.utils.LoggedTunableNumber;
 import java.util.function.Supplier;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -21,6 +24,7 @@ public class WristSubsystem extends SubsystemBase {
       Rotation2d.fromDegrees(178).minus(Rotation2d.fromRadians(3.357));
   public static final Rotation2d ZEROING_OFFSET = Rotation2d.fromRadians(1.451);
   public static final Rotation2d WRIST_RETRACTED_POS = Rotation2d.fromDegrees(20.0);
+  public static final double CHECK_ZERO_SECONDS = 2;
 
   public static MotionMagicConfigs DEFAULT_MOTION_MAGIC =
       new MotionMagicConfigs().withMotionMagicCruiseVelocity(2).withMotionMagicAcceleration(5);
@@ -82,8 +86,17 @@ public class WristSubsystem extends SubsystemBase {
   @AutoLogOutput(key = "Carriage/Wrist/Has Zeroed")
   public static boolean hasZeroed = false;
 
+  private final Alert notZeroedAlert = new Alert("Wrist may not be zeroed!", AlertType.kWarning);
+
   public WristSubsystem(WristIO io) {
     this.io = io;
+
+    new Trigger(this::atSetpoint)
+        .negate()
+        .debounce(CHECK_ZERO_SECONDS)
+        .or(() -> !hasZeroed)
+        .onTrue(Commands.runOnce(() -> notZeroedAlert.set(true)))
+        .onFalse(Commands.runOnce(() -> notZeroedAlert.set(false)));
   }
 
   @Override

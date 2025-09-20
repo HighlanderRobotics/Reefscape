@@ -643,6 +643,12 @@ public class Robot extends LoggedRobot {
                             ROBOT_HARDWARE.swerveConstants.getDriveConfig().CurrentLimits))
                 .ignoringDisable(true));
 
+    // Rumble controller when climber is fully extended
+    new Trigger(() -> state.get() == SuperState.PRE_CLIMB)
+        .and(superstructure::atExtension)
+        .debounce(0.1)
+        .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy());
+
     SmartDashboard.putData(
         "Add Autos",
         Commands.runOnce(
@@ -670,6 +676,21 @@ public class Robot extends LoggedRobot {
         Robot.isSimulation()
             ? Commands.runOnce(() -> manipulator.setSimHasAlgae(!manipulator.hasAlgae()))
             : Commands.none());
+
+    new Trigger(wrist::atSetpoint)
+        .negate()
+        .debounce(2)
+        .whileTrue(
+            Commands.runOnce(
+                () ->
+                    SmartDashboard.putString(
+                        "Wrist has not hit the setpoint for 2 seconds", "FF0000")))
+        .whileFalse(
+            Commands.runOnce(
+                () ->
+                    SmartDashboard.putString(
+                        "Wrist has not hit the setpoint for 2 seconds",
+                        "00FF00"))); // tune specific time maybe
 
     elevator.setDefaultCommand(elevator.setStateExtension());
     shoulder.setDefaultCommand(shoulder.setStateAngle());

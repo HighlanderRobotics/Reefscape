@@ -29,7 +29,7 @@ public class ClimberSubsystem extends SubsystemBase {
     this.io = io;
 
     SmartDashboard.putData(
-        "rezero Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
+        "Rezero Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
     SmartDashboard.putData("Reset Climber (MANUAL STOP)", resetClimber());
   }
 
