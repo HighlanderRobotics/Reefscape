@@ -60,11 +60,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     BARGE(Units.inchesToMeters(62.5)),
     PROCESSOR(Units.inchesToMeters(0.01)), // lmao
     HOME(-0.3), // i'm quite scared
-    PRE_ANTIJAM_ALGAE(
-        Units.inchesToMeters(
-            20)), // TODO pre algae antijam elevator extension: this needs to be adjusted to a
-    // guaranteed safe position
-    ANTIJAM_ALGAE(Units.inchesToMeters(40));
+    PRE_ANTIJAM_ALGAE(Units.inchesToMeters(20)),
+    ANTIJAM_ALGAE(Units.inchesToMeters(45));
 
     private final DoubleSupplier extensionMeters;
 

@@ -155,6 +155,11 @@ public class Superstructure {
         ElevatorState.ANTIJAM_ALGAE,
         ShoulderState.INTAKE_CORAL_GROUND,
         WristState.INTAKE_CORAL_GROUND,
+        0.0),
+    POST_ANTIJAM_ALGAE(
+        ElevatorState.HP,
+        ShoulderState.INTAKE_CORAL_GROUND,
+        WristState.POST_INTAKE_CORAL_GROUND,
         0.0)
   // SPIT_CORAL(),
   // ANTI_JAM,
@@ -851,7 +856,13 @@ public class Superstructure {
                 shoulder.isNearAngle(state.shoulderState.getAngle())
                     && wrist.isNearAngle(state.wristState.getAngle())));
 
-    bindTransition(SuperState.ANTIJAM_ALGAE, SuperState.IDLE, Robot.antiJamAlgaeReq.negate());
+    bindTransition(
+        SuperState.ANTIJAM_ALGAE, SuperState.POST_ANTIJAM_ALGAE, Robot.antiJamAlgaeReq.negate());
+
+    bindTransition(
+        SuperState.POST_ANTIJAM_ALGAE,
+        SuperState.IDLE,
+        Robot.antiJamAlgaeReq.negate().and(new Trigger(this::atExtension)));
   }
 
   private void addManipulatorStates() {
@@ -880,8 +891,9 @@ public class Superstructure {
         .debounce(1.0)
         .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
 
+    // intake coral funnel
     Robot.forceFunnelReq
-        .or(
+        .or( // near hp station
             new Trigger(
                 () ->
                     (Stream.of(FieldUtils.HumanPlayerTargets.values())
@@ -894,29 +906,6 @@ public class Superstructure {
         .and(manipulator::neitherBeambreak)
         .whileTrue(manipulator.setRollerVelocity(-7.0))
         .whileFalse(manipulator.setRollerVelocity(0.0)); // TODO well that seems wrong
-
-    // // Intake coral ground
-    // Robot.intakeCoralReq
-    //     .and(() -> !manipulator.bothBeambreaks())
-    //     // .whileTrue(manipulator.intakeCoral());
-    //     .onTrue(manipulator.setRollerVelocity(-10))
-    //     .onFalse(manipulator.setRollerVelocity(0));
-
-    // // intake coral funnel
-    // Robot.forceFunnelReq
-    //     .or( // near hp station
-    //         new Trigger(
-    //             () ->
-    //                 (Stream.of(FieldUtils.HumanPlayerTargets.values())
-    //                         .map(
-    //                             (t) ->
-    //
-    // t.location.minus(swerve.getPose()).getTranslation().getNorm())
-    //                         .min(Double::compare)
-    //                         .get()
-    //                     < 1.0)))
-    //     .and(manipulator::neitherBeambreak)
-    //     .whileTrue(manipulator.setRollerVelocity(-7.0));
 
     // intake algae
     new Trigger(this::stateIsIntakeAlgae).whileTrue(manipulator.intakeAlgae());
