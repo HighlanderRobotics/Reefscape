@@ -1083,7 +1083,7 @@ public class Robot extends LoggedRobot {
             Commands.runOnce(
                 () -> {
                   coralTarget = ReefTarget.L2;
-                  algaeIntakeTarget = AlgaeIntakeTarget.LOW;
+                  algaeIntakeTarget = AlgaeIntakeTarget.STACK;
                 }));
     operator
         .b()
@@ -1091,7 +1091,7 @@ public class Robot extends LoggedRobot {
             Commands.runOnce(
                 () -> {
                   coralTarget = ReefTarget.L3;
-                  algaeIntakeTarget = AlgaeIntakeTarget.HIGH;
+                  algaeIntakeTarget = AlgaeIntakeTarget.LOW;
                 }));
     operator
         .y()
@@ -1099,7 +1099,7 @@ public class Robot extends LoggedRobot {
             Commands.runOnce(
                 () -> {
                   coralTarget = ReefTarget.L4;
-                  algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+                  algaeIntakeTarget = AlgaeIntakeTarget.HIGH;
                 }));
 
     operator
