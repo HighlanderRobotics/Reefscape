@@ -871,25 +871,11 @@ public class Superstructure {
         .and(() -> stateIsScoreCoral(state))
         .whileTrue(manipulator.setRollerVelocity(() -> state.manipulatorVelocity));
 
+    // Intake coral
     Robot.intakeCoralReq
         .and(() -> !manipulator.bothBeambreaks())
         .onTrue(manipulator.setRollerVelocity(-10))
         .onFalse(manipulator.setRollerVelocity(0));
-
-    new Trigger(
-            () ->
-                state == SuperState.INTAKE_ALGAE_HIGH
-                    || state == SuperState.INTAKE_ALGAE_LOW
-                    || state == SuperState.INTAKE_ALGAE_GROUND
-                    || state == SuperState.INTAKE_ALGAE_STACK
-                    || state == SuperState.READY_ALGAE
-                    || state == SuperState.PRE_BARGE)
-        .whileTrue(manipulator.intakeAlgae());
-
-    new Trigger(() -> state == SuperState.READY_ALGAE)
-        .and(() -> manipulator.getStatorCurrentAmps() < 20.0)
-        .debounce(1.0)
-        .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
 
     // intake coral funnel
     Robot.forceFunnelReq
@@ -928,6 +914,7 @@ public class Superstructure {
         .whileTrue(manipulator.scoreAlgaeBarge());
 
     // in case algae drops
+    // I'm not convinced this works but wtv
     new Trigger(this::stateIsAlgaeAlike)
         .and(
             () ->
