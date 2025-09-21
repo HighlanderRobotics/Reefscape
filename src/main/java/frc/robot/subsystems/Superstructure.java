@@ -893,7 +893,7 @@ public class Superstructure {
                         < 1.0)))
         .and(manipulator::neitherBeambreak)
         .whileTrue(manipulator.setRollerVelocity(-7.0))
-        .whileFalse(manipulator.setRollerVelocity(0.0)); //TODO well that seems wrong
+        .whileFalse(manipulator.setRollerVelocity(0.0)); // TODO well that seems wrong
 
     // // Intake coral ground
     // Robot.intakeCoralReq
@@ -950,7 +950,10 @@ public class Superstructure {
         .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
 
     // Antijam coral
-    Robot.antiJamCoralReq.whileTrue(manipulator.setRollerVelocity(-10.0));
+    Robot.antiJamCoralReq
+        .whileTrue(manipulator.setRollerVelocity(-10.0))
+        .whileFalse(manipulator.setRollerVelocity(0.0));
+    // ,whileFalse(manipulator.setRollerVelocity(0.0));
 
     // // goofy ahh jog
     // new
