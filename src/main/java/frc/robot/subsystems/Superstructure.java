@@ -146,6 +146,11 @@ public class Superstructure {
         0.5), // lowkey why is this so slow
     HOME_ELEVATOR(ElevatorState.HOME, ShoulderState.HOME, WristState.HP, 0.0),
     HOME_WRIST(ElevatorState.HP, ShoulderState.HOME, WristState.HOME, 0.0),
+    PRE_ANTIJAM_ALGAE(
+        ElevatorState.PRE_ANTIJAM_ALGAE,
+        ShoulderState.INTAKE_CORAL_GROUND,
+        WristState.INTAKE_CORAL_GROUND,
+        0.0),
     ANTIJAM_ALGAE(
         ElevatorState.ANTIJAM_ALGAE,
         ShoulderState.INTAKE_CORAL_GROUND,
@@ -825,7 +830,6 @@ public class Superstructure {
         SuperState.READY_ALGAE, SuperState.PRE_CLIMB, Robot.preClimbReq, funnel.unlatch());
 
     // ---Climb---
-
     bindTransition(SuperState.IDLE, SuperState.PRE_CLIMB, Robot.preClimbReq, funnel.unlatch());
 
     bindTransition(
@@ -838,9 +842,18 @@ public class Superstructure {
 
     bindTransition(SuperState.PRE_CLIMB, SuperState.IDLE, Robot.preClimbReq.negate());
 
-    Robot.antiAlgaeJamReq.onTrue(this.changeStateTo(SuperState.ANTIJAM_ALGAE));
+    // Algae antijam
+    Robot.antiJamAlgaeReq.onTrue(this.changeStateTo(SuperState.PRE_ANTIJAM_ALGAE));
 
-    bindTransition(SuperState.ANTIJAM_ALGAE, SuperState.IDLE, Robot.antiAlgaeJamReq.negate());
+    bindTransition(
+        SuperState.PRE_ANTIJAM_ALGAE,
+        SuperState.ANTIJAM_ALGAE,
+        new Trigger(
+            () ->
+                shoulder.isNearAngle(state.shoulderState.getAngle())
+                    && wrist.isNearAngle(state.wristState.getAngle())));
+
+    bindTransition(SuperState.ANTIJAM_ALGAE, SuperState.IDLE, Robot.antiJamAlgaeReq.negate());
   }
 
   private void addManipulatorStates() {

@@ -236,10 +236,10 @@ public class Robot extends LoggedRobot {
       driver.y().debounce(0.5).or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5));
 
   @AutoLogOutput(key = "Superstructure/Anti Coral Jam Request")
-  public static final Trigger antiCoralJamReq = driver.a();
+  public static final Trigger antiJamCoralReq = driver.a();
 
   @AutoLogOutput(key = "Superstructure/Anti Algae Jam Request")
-  public static final Trigger antiAlgaeJamReq = driver.b();
+  public static final Trigger antiJamAlgaeReq = driver.b();
 
   @AutoLogOutput(key = "Superstructure/Home Request")
   public static Trigger homeReq = driver.start();
