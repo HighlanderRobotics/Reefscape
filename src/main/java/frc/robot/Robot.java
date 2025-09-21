@@ -715,7 +715,7 @@ public class Robot extends LoggedRobot {
                                     .get()
                                 < 1.0)
                         ? 1.0
-                        : (superstructure.antiJamCoral()
+                        : (antiJamCoralReq.getAsBoolean()
                             ? -10.0
                             : 0.0)))); // at what point do ternary operators do more harm than good
     climber.setDefaultCommand(

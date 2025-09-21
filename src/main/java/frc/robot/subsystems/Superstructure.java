@@ -213,8 +213,6 @@ public class Superstructure {
   private final FunnelSubsystem funnel;
   private final SwerveSubsystem swerve;
 
-  public static boolean antiJamCoral;
-
   @AutoLogOutput public static boolean coralIndexed;
 
   /** Creates a new Superstructure. */
@@ -895,7 +893,7 @@ public class Superstructure {
                         < 1.0)))
         .and(manipulator::neitherBeambreak)
         .whileTrue(manipulator.setRollerVelocity(-7.0))
-        .whileFalse(manipulator.setRollerVelocity(0.0));
+        .whileFalse(manipulator.setRollerVelocity(0.0)); //TODO well that seems wrong
 
     // // Intake coral ground
     // Robot.intakeCoralReq
@@ -951,37 +949,14 @@ public class Superstructure {
         .debounce(1.0)
         .onTrue(Commands.runOnce(() -> manipulator.hasAlgaeReal = false));
 
+    // Antijam coral
+    Robot.antiJamCoralReq.whileTrue(manipulator.setRollerVelocity(-10.0));
+
     // // goofy ahh jog
     // new
     // Trigger(Robot.jogCoralUpReq).whileTrue(manipulator.setRollerVelocity(3.0).withTimeout(0.1));
     // new Trigger(Robot.jogCoralDownReq)
     //     .whileTrue(manipulator.setRollerVelocity(-3.0).withTimeout(0.1));
-
-    // ANTI_JAM logic
-
-    // anti coral jam could start from any state, so there's no explicit transition
-    // in fact the state doesn't ever change--the manipulator velocity (and funnel velocity in
-    // robot.java) is just overridden
-    // which is why once the request is canceled, the manipulator state is manually set back to the
-    // normal value for that state
-    // setSubstates isn't called every loop, so I don't think it can be set there
-    // i have a bad feeling about this though
-
-    // the bad feeling did not go away so i'm just going to ignore this
-
-    // Robot.antiCoralJamReq
-    //     .onTrue(
-    //         Commands.runOnce(
-    //             () -> {
-    //               antiJamCoral = true;
-    //               manipulator.setState(-10);
-    //             }))
-    //     .onFalse(
-    //         Commands.runOnce(
-    //             () -> {
-    //               antiJamCoral = false;
-    //               manipulator.setState(state.manipulatorVelocity);
-    //             }));
   }
 
   public SuperState getState() {
@@ -1033,9 +1008,5 @@ public class Superstructure {
         || state == SuperState.INTAKE_ALGAE_LOW
         || state == SuperState.INTAKE_ALGAE_STACK
         || state == SuperState.INTAKE_ALGAE_GROUND;
-  }
-
-  public boolean antiJamCoral() {
-    return antiJamCoral;
   }
 }
