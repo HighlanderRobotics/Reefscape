@@ -695,9 +695,7 @@ public class Robot extends LoggedRobot {
     elevator.setDefaultCommand(elevator.setStateExtension());
     shoulder.setDefaultCommand(shoulder.setStateAngle());
     wrist.setDefaultCommand(wrist.setStateAngle());
-    // manipulator.setDefaultCommand(
-    //     manipulator.setStateVelocity(
-    //         () -> superstructure.atExtension() || superstructure.antiJamCoral()));
+    manipulator.setDefaultCommand(manipulator.setRollerVelocity(0.0));
     funnel.setDefaultCommand(
         funnel.setRollerVoltage(
             () ->
