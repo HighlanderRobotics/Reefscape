@@ -306,30 +306,11 @@ public class Superstructure {
   }
 
   private void addTransitions() {
-    // Prob a better way to impl this
-    // Vaughn says he wants this available anytime
-    // TODO this will probably not still work
-    // Robot.forceIndexReq.whileTrue(manipulator.setRollerVelocity(1.0));
-
     // ---Funnel---
     bindTransition(
         SuperState.IDLE,
         SuperState.CHECK_CORAL,
         new Trigger(manipulator::getSecondBeambreak).debounce(0.1));
-
-    new Trigger(() -> state == SuperState.CHECK_CORAL)
-        .onTrue(
-            Commands.runOnce(() -> coralIndexed = false)
-                .andThen(
-                    manipulator
-                        .setRollerVelocity(2)
-                        .until(
-                            () ->
-                                manipulator.getSecondBeambreak()
-                                    && !manipulator.getFirstBeambreak())
-                        .andThen(manipulator.setRollerVelocity(-1.5))
-                        .until(new Trigger(manipulator::bothBeambreaks).debounce(0.2))
-                        .andThen(Commands.runOnce(() -> coralIndexed = true))));
 
     // first beambreak is the one closest to the outside when scoring l2-4
     // second beambreak is the one closer to the funnel when scoring l2-4
@@ -337,7 +318,7 @@ public class Superstructure {
         SuperState.CHECK_CORAL,
         SuperState.READY_CORAL,
         // new Trigger(manipulator::bothBeambreaks).debounce(0.5));
-        new Trigger(() -> coralIndexed).or(() -> Robot.isSimulation()));
+        new Trigger(manipulator::bothBeambreaks).debounce(0.2).or(() -> Robot.isSimulation()));
     // .and(() -> manipulator.getTimeSinceZero() < 1.0),
 
     // ---Intake coral ground---
@@ -378,7 +359,14 @@ public class Superstructure {
         new Trigger(this::atExtension).and(manipulator::neitherBeambreak));
 
     bindTransition(
-        SuperState.READY_CORAL, SuperState.IDLE, new Trigger(manipulator::neitherBeambreak));
+        SuperState.READY_CORAL,
+        SuperState.IDLE,
+        new Trigger(manipulator::neitherBeambreak).debounce(0.1));
+
+    bindTransition(
+        SuperState.CHECK_CORAL,
+        SuperState.IDLE,
+        new Trigger(manipulator::neitherBeambreak).debounce(0.1));
     // ---L1---
     bindTransition(
         SuperState.READY_CORAL,
@@ -931,11 +919,14 @@ public class Superstructure {
         .whileFalse(manipulator.setRollerVelocity(0.0));
     // ,whileFalse(manipulator.setRollerVelocity(0.0));
 
-    // // goofy ahh jog
-    // new
-    // Trigger(Robot.jogCoralUpReq).whileTrue(manipulator.setRollerVelocity(3.0).withTimeout(0.1));
-    // new Trigger(Robot.jogCoralDownReq)
-    //     .whileTrue(manipulator.setRollerVelocity(-3.0).withTimeout(0.1));
+    // goofy ahh jog
+    new Trigger(Robot.jogCoralUpReq)
+        .whileTrue(manipulator.setRollerVoltage(-2.0).withTimeout(0.05))
+        .whileFalse(manipulator.setRollerVoltage(0.0));
+
+    new Trigger(Robot.jogCoralDownReq)
+        .whileTrue(manipulator.setRollerVoltage(2.0).withTimeout(0.05))
+        .whileFalse(manipulator.setRollerVoltage(0.0));
   }
 
   public SuperState getState() {
