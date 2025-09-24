@@ -70,7 +70,7 @@ public class Superstructure {
     // PRE_L4(ElevatorState.L4, ShoulderState.L4, WristState.PRE_L4, 0.0),
     // YAP_L4(ElevatorState.L4, ShoulderState.L4REAL, WristState.PRE_L4, 0.0),
     PRE_L4(ElevatorState.HP, ShoulderState.L4, WristState.L4, 0.0),
-    L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, 20.0),
+    L4(ElevatorState.L4, ShoulderState.L4, WristState.L4, -20.0),
     // POST_L4(ElevatorState.L4, ShoulderState.PRE_L4, WristState.HP, 0.0),
     POST_L4(ElevatorState.HP, ShoulderState.L4, WristState.L4, 0.0),
     // POST_POST_L4(
