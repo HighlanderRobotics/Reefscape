@@ -225,7 +225,7 @@ public class Robot extends LoggedRobot {
       driver
           .x()
           .and(driver.pov(-1).negate())
-          .debounce(0.5)
+          .debounce(0.25)
           .or(operator.x().and(operator.pov(-1).negate()).debounce(0.5));
 
   @AutoLogOutput(key = "Superstructure/Climb Confirm Request")

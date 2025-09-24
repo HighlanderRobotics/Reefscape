@@ -39,7 +39,7 @@ public class WristSubsystem extends SubsystemBase {
     PRE_INTAKE_CORAL_GROUND(30.0), // formerly WRIST_CLEARANCE_POS
     INTAKE_CORAL_GROUND(0.0),
     POST_INTAKE_CORAL_GROUND(40),
-    HP(170.0),
+    HP(172.0),
     L1(Units.radiansToDegrees(0.349 - 0.1)),
     PRE_L2(170.0),
     L2(Units.radiansToDegrees(2.447)),
