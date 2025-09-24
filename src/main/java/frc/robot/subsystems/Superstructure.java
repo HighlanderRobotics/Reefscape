@@ -135,14 +135,14 @@ public class Superstructure {
         ShoulderState.INTAKE_ALGAE_GROUND,
         WristState.INTAKE_ALGAE_GROUND,
         10.0,
-        3.0,
+        3.0 + 0.35,
         2.0),
     CLIMB(
         ElevatorState.INTAKE_ALGAE_GROUND,
         ShoulderState.INTAKE_ALGAE_GROUND,
         WristState.INTAKE_ALGAE_GROUND,
         0.0,
-        1.0 - 0.2,
+        1.0, // TODO + 0.35, 
         0.5), // lowkey why is this so slow
     HOME_ELEVATOR(ElevatorState.HOME, ShoulderState.HOME, WristState.HP, 0.0),
     HOME_WRIST(ElevatorState.HP, ShoulderState.HOME, WristState.HOME, 0.0),
