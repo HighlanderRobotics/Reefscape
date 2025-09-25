@@ -81,7 +81,8 @@ public class ShoulderIOReal implements ShoulderIO {
 
     final CANcoderConfiguration cancoderConfig = new CANcoderConfiguration();
     cancoderConfig.MagnetSensor.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-    cancoderConfig.MagnetSensor.MagnetOffset = -0.385174; // 0.2307 + 0.25; // 0.6323; // 0.779;
+    cancoderConfig.MagnetSensor.MagnetOffset =
+        -0.524; // -0.36; // -0.385174; // 0.2307 + 0.25; // 0.6323; // 0.779;
     cancoderConfig.MagnetSensor.AbsoluteSensorDiscontinuityPoint = 0.9;
 
     cancoder.getConfigurator().apply(cancoderConfig);
@@ -104,7 +105,7 @@ public class ShoulderIOReal implements ShoulderIO {
   @Override
   public void updateInputs(ShoulderIOInputs inputs) {
     Logger.recordOutput(
-        "shoulder refreshall statuscode",
+        "Shoulder/Signal Refresh Status Code",
         BaseStatusSignal.refreshAll(
             angularVelocityRPS,
             temp,
@@ -114,7 +115,7 @@ public class ShoulderIOReal implements ShoulderIO {
             cancoderPositionRotations,
             appliedVoltage));
 
-    inputs.position = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
+    inputs.motorPosition = Rotation2d.fromRotations(motorPositionRotations.getValueAsDouble());
     inputs.cancoderPosition = cancoderPositionRotations.getValueAsDouble();
     inputs.tempDegreesC = temp.getValue().in(Units.Celsius);
     inputs.statorCurrentAmps = statorCurrentAmps.getValueAsDouble();
@@ -129,16 +130,17 @@ public class ShoulderIOReal implements ShoulderIO {
   }
 
   @Override
-  public void setMotorPosition(final Rotation2d targetPosition) {
+  public void setPivotAngle(final Rotation2d targetPosition) {
     motor.setControl(motionMagic.withPosition(targetPosition.getRotations()));
   }
 
   @Override
-  public void resetEncoder(final Rotation2d rotation) {
+  public void setEncoderPosition(final Rotation2d rotation) {
     motor.setPosition(rotation.getRotations());
   }
 
   @Override
+  // TODO i hate this can we get rid of this
   public void setMotionMagicConfigs(final MotionMagicConfigs configs) {
     motor.getConfigurator().apply(configs);
   }

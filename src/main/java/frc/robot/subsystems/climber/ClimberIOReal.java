@@ -62,7 +62,7 @@ public class ClimberIOReal implements ClimberIO {
   @Override
   public void updateInputs(ClimberIOInputsAutoLogged inputs) {
     Logger.recordOutput(
-        "Climber refreshall statuscode",
+        "Climber/Signal Refresh Status Code",
         BaseStatusSignal.refreshAll(
             angularVelocityRPS,
             temp,
@@ -82,11 +82,6 @@ public class ClimberIOReal implements ClimberIO {
   @Override
   public void setVoltage(double volts) {
     motor.setControl(voltageOut.withOutput(volts));
-  }
-
-  @Override
-  public void setPosition(final double position) {
-    motor.setControl(motionMagic.withPosition(position));
   }
 
   @Override

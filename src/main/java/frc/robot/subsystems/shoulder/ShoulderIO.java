@@ -8,7 +8,7 @@ public interface ShoulderIO {
   @AutoLog
   class ShoulderIOInputs {
     public double angularVelocityRPS = 0.0;
-    public Rotation2d position = new Rotation2d();
+    public Rotation2d motorPosition = new Rotation2d();
     public double cancoderPosition = 0.0;
     public double appliedVoltage = 0.0;
     public double tempDegreesC = 0.0;
@@ -20,12 +20,12 @@ public interface ShoulderIO {
 
   public void setMotorVoltage(final double voltage);
 
-  public void setMotorPosition(final Rotation2d targetPosition);
+  public void setPivotAngle(final Rotation2d targetPosition);
 
-  public default void resetEncoder(final Rotation2d rotation) {}
+  public default void setEncoderPosition(final Rotation2d rotation) {}
 
   public default void resetEncoder() {
-    resetEncoder(Rotation2d.kZero);
+    setEncoderPosition(Rotation2d.kZero);
   }
 
   public void setMotionMagicConfigs(final MotionMagicConfigs configs);

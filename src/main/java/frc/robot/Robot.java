@@ -29,8 +29,8 @@ import edu.wpi.first.math.geometry.Rectangle2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -42,19 +42,20 @@ import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.util.Color;
+import edu.wpi.first.wpilibj.util.Color8Bit;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.subsystems.ExtensionKinematics;
-import frc.robot.subsystems.ExtensionKinematics.ExtensionState;
-import frc.robot.subsystems.ExtensionPathing;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
 import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.Superstructure.SuperState;
 import frc.robot.subsystems.beambreak.BeambreakIOReal;
+import frc.robot.subsystems.camera.CameraIO;
+import frc.robot.subsystems.camera.CameraIOReal;
+import frc.robot.subsystems.camera.CameraIOSim;
 import frc.robot.subsystems.climber.ClimberIOReal;
 import frc.robot.subsystems.climber.ClimberIOSim;
 import frc.robot.subsystems.climber.ClimberSubsystem;
@@ -69,18 +70,30 @@ import frc.robot.subsystems.servo.ServoIOReal;
 import frc.robot.subsystems.shoulder.ShoulderIOReal;
 import frc.robot.subsystems.shoulder.ShoulderIOSim;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
-import frc.robot.subsystems.swerve.*;
-import frc.robot.subsystems.vision.VisionIO;
-import frc.robot.subsystems.vision.VisionIOReal;
-import frc.robot.subsystems.vision.VisionIOSim;
-import frc.robot.subsystems.wrist.*;
+import frc.robot.subsystems.shoulder.ShoulderSubsystem.ShoulderState;
+import frc.robot.subsystems.swerve.AlphaSwerveConstants;
+import frc.robot.subsystems.swerve.BansheeSwerveConstants;
+import frc.robot.subsystems.swerve.GyroIOPigeon2;
+import frc.robot.subsystems.swerve.GyroIOSim;
+import frc.robot.subsystems.swerve.KelpieSwerveConstants;
+import frc.robot.subsystems.swerve.ModuleIO;
+import frc.robot.subsystems.swerve.ModuleIOMapleSim;
+import frc.robot.subsystems.swerve.ModuleIOReal;
+import frc.robot.subsystems.swerve.PhoenixOdometryThread;
+import frc.robot.subsystems.swerve.SwerveConstants;
+import frc.robot.subsystems.swerve.SwerveSubsystem;
+import frc.robot.subsystems.wrist.WristIOReal;
+import frc.robot.subsystems.wrist.WristIOSim;
+import frc.robot.subsystems.wrist.WristSubsystem;
+import frc.robot.subsystems.wrist.WristSubsystem.WristState;
 import frc.robot.utils.CommandXboxControllerSubsystem;
+import frc.robot.utils.FieldUtils;
+import frc.robot.utils.FieldUtils.AlgaeIntakeTargets;
+import frc.robot.utils.FieldUtils.CageTargets;
+import frc.robot.utils.FieldUtils.CoralTargets;
+import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.Tracer;
-import frc.robot.utils.autoaim.AlgaeIntakeTargets;
 import frc.robot.utils.autoaim.AutoAim;
-import frc.robot.utils.autoaim.CageTargets;
-import frc.robot.utils.autoaim.CoralTargets;
-import frc.robot.utils.autoaim.L1Targets;
 import java.util.HashMap;
 import java.util.Optional;
 import java.util.Set;
@@ -126,53 +139,20 @@ public class Robot extends LoggedRobot {
   public static final RobotType ROBOT_TYPE = Robot.isReal() ? RobotType.REAL : RobotType.SIM;
   // For replay to work properly this should match the hardware used in the log
   public static final RobotHardware ROBOT_HARDWARE = RobotHardware.KELPIE;
-  // for testing class loading
-  public static final ExtensionState test =
-      ExtensionPathing.getNearest(new ExtensionState(0.0, Rotation2d.kZero, Rotation2d.kZero));
+  public static final boolean TUNING_MODE = true;
 
   public static enum ReefTarget {
-    L1(
-        ElevatorSubsystem.L1_EXTENSION_METERS,
-        3.0,
-        WristSubsystem.WRIST_SCORE_L1_POS,
-        ShoulderSubsystem.SHOULDER_SCORE_POS),
-    L2(
-        ElevatorSubsystem.L2_EXTENSION_METERS,
-        -15.0,
-        WristSubsystem.WRIST_SCORE_L2_POS,
-        ShoulderSubsystem.SHOULDER_SCORE_POS),
-    L3(
-        ElevatorSubsystem.L3_EXTENSION_METERS,
-        -15.0,
-        WristSubsystem.WRIST_SCORE_L3_POS,
-        ShoulderSubsystem.SHOULDER_SCORE_POS),
-    L4(
-        ElevatorSubsystem.L4_EXTENSION_METERS,
-        -20.0,
-        WristSubsystem.WRIST_SCORE_L4_POS,
-        ShoulderSubsystem.SHOULDER_SCORE_L4_POS);
+    L1(3.0, SuperState.PRE_L1),
+    L2(-15.0, SuperState.L2),
+    L3(-15.0, SuperState.L3),
+    L4(-20.0, SuperState.L4);
 
-    public final double elevatorHeight;
     public final double outtakeSpeed;
-    public final Rotation2d wristAngle;
-    public final Rotation2d shoulderAngle;
+    public final SuperState state;
 
-    private ReefTarget(
-        double elevatorHeight,
-        double outtakeSpeed,
-        Rotation2d wristAngle,
-        Rotation2d shoulderAngle) {
-      this.elevatorHeight = elevatorHeight;
+    private ReefTarget(double outtakeSpeed, SuperState state) {
       this.outtakeSpeed = outtakeSpeed;
-      this.wristAngle = wristAngle;
-      this.shoulderAngle = shoulderAngle;
-    }
-
-    private ReefTarget(double elevatorHeight, Rotation2d wristAngle, Rotation2d shoulderAngle) {
-      this.elevatorHeight = elevatorHeight;
-      this.outtakeSpeed = 15.0;
-      this.wristAngle = wristAngle;
-      this.shoulderAngle = shoulderAngle;
+      this.state = state;
     }
   }
 
@@ -184,16 +164,14 @@ public class Robot extends LoggedRobot {
   }
 
   public static enum AlgaeScoreTarget {
-    NET,
+    BARGE,
     PROCESSOR
   }
 
-  @AutoLogOutput private static ReefTarget currentTarget = ReefTarget.L4;
+  @AutoLogOutput private static ReefTarget coralTarget = ReefTarget.L4;
   @AutoLogOutput private static AlgaeIntakeTarget algaeIntakeTarget = AlgaeIntakeTarget.STACK;
-  @AutoLogOutput private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.NET;
+  @AutoLogOutput private static AlgaeScoreTarget algaeScoreTarget = AlgaeScoreTarget.BARGE;
   private boolean leftHandedTarget = false;
-
-  @AutoLogOutput private boolean killVisionIK = true;
 
   @AutoLogOutput private boolean haveAutosGenerated = false;
 
@@ -201,8 +179,91 @@ public class Robot extends LoggedRobot {
 
   private static CANBusStatus canivoreStatus = canivore.getStatus();
 
-  private final CommandXboxControllerSubsystem driver = new CommandXboxControllerSubsystem(0);
-  private final CommandXboxControllerSubsystem operator = new CommandXboxControllerSubsystem(1);
+  private static final CommandXboxControllerSubsystem driver =
+      new CommandXboxControllerSubsystem(0);
+  private static final CommandXboxControllerSubsystem operator =
+      new CommandXboxControllerSubsystem(1);
+
+  private static Supplier<Pose2d> pose = () -> new Pose2d();
+  public static Supplier<SuperState> state = () -> SuperState.IDLE;
+
+  @AutoLogOutput(key = "Superstructure/Pre Score Request")
+  public static Trigger preScoreReq =
+      driver
+          .rightTrigger()
+          .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
+          .or(
+              () ->
+                  pose.get()
+                              .getTranslation()
+                              .minus(
+                                  DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                      ? AutoAim.BLUE_REEF_CENTER
+                                      : AutoAim.RED_REEF_CENTER)
+                              .getNorm()
+                          < 3.25
+                      && DriverStation.isAutonomous());
+
+  @AutoLogOutput(key = "Superstructure/Score Request")
+  public static Trigger scoreReq =
+      driver
+          .rightTrigger()
+          .negate()
+          .and(() -> DriverStation.isTeleop())
+          .or(() -> Autos.autoScore && DriverStation.isAutonomous());
+
+  @AutoLogOutput(key = "Superstructure/Algae Intake Request")
+  public static Trigger intakeAlgaeReq =
+      driver.leftTrigger().or(() -> Autos.autoAlgaeIntake && DriverStation.isAutonomous());
+
+  @AutoLogOutput(key = "Superstructure/Coral Intake Request")
+  public static Trigger intakeCoralReq =
+      driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous());
+
+  @AutoLogOutput(key = "Superstructure/Pre Climb Request")
+  public static Trigger preClimbReq =
+      driver
+          .x()
+          .and(driver.pov(-1).negate())
+          .debounce(0.25)
+          .or(operator.x().and(operator.pov(-1).negate()).debounce(0.5));
+
+  @AutoLogOutput(key = "Superstructure/Climb Confirm Request")
+  public static Trigger climbConfReq = driver.rightTrigger();
+
+  @AutoLogOutput(key = "Superstructure/Climb Cancel Request")
+  public static Trigger climbCancelReq =
+      driver.y().debounce(0.5).or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5));
+
+  @AutoLogOutput(key = "Superstructure/Anti Coral Jam Request")
+  public static final Trigger antiJamCoralReq = driver.a();
+
+  @AutoLogOutput(key = "Superstructure/Anti Algae Jam Request")
+  public static final Trigger antiJamAlgaeReq = driver.b();
+
+  @AutoLogOutput(key = "Superstructure/Home Request")
+  public static Trigger homeReq = driver.start();
+
+  @AutoLogOutput(key = "Superstructure/Rev Funnel Req")
+  public static Trigger revFunnelReq = operator.rightBumper();
+
+  @AutoLogOutput(key = "Superstructure/Force Funnel Req")
+  public static Trigger forceFunnelReq = operator.leftBumper();
+
+  //   @AutoLogOutput(key = "Superstructure/Force Index Req") // TODO what?
+  //   public static Trigger forceIndexReq = operator.povDown();
+
+  @AutoLogOutput(key = "Superstructure/Jog Coral Up Req") // i dont like it either
+  public static Trigger jogCoralUpReq = operator.povUp();
+
+  @AutoLogOutput(key = "Superstructure/Jog Coral Down Req") // i dont like it either
+  public static Trigger jogCoralDownReq = operator.povDown();
+
+  // killVisionIK, DoubleSupplier coralAdjust)
+  //          new Trigger(() -> killVisionIK)
+  //   .or(() -> coralTarget == ReefTarget.L1)
+  //   .or(() -> DriverStation.isAutonomous()),
+  // () -> MathUtil.clamp(-operator.getLeftY(), -0.5, 0.5));
 
   // Create and configure a drivetrain simulation configuration
   private Optional<DriveTrainSimulationConfig> driveTrainSimulationConfig =
@@ -252,13 +313,13 @@ public class Robot extends LoggedRobot {
           ROBOT_TYPE != RobotType.SIM
               ? new GyroIOPigeon2(ROBOT_HARDWARE.swerveConstants.getGyroID())
               : new GyroIOSim(swerveDriveSimulation.get().getGyroSimulation()),
-          Stream.of(ROBOT_HARDWARE.swerveConstants.getVisionConstants())
+          Stream.of(ROBOT_HARDWARE.swerveConstants.getCameraConstants())
               .map(
                   (constants) ->
                       ROBOT_TYPE == RobotType.REAL
-                          ? new VisionIOReal(constants)
-                          : new VisionIOSim(constants))
-              .toArray(VisionIO[]::new),
+                          ? new CameraIOReal(constants)
+                          : new CameraIOSim(constants))
+              .toArray(CameraIO[]::new),
           ROBOT_TYPE != RobotType.SIM
               ? new ModuleIO[] {
                 new ModuleIOReal(
@@ -293,14 +354,10 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().getModules()[3])
               },
           PhoenixOdometryThread.getInstance(),
-          swerveDriveSimulation,
-          ROBOT_TYPE != RobotType.SIM
-              ? new VisionIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants())
-              : new VisionIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeVisionConstants()));
-
-  private final ElevatorSubsystem elevator =
-      new ElevatorSubsystem(
-          ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim());
+          swerveDriveSimulation);
+  //   ROBOT_TYPE != RobotType.SIM
+  //       ? new CameraIOReal(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants())
+  //       : new CameraIOSim(ROBOT_HARDWARE.swerveConstants.getAlgaeCameraConstants()));
 
   private final ManipulatorSubsystem manipulator =
       new ManipulatorSubsystem(
@@ -356,7 +413,9 @@ public class Robot extends LoggedRobot {
                               .withForwardSoftLimitEnable(true)
                               .withForwardSoftLimitThreshold(0.5)))
               : new WristIOSim());
-
+  private final ElevatorSubsystem elevator =
+      new ElevatorSubsystem(
+          ROBOT_TYPE != RobotType.SIM ? new ElevatorIOReal() : new ElevatorIOSim());
   private final FunnelSubsystem funnel =
       new FunnelSubsystem(
           ROBOT_TYPE != RobotType.SIM
@@ -381,126 +440,7 @@ public class Robot extends LoggedRobot {
       new ClimberSubsystem(ROBOT_TYPE != RobotType.SIM ? new ClimberIOReal() : new ClimberIOSim());
 
   private final Superstructure superstructure =
-      new Superstructure(
-          elevator,
-          manipulator,
-          shoulder,
-          wrist,
-          funnel,
-          climber,
-          swerve::getPose,
-          swerve::getVelocityFieldRelative,
-          () -> currentTarget,
-          () -> algaeIntakeTarget,
-          () -> algaeScoreTarget,
-          driver
-              .rightTrigger()
-              .negate()
-              .and(() -> DriverStation.isTeleop())
-              .or(
-                  new Trigger(
-                          () -> {
-                            final var state =
-                                new ExtensionState(
-                                    elevator.getExtensionMeters(),
-                                    shoulder.getAngle(),
-                                    wrist.getAngle());
-                            final var branch =
-                                ExtensionKinematics.getBranchPose(
-                                    swerve.getPose(), state, currentTarget);
-                            final var manipulatorPose =
-                                ExtensionKinematics.getManipulatorPose(swerve.getPose(), state);
-                            if (Robot.ROBOT_TYPE != RobotType.REAL)
-                              Logger.recordOutput("IK/Manipulator Pose", manipulatorPose);
-                            if (Robot.ROBOT_TYPE != RobotType.REAL)
-                              Logger.recordOutput("IK/Branch", branch);
-                            if (Robot.ROBOT_TYPE != RobotType.REAL)
-                              Logger.recordOutput(
-                                  "IK/Extension Check",
-                                  manipulatorPose,
-                                  manipulatorPose.transformBy(
-                                      new Transform3d(
-                                          Units.inchesToMeters(3.0), 0.0, 0.0, new Rotation3d())));
-                            return false;
-                            // return branch
-                            //             .getTranslation()
-                            //             .getDistance(manipulatorPose.getTranslation())
-                            //         < Units.inchesToMeters(1.5)
-                            //     || branch
-                            //             .getTranslation()
-                            //             .getDistance(
-                            //                 manipulatorPose
-                            //                     .transformBy(
-                            //                         new Transform3d(
-                            //                             Units.inchesToMeters(3.0),
-                            //                             0.0,
-                            //                             0.0,
-                            //                             new Rotation3d()))
-                            //                     .getTranslation())
-                            //         < Units.inchesToMeters(1.5);
-                          })
-                      .debounce(0.15))
-              //   .or(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
-              .or(() -> Autos.autoScore && DriverStation.isAutonomous())
-              .or(
-                  new Trigger(
-                          () ->
-                              AutoAim.isInToleranceCoral(
-                                      swerve.getPose(),
-                                      Units.inchesToMeters(1.5),
-                                      Units.degreesToRadians(1.5))
-                                  && MathUtil.isNear(
-                                      0,
-                                      Math.hypot(
-                                          swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                                          swerve.getVelocityRobotRelative().vyMetersPerSecond),
-                                      AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-                                  && MathUtil.isNear(
-                                      0.0,
-                                      swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
-                                      3.0)
-                                  && currentTarget != ReefTarget.L4
-                                  && currentTarget != ReefTarget.L1)
-                      .debounce(0.08)
-                      .and(() -> swerve.hasFrontTags)),
-          driver
-              .rightTrigger()
-              .or(() -> Autos.autoPreScore && DriverStation.isAutonomous())
-              .or(
-                  () ->
-                      swerve
-                                  .getPose()
-                                  .getTranslation()
-                                  .minus(
-                                      DriverStation.getAlliance().orElse(Alliance.Blue)
-                                              == Alliance.Blue
-                                          ? AutoAim.BLUE_REEF_CENTER
-                                          : AutoAim.RED_REEF_CENTER)
-                                  .getNorm()
-                              < 3.25
-                          && DriverStation.isAutonomous()),
-          driver.leftTrigger().or(() -> Autos.autoAlgaeIntake && DriverStation.isAutonomous()),
-          driver.leftBumper().or(() -> Autos.autoGroundCoralIntake && DriverStation.isAutonomous()),
-          driver
-              .x()
-              .and(driver.pov(-1).negate())
-              .debounce(0.5)
-              .or(operator.x().and(operator.pov(-1).negate()).debounce(0.5)),
-          driver.rightTrigger(),
-          driver
-              .y()
-              .debounce(0.5)
-              .or(operator.leftStick().and(operator.rightTrigger()).debounce(0.5)),
-          driver.a(),
-          driver.b(),
-          driver.start(),
-          operator.rightBumper(),
-          operator.leftBumper(),
-          operator.povDown(),
-          new Trigger(() -> killVisionIK)
-              .or(() -> currentTarget == ReefTarget.L1)
-              .or(() -> DriverStation.isAutonomous()),
-          () -> MathUtil.clamp(-operator.getLeftY(), -0.5, 0.5));
+      new Superstructure(elevator, shoulder, wrist, manipulator, funnel, swerve);
 
   private final LEDSubsystem leds = new LEDSubsystem(new LEDIOReal());
 
@@ -516,20 +456,29 @@ public class Robot extends LoggedRobot {
       new LoggedMechanism2d(3.0, Units.feetToMeters(4.0));
   private final LoggedMechanismRoot2d
       elevatorRoot = // CAD distance from origin to center of carriage at full retraction
-      elevatorMech2d.getRoot("Elevator", Units.inchesToMeters(21.5), 0.0);
+      elevatorMech2d.getRoot(
+              "Elevator", Units.inchesToMeters(21.5), 0.0); // now what on earth is this number
+  // doesn't get updated or actually do anything it's just so i remember there's actually an
+  // elevator there when i'm looking at glass
+  private final LoggedMechanismLigament2d firstStage =
+      new LoggedMechanismLigament2d(
+          "First Stage", Units.inchesToMeters(41.925), ELEVATOR_ANGLE.getDegrees());
   private final LoggedMechanismLigament2d carriageLigament =
       new LoggedMechanismLigament2d("Carriage", 0, ELEVATOR_ANGLE.getDegrees());
   private final LoggedMechanismLigament2d shoulderLigament =
-      new LoggedMechanismLigament2d(
-          "Arm", Units.inchesToMeters(15.7), ShoulderSubsystem.SHOULDER_RETRACTED_POS.getDegrees());
+      new LoggedMechanismLigament2d("Arm", Units.inchesToMeters(15.7), 90.0);
   private final LoggedMechanismLigament2d wristLigament =
       new LoggedMechanismLigament2d(
           "Wrist", Units.inchesToMeters(14.9), WristSubsystem.WRIST_RETRACTED_POS.getDegrees());
 
-  public static Supplier<SuperState> state =
-      () -> SuperState.IDLE; // TODO i feel like im breaking a rule
+  private final LoggedMechanismRoot2d climberRoot =
+      elevatorMech2d.getRoot("Climber", Units.inchesToMeters(2), 0);
+  private final LoggedMechanismLigament2d climberBase =
+      new LoggedMechanismLigament2d("Climber Base", Units.inchesToMeters(9.5), 90);
+  private final LoggedMechanismLigament2d climberLigament =
+      new LoggedMechanismLigament2d("Climber", Units.inchesToMeters(12), 0.0);
 
-  @SuppressWarnings("resource")
+  @SuppressWarnings({"resource", "unlikely-arg-type"})
   public Robot() {
     DriverStation.silenceJoystickConnectionWarning(true);
     SignalLogger.enableAutoLogging(false);
@@ -586,99 +535,34 @@ public class Robot extends LoggedRobot {
       SimulatedArena.getInstance().addDriveTrainSimulation(swerveDriveSimulation.orElse(null));
       swerve.resetPose(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
       // global static is mildly questionable
-      VisionIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
+      CameraIOSim.pose = () -> new Pose3d(swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     } else {
       // this should never be called?
-      VisionIOSim.pose = () -> new Pose3d();
+      CameraIOSim.pose = () -> new Pose3d();
     }
     // Add the arms and stuff
+    elevatorRoot.append(firstStage);
     elevatorRoot.append(carriageLigament);
     carriageLigament.append(shoulderLigament);
     shoulderLigament.append(wristLigament);
+    shoulderLigament.setColor(new Color8Bit(Color.kBlue));
+    wristLigament.setColor(new Color8Bit(Color.kGreen));
+
+    climberRoot.append(climberBase);
+    climberBase.append(climberLigament);
+    climberLigament.setColor(new Color8Bit(Color.kPurple));
 
     autos = new Autos(swerve, manipulator, funnel, elevator, shoulder, wrist);
     autoChooser.addDefaultOption("None", autos.getNoneAuto());
-
-    SmartDashboard.putData(
-        "Run Elevator Sysid",
-        elevator
-            .runSysid()
-            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
-
-    SmartDashboard.putData(
-        "Step Elevator Current",
-        elevator
-            .setCurrent(60.0)
-            .raceWith(shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_CLEARANCE_POS)));
-
-    SmartDashboard.putData(
-        "Check Clear",
-        Commands.parallel(
-            shoulder.setTargetAngle(ShoulderSubsystem.SHOULDER_TUCKED_CLEARANCE_POS),
-            wrist.setTargetAngle(WristSubsystem.WRIST_TUCKED_CLEARANCE_POS)));
 
     SmartDashboard.putData(
         "Manual Zero Extension",
         Commands.runOnce(
                 () -> {
                   elevator.resetExtension(0.0);
-                  wrist.resetPosition(Rotation2d.k180deg);
+                  wrist.rezero(Rotation2d.k180deg);
                 })
             .ignoringDisable(true));
-
-    System.out.println("Node Count " + ExtensionPathing.graph.nodes().size());
-
-    SmartDashboard.putData(
-        "Traverse Extension Graph",
-        superstructure
-            .extendWithClearance(
-                () ->
-                    new ExtensionState(
-                        ElevatorSubsystem.HP_EXTENSION_METERS,
-                        ShoulderSubsystem.SHOULDER_HP_POS,
-                        WristSubsystem.WRIST_HP_POS))
-            .until(
-                () ->
-                    elevator.isNearExtension(ElevatorSubsystem.HP_EXTENSION_METERS)
-                        && shoulder.isNearAngle(ShoulderSubsystem.SHOULDER_HP_POS)
-                        && wrist.isNearAngle(WristSubsystem.WRIST_HP_POS))
-            .andThen(
-                Commands.sequence(
-                    ExtensionPathing.graph.nodes().stream()
-                        .map(
-                            (node) ->
-                                superstructure
-                                    .extendWithClearance(() -> node)
-                                    .alongWith(
-                                        Commands.print("Traversing to " + node),
-                                        Commands.runOnce(
-                                            () -> Logger.recordOutput("Traversal Target", node)))
-                                    .until(
-                                        () ->
-                                            elevator.isNearExtension(node.elevatorHeightMeters())
-                                                && shoulder.isNearAngle(node.shoulderAngle())
-                                                && wrist.isNearAngle(node.wristAngle()))
-                                    .finallyDo(() -> System.out.println("done"))
-                                    .andThen(
-                                        Commands.waitSeconds(0.5),
-                                        superstructure
-                                            .extendWithClearance(
-                                                () ->
-                                                    new ExtensionState(
-                                                        ElevatorSubsystem.HP_EXTENSION_METERS,
-                                                        ShoulderSubsystem.SHOULDER_HP_POS,
-                                                        WristSubsystem.WRIST_HP_POS))
-                                            .alongWith(Commands.print("Retracting"))
-                                            .until(
-                                                () ->
-                                                    elevator.isNearExtension(
-                                                            ElevatorSubsystem.HP_EXTENSION_METERS)
-                                                        && shoulder.isNearAngle(
-                                                            ShoulderSubsystem.SHOULDER_HP_POS)
-                                                        && wrist.isNearAngle(
-                                                            WristSubsystem.WRIST_HP_POS)),
-                                        Commands.waitSeconds(0.5)))
-                        .toArray(Command[]::new))));
 
     // Run auto when auto starts. Matches Choreolib's defer impl
     RobotModeTriggers.autonomous()
@@ -695,6 +579,7 @@ public class Robot extends LoggedRobot {
                     || superstructure.getState() == SuperState.READY_CORAL)
         .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.5));
 
+    // Set auto scoring, etc bindings to false at the start of teleop
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoScore = false));
 
@@ -704,14 +589,20 @@ public class Robot extends LoggedRobot {
     new Trigger(() -> DriverStation.isEnabled() && DriverStation.isTeleop())
         .onTrue(Commands.runOnce(() -> Autos.autoGroundCoralIntake = false));
 
+    new Trigger(Robot::isSimulation)
+        .and(() -> DriverStation.isAutonomousEnabled())
+        .onTrue(Commands.runOnce(() -> manipulator.setSimSecondBeambreak(true)));
+
+    // Zero elevator/wrist at the start of auto
     new Trigger(() -> DriverStation.isAutonomousEnabled() && !wrist.hasZeroed)
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  wrist.resetPosition(Rotation2d.fromRadians(3.094));
+                  wrist.rezero(Rotation2d.fromRadians(3.094));
                   elevator.resetExtension(0.0);
                 }));
 
+    // Add autos on alliance change
     new Trigger(
             () -> {
               var allianceChange = !DriverStation.getAlliance().equals(lastAlliance);
@@ -723,6 +614,7 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
+    // Add autos when first connecting to DS
     new Trigger(
             () ->
                 DriverStation.isDSAttached()
@@ -734,6 +626,7 @@ public class Robot extends LoggedRobot {
                 .alongWith(leds.setBlinkingCmd(Color.kWhite, Color.kBlack, 20.0).withTimeout(1.0))
                 .ignoringDisable(true));
 
+    // Disable swerve current limits in auto I think?
     new Trigger(() -> DriverStation.isAutonomousEnabled())
         .onTrue(
             Commands.runOnce(
@@ -750,6 +643,12 @@ public class Robot extends LoggedRobot {
                             ROBOT_HARDWARE.swerveConstants.getDriveConfig().CurrentLimits))
                 .ignoringDisable(true));
 
+    // Rumble controller when climber is fully extended
+    new Trigger(() -> state.get() == SuperState.PRE_CLIMB)
+        .and(superstructure::atExtension)
+        .debounce(0.1)
+        .onTrue(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy());
+
     SmartDashboard.putData(
         "Add Autos",
         Commands.runOnce(
@@ -759,27 +658,72 @@ public class Robot extends LoggedRobot {
                   }
                 })
             .ignoringDisable(true));
-    elevator.setDefaultCommand(
-        Commands.sequence(
-                elevator.runCurrentZeroing().onlyIf(() -> !elevator.hasZeroed),
-                elevator.setExtension(0.0).until(() -> elevator.isNearExtension(0.0)),
-                elevator.setVoltage(0.0))
-            .withName("Elevator Default Command"));
 
-    manipulator.setDefaultCommand(manipulator.hold());
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle First Beambreak",
+        Robot.isSimulation()
+            ? Commands.runOnce(
+                () -> manipulator.setSimFirstBeambreak(!manipulator.getFirstBeambreak()))
+            : Commands.none());
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle Second Beambreak",
+        Robot.isSimulation()
+            ? Commands.runOnce(
+                () -> manipulator.setSimSecondBeambreak(!manipulator.getSecondBeambreak()))
+            : Commands.none());
+    SmartDashboard.putData(
+        "[SIM ONLY] Toggle Has Algae",
+        Robot.isSimulation()
+            ? Commands.runOnce(() -> manipulator.setSimHasAlgae(!manipulator.hasAlgae()))
+            : Commands.none());
 
-    shoulder.setDefaultCommand(shoulder.hold());
+    new Trigger(wrist::atSetpoint)
+        .negate()
+        .debounce(2)
+        .whileTrue(
+            Commands.runOnce(
+                () ->
+                    SmartDashboard.putString(
+                        "Wrist has not hit the setpoint for 2 seconds", "FF0000")))
+        .whileFalse(
+            Commands.runOnce(
+                () ->
+                    SmartDashboard.putString(
+                        "Wrist has not hit the setpoint for 2 seconds",
+                        "00FF00"))); // tune specific time maybe
 
-    wrist.setDefaultCommand(wrist.hold());
-
-    funnel.setDefaultCommand(funnel.setVoltage(0.0));
-
-    climber.setDefaultCommand(climber.setPosition(0.0));
-
+    elevator.setDefaultCommand(elevator.setStateExtension());
+    shoulder.setDefaultCommand(shoulder.setStateAngle());
+    wrist.setDefaultCommand(wrist.setStateAngle());
+    manipulator.setDefaultCommand(manipulator.setRollerVelocity(0.0));
+    funnel.setDefaultCommand(
+        funnel.setRollerVoltage(
+            () ->
+                superstructure.getState() == SuperState.IDLE && revFunnelReq.getAsBoolean()
+                    ? -2.0
+                    : (forceFunnelReq.getAsBoolean()
+                            || (Stream.of(FieldUtils.HumanPlayerTargets.values())
+                                    .map(
+                                        (t) ->
+                                            t.location
+                                                .minus(swerve.getPose())
+                                                .getTranslation()
+                                                .getNorm())
+                                    .min(Double::compare)
+                                    .get()
+                                < 1.0)
+                        ? 1.0
+                        : (antiJamCoralReq.getAsBoolean()
+                            ? -10.0
+                            : 0.0)))); // at what point do ternary operators do more harm than good
+    climber.setDefaultCommand(
+        climber.setPosition(
+            () -> superstructure.getState().climberPosition,
+            () -> superstructure.getState().climberSpeed)); // why does it need to be slow
     leds.setDefaultCommand(
         Commands.either(
                 leds.setBlinkingCmd(
-                        () -> LEDSubsystem.getReefTargetColor(currentTarget),
+                        () -> LEDSubsystem.getReefTargetColor(coralTarget),
                         () ->
                             superstructure.getState() == SuperState.IDLE
                                 ? Color.kBlack
@@ -811,10 +755,16 @@ public class Robot extends LoggedRobot {
                             * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed())
                     .times(-1)));
 
+    // ----Controller bindings----
+    // Auto align for coral scoring L2/3
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(() -> superstructure.stateIsCoralAlike() && currentTarget != ReefTarget.L1)
+        .and(
+            () ->
+                superstructure.stateIsCoralAlike()
+                    && coralTarget != ReefTarget.L1
+                    && coralTarget != ReefTarget.L4)
         .whileTrue(
             Commands.parallel(
                 AutoAim.autoAimWithIntermediatePose(
@@ -835,10 +785,11 @@ public class Robot extends LoggedRobot {
                 Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align for coral scoring L1
     driver
         .rightBumper()
         .or(driver.leftBumper())
-        .and(() -> superstructure.stateIsCoralAlike() && currentTarget == ReefTarget.L1)
+        .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L1)
         .whileTrue(
             Commands.parallel(
                 AutoAim.alignToLine(
@@ -860,6 +811,60 @@ public class Robot extends LoggedRobot {
                                     L1Targets.getNearestLine(swerve.getPose()).getRotation())))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to intermediate pose to score L4
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L4)
+        .and(() -> !superstructure.atExtension(SuperState.L4))
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                              swerve
+                                  .getPose()
+                                  .plus(
+                                      new Transform2d(
+                                          twist.dx,
+                                          twist.dy,
+                                          Rotation2d.fromRadians(twist.dtheta))),
+                              driver.leftBumper().getAsBoolean())
+                          .exp(new Twist2d(-0.25, 0, 0));
+                    }),
+                Commands.waitUntil(
+                        () ->
+                            AutoAim.isInToleranceCoral(
+                                swerve.getPose())) // don't know if this does anything
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    // Auto align to score L4
+    driver
+        .rightBumper()
+        .or(driver.leftBumper())
+        .and(() -> superstructure.stateIsCoralAlike() && coralTarget == ReefTarget.L4)
+        .and(() -> superstructure.atExtension(SuperState.L4))
+        .debounce(0.25)
+        .whileTrue(
+            Commands.parallel(
+                AutoAim.translateToPose(
+                    swerve,
+                    () -> {
+                      var twist = swerve.getVelocityFieldRelative().toTwist2d(0.3);
+                      return CoralTargets.getHandedClosestTarget(
+                          swerve
+                              .getPose()
+                              .plus(
+                                  new Transform2d(
+                                      twist.dx, twist.dy, Rotation2d.fromRadians(twist.dtheta))),
+                          driver.leftBumper().getAsBoolean());
+                    }),
+                Commands.waitUntil(() -> AutoAim.isInToleranceCoral(swerve.getPose()))
+                    .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
+
+    // Auto align to intake algae (high, low, stack)
     driver
         .rightBumper()
         .and(
@@ -891,11 +896,10 @@ public class Robot extends LoggedRobot {
                                         swerve.getVelocityFieldRelative(),
                                         Units.inchesToMeters(1.0),
                                         Units.degreesToRadians(1.0))
-                                    && elevator.isNearTarget()
+                                    && elevator.atExtension()
                                     && shoulder.isNearAngle(
-                                        ShoulderSubsystem.SHOULDER_INTAKE_ALGAE_REEF_POS)
-                                    && wrist.isNearAngle(
-                                        WristSubsystem.WRIST_INTAKE_ALGAE_REEF_POS)),
+                                        ShoulderState.INTAKE_ALGAE_REEF.getAngle())
+                                    && wrist.isNearAngle(WristState.INTAKE_ALGAE_REEF.getAngle())),
                     AutoAim.approachAlgae(
                         swerve,
                         () -> AlgaeIntakeTargets.getClosestTargetPose(swerve.getPose()),
@@ -919,28 +923,30 @@ public class Robot extends LoggedRobot {
                             .and(() -> swerve.hasFrontTags))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
-    driver
-        .rightBumper()
-        .or(driver.leftBumper())
-        .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
-        .whileTrue(
-            swerve.driveToAlgae(
-                () ->
-                    modifyJoystick(driver.getLeftY())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                () ->
-                    modifyJoystick(driver.getLeftX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
-                () ->
-                    modifyJoystick(driver.getRightX())
-                        * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()));
+    // driver
+    //     .rightBumper()
+    //     .or(driver.leftBumper())
+    //     .and(() -> superstructure.getState() == SuperState.INTAKE_ALGAE_GROUND)
+    //     .whileTrue(
+    //         swerve.driveToAlgae(
+    //             () ->
+    //                 modifyJoystick(driver.getLeftY())
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+    //             () ->
+    //                 modifyJoystick(driver.getLeftX())
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxLinearSpeed(),
+    //             () ->
+    //                 modifyJoystick(driver.getRightX())
+    //                     * ROBOT_HARDWARE.swerveConstants.getMaxAngularSpeed()))
+
+    // Auto align to processor
     driver
         .rightBumper()
         .or(driver.leftBumper())
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
-                    || superstructure.getState() == SuperState.PRE_PROCESSOR)
+                    || superstructure.getState() == SuperState.PROCESSOR)
         .and(() -> algaeScoreTarget == AlgaeScoreTarget.PROCESSOR)
         .whileTrue(
             Commands.parallel(
@@ -967,6 +973,7 @@ public class Robot extends LoggedRobot {
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to cage
     driver
         .rightBumper()
         .and(
@@ -984,13 +991,14 @@ public class Robot extends LoggedRobot {
                                 swerve.getPose()))
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Auto align to barge
     driver
         .rightBumper()
         .and(
             () ->
                 superstructure.getState() == SuperState.READY_ALGAE
-                    || superstructure.getState() == SuperState.PRE_NET)
-        .and(() -> algaeScoreTarget == AlgaeScoreTarget.NET)
+                    || superstructure.getState() == SuperState.PRE_BARGE)
+        .and(() -> algaeScoreTarget == AlgaeScoreTarget.BARGE)
         .whileTrue(
             Commands.parallel(
                 AutoAim.translateToXCoord(
@@ -1021,22 +1029,30 @@ public class Robot extends LoggedRobot {
                         })
                     .andThen(driver.rumbleCmd(1.0, 1.0).withTimeout(0.75).asProxy())));
 
+    // Set sim beambreak/algae
     driver
         .povUp()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(true)).ignoringDisable(true));
+        .onTrue(
+            Commands.runOnce(() -> manipulator.setSimFirstBeambreak(true)).ignoringDisable(true));
     driver
         .povDown()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setFirstBeambreak(false)).ignoringDisable(true));
+        .onTrue(
+            Commands.runOnce(() -> manipulator.setSimFirstBeambreak(false)).ignoringDisable(true));
     driver
         .povRight()
         .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setHasAlgae(!manipulator.hasAlgae())));
+        .onTrue(Commands.runOnce(() -> manipulator.setSimHasAlgae(!manipulator.hasAlgae())));
 
-    RobotModeTriggers.autonomous()
-        .and(() -> ROBOT_TYPE == RobotType.SIM)
-        .onTrue(Commands.runOnce(() -> manipulator.setSecondBeambreak(true)).ignoringDisable(true));
+    // RobotModeTriggers.autonomous()
+    //     .and(() -> ROBOT_TYPE == RobotType.SIM)
+    //     .onTrue(
+    //         Commands.runOnce(() ->
+    // manipulator.setSimSecondBeambreak(true)).ignoringDisable(true));
+
+    // Reset sim pose (?)
+    // Has this literally ever been used
     driver
         .start()
         .onTrue(
@@ -1046,14 +1062,17 @@ public class Robot extends LoggedRobot {
                     swerveDriveSimulation.get().setSimulationWorldPose(swerve.getPose());
                   }
                 }));
+
+    // Rezero shoulder
     driver.x().onTrue(Commands.runOnce(() -> shoulder.rezero()).ignoringDisable(true));
 
+    // Operator - Set scoring/intaking levels
     operator
         .a()
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  currentTarget = ReefTarget.L1;
+                  coralTarget = ReefTarget.L1;
                   algaeIntakeTarget = AlgaeIntakeTarget.GROUND;
                 }));
     operator
@@ -1061,49 +1080,50 @@ public class Robot extends LoggedRobot {
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  currentTarget = ReefTarget.L2;
-                  algaeIntakeTarget = AlgaeIntakeTarget.LOW;
+                  coralTarget = ReefTarget.L2;
+                  algaeIntakeTarget = AlgaeIntakeTarget.STACK;
                 }));
     operator
         .b()
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  currentTarget = ReefTarget.L3;
-                  algaeIntakeTarget = AlgaeIntakeTarget.HIGH;
+                  coralTarget = ReefTarget.L3;
+                  algaeIntakeTarget = AlgaeIntakeTarget.LOW;
                 }));
     operator
         .y()
         .onTrue(
             Commands.runOnce(
                 () -> {
-                  currentTarget = ReefTarget.L4;
-                  algaeIntakeTarget = AlgaeIntakeTarget.STACK;
+                  coralTarget = ReefTarget.L4;
+                  algaeIntakeTarget = AlgaeIntakeTarget.HIGH;
                 }));
 
-    operator.leftTrigger().onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.NET));
+    operator
+        .leftTrigger()
+        .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.BARGE));
 
     operator
         .rightTrigger()
         .onTrue(Commands.runOnce(() -> algaeScoreTarget = AlgaeScoreTarget.PROCESSOR));
 
+    // Enable/disable left handed auto align
+    // TODO isn't this already accounted for by the autoaim method?
     operator.povLeft().onTrue(Commands.runOnce(() -> leftHandedTarget = true));
     operator.povRight().onTrue(Commands.runOnce(() -> leftHandedTarget = false));
 
-    operator
-        .back()
-        .and(operator.start())
-        .onTrue(Commands.runOnce(() -> killVisionIK = !killVisionIK));
-
+    // Set LEDs when the robot has an algae (alga?)
     new Trigger(() -> superstructure.stateIsAlgaeAlike())
         .whileTrue(
             leds.setBlinkingSplitCmd(
                 () -> LEDSubsystem.getAlgaeIntakeTargetColor(algaeIntakeTarget),
                 () ->
                     LEDSubsystem.getAlgaeScoringTargetColor(
-                        algaeScoreTarget == AlgaeScoreTarget.NET),
+                        algaeScoreTarget == AlgaeScoreTarget.BARGE),
                 () -> Color.kBlack,
                 5.0));
+
     // heading reset
     driver
         .leftStick()
@@ -1142,15 +1162,6 @@ public class Robot extends LoggedRobot {
           Stream.of(AlgaeIntakeTargets.values())
               .map((target) -> AlgaeIntakeTargets.getRobotTargetLocation(target.location))
               .toArray(Pose2d[]::new));
-
-    Logger.recordOutput("IK/L1 FK Pose", ExtensionKinematics.L1_POSE);
-    System.out.println("ExtensionKinematics.L1_POSE: " + ExtensionKinematics.L1_POSE);
-    Logger.recordOutput("IK/L2 FK Pose", ExtensionKinematics.L2_POSE);
-    System.out.println("ExtensionKinematics.L2_POSE: " + ExtensionKinematics.L2_POSE);
-    Logger.recordOutput("IK/L3 FK Pose", ExtensionKinematics.L3_POSE);
-    System.out.println("ExtensionKinematics.L3_POSE: " + ExtensionKinematics.L3_POSE);
-    Logger.recordOutput("IK/L4 FK Pose", ExtensionKinematics.L4_POSE);
-    System.out.println("ExtensionKinematics.L4_POSE: " + ExtensionKinematics.L4_POSE);
   }
 
   private void addAutos() {
@@ -1212,8 +1223,7 @@ public class Robot extends LoggedRobot {
             "MapleSim/Pose", swerveDriveSimulation.get().getSimulatedDriveTrainPose());
     }
 
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput("Targets/Reef Target", currentTarget);
+    if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Targets/Reef Target", coralTarget);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Targets/Algae Intake Target", algaeIntakeTarget);
     if (Robot.ROBOT_TYPE != RobotType.REAL)
@@ -1322,6 +1332,8 @@ public class Robot extends LoggedRobot {
     // Minus 90 to make it relative to horizontal
     shoulderLigament.setAngle(shoulder.getAngle().getDegrees() - 90);
     wristLigament.setAngle(wrist.getAngle().getDegrees() + shoulderLigament.getAngle());
+    climberLigament.setAngle(climber.getAngle() - 90 - 18);
+
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Mechanism/Elevator", elevatorMech2d);
     superstructure.periodic();
@@ -1330,50 +1342,32 @@ public class Robot extends LoggedRobot {
     if (Robot.ROBOT_TYPE != RobotType.REAL)
       Logger.recordOutput("Autos/Pre Score", Autos.autoPreScore);
     if (Robot.ROBOT_TYPE != RobotType.REAL) Logger.recordOutput("Autos/Score", Autos.autoScore);
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "IK/Manipulator FK Pose",
-          ExtensionKinematics.getManipulatorPose(
-              swerve.getPose(), superstructure.getExtensionState()));
-    if (Robot.ROBOT_TYPE != RobotType.REAL)
-      Logger.recordOutput(
-          "IK/Extension FK Pose",
-          ExtensionKinematics.solveFK(
-              new ExtensionState(
-                  elevator.getExtensionMeters(), shoulder.getAngle(), wrist.getAngle())));
     state = superstructure::getState;
+    pose = swerve::getPose;
   }
 
-  public static void setCurrentCoralTarget(ReefTarget target) {
-    currentTarget = target;
+  public static void setCoralTarget(ReefTarget target) {
+    coralTarget = target;
   }
 
-  public ReefTarget getCurrentCoralTarget() {
-    return currentTarget;
+  public static ReefTarget getCoralTarget() {
+    return coralTarget;
   }
 
-  public static void setCurrentAlgaeIntakeTarget(AlgaeIntakeTarget target) {
+  public static void setAlgaeIntakeTarget(AlgaeIntakeTarget target) {
     algaeIntakeTarget = target;
   }
 
-  public AlgaeIntakeTarget getCurrentAlgaeIntakeTarget() {
+  public static AlgaeIntakeTarget getAlgaeIntakeTarget() {
     return algaeIntakeTarget;
   }
 
-  public static void setCurrentAlgaeScoreTarget(AlgaeScoreTarget target) {
+  public static void setAlgaeScoreTarget(AlgaeScoreTarget target) {
     algaeScoreTarget = target;
   }
 
-  public AlgaeScoreTarget getCurrentAlgaeScoreTarget() {
+  public static AlgaeScoreTarget getAlgaeScoreTarget() {
     return algaeScoreTarget;
-  }
-
-  public static void setCurrentTarget(ReefTarget target) {
-    currentTarget = target;
-  }
-
-  public ReefTarget getCurrentTarget() {
-    return currentTarget;
   }
 
   @Override

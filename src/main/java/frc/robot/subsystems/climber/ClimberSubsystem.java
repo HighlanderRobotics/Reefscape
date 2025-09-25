@@ -9,6 +9,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import java.util.function.DoubleSupplier;
 import org.littletonrobotics.junction.Logger;
 
 public class ClimberSubsystem extends SubsystemBase {
@@ -28,7 +29,7 @@ public class ClimberSubsystem extends SubsystemBase {
     this.io = io;
 
     SmartDashboard.putData(
-        "rezero Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
+        "Rezero Climber", Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true));
     SmartDashboard.putData("Reset Climber (MANUAL STOP)", resetClimber());
   }
 
@@ -38,12 +39,13 @@ public class ClimberSubsystem extends SubsystemBase {
     Logger.processInputs("Climber", inputs);
   }
 
-  public Command setPosition(double position) {
-    return this.run(() -> io.setPosition(position, FAST_VEL));
-  }
-
-  public Command setPositionSlow(double position) {
-    return this.run(() -> io.setPosition(position, SLOW_VEL));
+  public Command setPosition(DoubleSupplier position, DoubleSupplier vel) {
+    return this.run(
+        () -> {
+          Logger.recordOutput("Climber/Setpoint/Pos", position);
+          Logger.recordOutput("Climber/Setpoint/Velocity", vel);
+          io.setPosition(position.getAsDouble(), vel.getAsDouble());
+        });
   }
 
   public Command resetClimber() {
@@ -52,5 +54,9 @@ public class ClimberSubsystem extends SubsystemBase {
 
   public Command zeroClimber() {
     return Commands.runOnce(() -> io.resetEncoder(0.0)).ignoringDisable(true);
+  }
+
+  public double getAngle() {
+    return inputs.position;
   }
 }

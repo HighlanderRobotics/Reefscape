@@ -19,7 +19,7 @@ public interface WristIO {
 
   public void setMotorVoltage(final double voltage);
 
-  public void setMotorPosition(final Rotation2d targetPosition);
+  public void setAngle(final Rotation2d targetPosition);
 
   public default void resetEncoder(final Rotation2d rotation) {}
 

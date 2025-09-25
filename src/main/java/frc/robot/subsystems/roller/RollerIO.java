@@ -5,7 +5,6 @@
 package frc.robot.subsystems.roller;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import java.util.function.Consumer;
 import org.littletonrobotics.junction.AutoLog;
 
 public interface RollerIO {
@@ -23,19 +22,11 @@ public interface RollerIO {
 
   public void setVoltage(double voltage);
 
-  public void setCurrent(double amps);
-
   public default void stop() {
     setVoltage(0.0);
   }
 
   public void setVelocity(double velocityRPS);
-
-  /**
-   * This method is meant to set a function to be called alongside updateInput to update a
-   * simulation, such as for routing simulation
-   */
-  public void registerSimulationCallback(Consumer<RollerIOInputsAutoLogged> callback);
 
   public void setPosition(Rotation2d rot);
 

@@ -15,8 +15,8 @@ import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.wpilibj.Alert;
 import edu.wpi.first.wpilibj.Alert.AlertType;
 import edu.wpi.first.wpilibj.Filesystem;
+import frc.robot.subsystems.camera.Camera.CameraConstants;
 import frc.robot.subsystems.swerve.Module.ModuleConstants;
-import frc.robot.subsystems.vision.Vision.VisionConstants;
 import java.io.File;
 
 /**
@@ -95,7 +95,7 @@ public abstract class SwerveConstants {
 
   public abstract AprilTagFieldLayout getFieldTagLayout();
 
-  public abstract VisionConstants[] getVisionConstants();
+  public abstract CameraConstants[] getCameraConstants();
 
   public double getWheelRadiusMeters() {
     return Units.inchesToMeters(2.0);
@@ -135,5 +135,5 @@ public abstract class SwerveConstants {
 
   public abstract double getBumperLength();
 
-  public abstract VisionConstants getAlgaeVisionConstants();
+  public abstract CameraConstants getAlgaeCameraConstants();
 }

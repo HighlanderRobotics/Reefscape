@@ -21,7 +21,7 @@ import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N8;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Mass;
-import frc.robot.subsystems.vision.Vision.VisionConstants;
+import frc.robot.subsystems.camera.Camera.CameraConstants;
 
 public class AlphaSwerveConstants extends SwerveConstants {
   private static boolean instantiated = false;
@@ -201,7 +201,7 @@ public class AlphaSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public VisionConstants[] getVisionConstants() {
+  public CameraConstants[] getCameraConstants() {
     // Stolen from banshee for now for testing, fix later once alphabot camera config is known
     final Matrix<N3, N3> CAMERA_MATRIX =
         MatBuilder.fill(
@@ -229,8 +229,8 @@ public class AlphaSwerveConstants extends SwerveConstants {
             0.012202835675939619,
             0.0034143496721838872);
 
-    return new VisionConstants[] {
-      new VisionConstants(
+    return new CameraConstants[] {
+      new CameraConstants(
           "Camera",
           new Transform3d(
               new Translation3d(
@@ -254,8 +254,8 @@ public class AlphaSwerveConstants extends SwerveConstants {
   }
 
   @Override
-  public VisionConstants getAlgaeVisionConstants() {
+  public CameraConstants getAlgaeCameraConstants() {
     // TODO Auto-generated method stub
-    throw new UnsupportedOperationException("Unimplemented method 'getAlgaeVisionConstants'");
+    throw new UnsupportedOperationException("Unimplemented method 'getAlgaeCameraConstants'");
   }
 }

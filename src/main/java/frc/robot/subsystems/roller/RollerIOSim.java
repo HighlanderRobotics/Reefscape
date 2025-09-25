@@ -60,11 +60,6 @@ public class RollerIOSim implements RollerIO {
   }
 
   @Override
-  public void registerSimulationCallback(Consumer<RollerIOInputsAutoLogged> callback) {
-    this.callback = Optional.of(callback);
-  }
-
-  @Override
   public void setPosition(Rotation2d rot) {
     setVelocity(0.0);
     // i cba to impl this properly rn
@@ -74,14 +69,5 @@ public class RollerIOSim implements RollerIO {
   @Override
   public void resetEncoder(double position) {
     motorSim.setAngle(position);
-  }
-
-  @Override
-  public void setCurrent(double amps) {
-    setVoltage(
-        DCMotor.getKrakenX60Foc(1)
-            .getVoltage(
-                DCMotor.getKrakenX60Foc(1).getTorque(amps),
-                motorSim.getAngularVelocityRadPerSec()));
   }
 }
