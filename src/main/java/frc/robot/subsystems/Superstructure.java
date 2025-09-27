@@ -745,20 +745,21 @@ public class Superstructure {
     bindTransition(
         SuperState.PROCESSOR,
         SuperState.IDLE,
-        new Trigger(
-            () ->
-                !MathUtil.isNear(
-                        swerve.getPose().getX(),
-                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                            ? AutoAim.BLUE_PROCESSOR_POS.getX()
-                            : AutoAim.RED_PROCESSOR_POS.getX(),
-                        2)
-                    || !MathUtil.isNear(
-                        swerve.getPose().getY(),
-                        DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                            ? AutoAim.BLUE_PROCESSOR_POS.getY()
-                            : AutoAim.RED_PROCESSOR_POS.getY(),
-                        2)));
+        Robot.preScoreReq.negate().and(
+            new Trigger(
+                () ->
+                    !MathUtil.isNear(
+                            swerve.getPose().getX(),
+                            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                ? AutoAim.BLUE_PROCESSOR_POS.getX()
+                                : AutoAim.RED_PROCESSOR_POS.getX(),
+                            2)
+                        || !MathUtil.isNear(
+                            swerve.getPose().getY(),
+                            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                ? AutoAim.BLUE_PROCESSOR_POS.getY()
+                                : AutoAim.RED_PROCESSOR_POS.getY(),
+                            2))));
 
     // bindTransition(
     //     SuperState.IDLE,
