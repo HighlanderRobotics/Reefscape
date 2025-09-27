@@ -98,7 +98,7 @@ public class ManipulatorSubsystem extends RollerSubsystem {
   }
 
   public Command holdAlgaeExtra() {
-    return this.run(() -> io.setVoltage(3 * ALGAE_HOLDING_VOLTAGE));
+    return this.run(() -> io.setVoltage(6.0));
   }
 
   public Command scoreAlgaeProcessor() {

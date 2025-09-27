@@ -891,13 +891,13 @@ public class Superstructure {
     new Trigger(this::stateIsIntakeAlgae).whileTrue(manipulator.intakeAlgae());
 
     // hold algae
-    new Trigger(() -> state == SuperState.READY_ALGAE).whileTrue(manipulator.holdAlgae());
+    new Trigger(() -> state == SuperState.READY_ALGAE).whileTrue(manipulator.holdAlgae()).whileFalse(Commands.none());
 
     // hold algae extra hard
-    new Trigger(() -> state == SuperState.PRE_BARGE).whileTrue(manipulator.holdAlgaeExtra());
+    new Trigger(() -> state == SuperState.PRE_BARGE).whileTrue(manipulator.holdAlgaeExtra()).whileFalse(Commands.none());
 
     // score algae processor
-    new Trigger(() -> state == SuperState.PROCESSOR).whileTrue(manipulator.scoreAlgaeProcessor());
+    new Trigger(() -> state == SuperState.PROCESSOR).whileTrue(manipulator.scoreAlgaeProcessor()).whileFalse(Commands.none());
 
     // score algae barge
     new Trigger(() -> state == SuperState.BARGE)
