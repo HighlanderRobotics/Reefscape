@@ -23,7 +23,6 @@ import frc.robot.utils.FieldUtils;
 import frc.robot.utils.FieldUtils.AlgaeIntakeTargets;
 import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.autoaim.AutoAim;
-
 import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
@@ -144,7 +143,7 @@ public class Superstructure {
         ShoulderState.INTAKE_ALGAE_GROUND,
         WristState.INTAKE_ALGAE_GROUND,
         0.0,
-        1.0 + 0.35,
+        1.0,
         0.5), // lowkey why is this so slow
     HOME_ELEVATOR(ElevatorState.HOME, ShoulderState.HOME, WristState.HP, 0.0),
     HOME_WRIST(ElevatorState.HP, ShoulderState.HOME, WristState.HOME, 0.0),
@@ -248,7 +247,7 @@ public class Superstructure {
   public void periodic() {
     Logger.recordOutput("Superstructure/Superstructure State", state);
     Logger.recordOutput("Superstructure/State Timer", stateTimer.get());
-    atPreBargeExtension = () -> atExtension(SuperState.PRE_BARGE); //TODO bad
+    atPreBargeExtension = () -> atExtension(SuperState.PRE_BARGE); // TODO bad
   }
 
   /**
@@ -749,21 +748,23 @@ public class Superstructure {
     bindTransition(
         SuperState.PROCESSOR,
         SuperState.IDLE,
-        Robot.preScoreReq.negate().and(
-            new Trigger(
-                () ->
-                    !MathUtil.isNear(
-                            swerve.getPose().getX(),
-                            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                                ? AutoAim.BLUE_PROCESSOR_POS.getX()
-                                : AutoAim.RED_PROCESSOR_POS.getX(),
-                            2)
-                        || !MathUtil.isNear(
-                            swerve.getPose().getY(),
-                            DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                                ? AutoAim.BLUE_PROCESSOR_POS.getY()
-                                : AutoAim.RED_PROCESSOR_POS.getY(),
-                            2))));
+        Robot.preScoreReq
+            .negate()
+            .and(
+                new Trigger(
+                    () ->
+                        !MathUtil.isNear(
+                                swerve.getPose().getX(),
+                                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                    ? AutoAim.BLUE_PROCESSOR_POS.getX()
+                                    : AutoAim.RED_PROCESSOR_POS.getX(),
+                                2)
+                            || !MathUtil.isNear(
+                                swerve.getPose().getY(),
+                                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+                                    ? AutoAim.BLUE_PROCESSOR_POS.getY()
+                                    : AutoAim.RED_PROCESSOR_POS.getY(),
+                                2))));
 
     // bindTransition(
     //     SuperState.IDLE,

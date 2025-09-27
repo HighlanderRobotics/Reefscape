@@ -652,42 +652,47 @@ public class Autos {
 
   public Command scoreAlgaeInAuto() { // oh good lord
     return Commands.runOnce(() -> Robot.setAlgaeScoreTarget(AlgaeScoreTarget.BARGE))
-      .andThen(Commands.sequence(
-            Commands.waitUntil(
-                new Trigger(
-                    () ->
-                        MathUtil.isNear(
-                                DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-                                    ? AutoAim.BLUE_NET_X
-                                    : AutoAim.RED_NET_X,
-                                swerve.getPose().getX(),
-                                Units.inchesToMeters(3.0))
-                            && MathUtil.isNear(
-                                0,
-                                Math.hypot(
-                                    swerve.getVelocityRobotRelative().vxMetersPerSecond,
-                                    swerve.getVelocityRobotRelative().vyMetersPerSecond),
-                                AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
-                            && MathUtil.isNear(
-                                0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0)).and(Superstructure.atPreBargeExtension)
-                // .debounce(0.06)), // TODO
-                ),
-            Commands.print("Scoring algae"),
-            Commands.runOnce(
-                () -> {
-                  autoScore = true;
-                }),
-            Commands.waitUntil(() -> !manipulator.hasAlgae())
-                .alongWith(
-                    Robot.isSimulation()
-                        ? Commands.runOnce(() -> manipulator.setSimHasAlgae(false))
-                        : Commands.none())
-                .andThen(
-                    Commands.runOnce(
-                        () -> {
-                          autoScore = false;
-                          autoPreScore = false;
-                        }))))
+        .andThen(
+            Commands.sequence(
+                Commands.waitUntil(
+                    new Trigger(
+                            () ->
+                                MathUtil.isNear(
+                                        DriverStation.getAlliance().orElse(Alliance.Blue)
+                                                == Alliance.Blue
+                                            ? AutoAim.BLUE_NET_X
+                                            : AutoAim.RED_NET_X,
+                                        swerve.getPose().getX(),
+                                        Units.inchesToMeters(3.0))
+                                    && MathUtil.isNear(
+                                        0,
+                                        Math.hypot(
+                                            swerve.getVelocityRobotRelative().vxMetersPerSecond,
+                                            swerve.getVelocityRobotRelative().vyMetersPerSecond),
+                                        AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
+                                    && MathUtil.isNear(
+                                        0.0,
+                                        swerve.getVelocityRobotRelative().omegaRadiansPerSecond,
+                                        3.0))
+                        .and(Superstructure.atPreBargeExtension)
+                    // .debounce(0.06)), // TODO
+                    ),
+                Commands.print("Scoring algae"),
+                Commands.runOnce(
+                    () -> {
+                      autoScore = true;
+                    }),
+                Commands.waitUntil(() -> !manipulator.hasAlgae())
+                    .alongWith(
+                        Robot.isSimulation()
+                            ? Commands.runOnce(() -> manipulator.setSimHasAlgae(false))
+                            : Commands.none())
+                    .andThen(
+                        Commands.runOnce(
+                            () -> {
+                              autoScore = false;
+                              autoPreScore = false;
+                            }))))
         .raceWith(
             AutoAim.translateToXCoord(
                 swerve,
