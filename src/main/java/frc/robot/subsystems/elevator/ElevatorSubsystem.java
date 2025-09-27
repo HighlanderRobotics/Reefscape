@@ -136,9 +136,10 @@ public class ElevatorSubsystem extends SubsystemBase {
   }
 
   public Command setExtension(DoubleSupplier meters) {
-    return this.run(
-        () -> {
-          io.setPosition(meters.getAsDouble(), MAX_ACCELERATION);
+    final double accel = inputs.positionMeters - meters.getAsDouble() > Units.inchesToMeters(6) ? SLOW_ACCELERATION : MAX_ACCELERATION;
+        return this.run(
+            () -> {
+              io.setPosition(meters.getAsDouble(), accel);
           setpoint = meters.getAsDouble();
           Logger.recordOutput("Elevator/Setpoint", setpoint);
         });
