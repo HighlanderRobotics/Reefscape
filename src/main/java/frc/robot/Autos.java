@@ -23,6 +23,7 @@ import frc.robot.Robot.ReefTarget;
 import frc.robot.Robot.RobotType;
 import frc.robot.subsystems.FunnelSubsystem;
 import frc.robot.subsystems.ManipulatorSubsystem;
+import frc.robot.subsystems.Superstructure;
 import frc.robot.subsystems.elevator.ElevatorSubsystem;
 import frc.robot.subsystems.elevator.ElevatorSubsystem.ElevatorState;
 import frc.robot.subsystems.shoulder.ShoulderSubsystem;
@@ -650,7 +651,8 @@ public class Autos {
   }
 
   public Command scoreAlgaeInAuto() { // oh good lord
-    return Commands.sequence(
+    return Commands.runOnce(() -> Robot.setAlgaeScoreTarget(AlgaeScoreTarget.BARGE))
+      .andThen(Commands.sequence(
             Commands.waitUntil(
                 new Trigger(
                     () ->
@@ -667,13 +669,12 @@ public class Autos {
                                     swerve.getVelocityRobotRelative().vyMetersPerSecond),
                                 AutoAim.VELOCITY_TOLERANCE_METERSPERSECOND)
                             && MathUtil.isNear(
-                                0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0))
+                                0.0, swerve.getVelocityRobotRelative().omegaRadiansPerSecond, 3.0)).and(Superstructure.atPreBargeExtension)
                 // .debounce(0.06)), // TODO
                 ),
             Commands.print("Scoring algae"),
             Commands.runOnce(
                 () -> {
-                  Robot.setAlgaeScoreTarget(AlgaeScoreTarget.BARGE);
                   autoScore = true;
                 }),
             Commands.waitUntil(() -> !manipulator.hasAlgae())
@@ -686,7 +687,7 @@ public class Autos {
                         () -> {
                           autoScore = false;
                           autoPreScore = false;
-                        })))
+                        }))))
         .raceWith(
             AutoAim.translateToXCoord(
                 swerve,

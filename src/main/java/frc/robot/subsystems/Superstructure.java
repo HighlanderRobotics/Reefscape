@@ -23,6 +23,8 @@ import frc.robot.utils.FieldUtils;
 import frc.robot.utils.FieldUtils.AlgaeIntakeTargets;
 import frc.robot.utils.FieldUtils.L1Targets;
 import frc.robot.utils.autoaim.AutoAim;
+
+import java.util.function.BooleanSupplier;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -219,6 +221,7 @@ public class Superstructure {
   private final SwerveSubsystem swerve;
 
   @AutoLogOutput public static boolean coralIndexed;
+  public static BooleanSupplier atPreBargeExtension;
 
   /** Creates a new Superstructure. */
   public Superstructure(
@@ -245,6 +248,7 @@ public class Superstructure {
   public void periodic() {
     Logger.recordOutput("Superstructure/Superstructure State", state);
     Logger.recordOutput("Superstructure/State Timer", stateTimer.get());
+    atPreBargeExtension = () -> atExtension(SuperState.PRE_BARGE); //TODO bad
   }
 
   /**
