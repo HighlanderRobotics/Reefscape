@@ -933,11 +933,11 @@ public class Superstructure {
 
     // goofy ahh jog
     new Trigger(Robot.jogCoralUpReq)
-        .whileTrue(manipulator.setRollerVoltage(-2.0).withTimeout(0.05))
+        .whileTrue(manipulator.setRollerVoltage(-3.0).withTimeout(0.05))
         .whileFalse(manipulator.setRollerVoltage(0.0));
 
     new Trigger(Robot.jogCoralDownReq)
-        .whileTrue(manipulator.setRollerVoltage(2.0).withTimeout(0.05))
+        .whileTrue(manipulator.setRollerVoltage(3.0).withTimeout(0.05))
         .whileFalse(manipulator.setRollerVoltage(0.0));
   }
 
