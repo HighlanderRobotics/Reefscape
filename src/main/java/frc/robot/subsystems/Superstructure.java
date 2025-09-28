@@ -8,7 +8,6 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import frc.robot.Autos;
 import frc.robot.Robot;
 import frc.robot.Robot.AlgaeIntakeTarget;
 import frc.robot.Robot.AlgaeScoreTarget;

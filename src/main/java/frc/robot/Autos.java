@@ -52,7 +52,6 @@ public class Autos {
   @AutoLogOutput public static boolean autoScore = false; // TODO perhaps this should not be static
   @AutoLogOutput public static boolean autoGroundCoralIntake = false;
   @AutoLogOutput public static boolean autoAlgaeIntake = false;
-  @AutoLogOutput public static boolean autoForceFunnel = false;
 
   public Autos(
       SwerveSubsystem swerve,
@@ -175,9 +174,6 @@ public class Autos {
       String nextPos = stops[i + 2];
       runCoralPath(routine, startPos, endPos, nextPos, steps);
     }
-
-    routine.observe(
-      new Trigger(steps.get("PLOtoK").active()).and(manipulator::neitherBeambreak).debounce(0.7)).onTrue(Commands.runOnce(() -> autoForceFunnel = true)).onFalse((Commands.runOnce(() -> autoForceFunnel = false)));
 
     // final var groundTraj = routine.trajectory("LtoAGround");
 

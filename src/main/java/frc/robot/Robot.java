@@ -249,7 +249,7 @@ public class Robot extends LoggedRobot {
   public static Trigger revFunnelReq = operator.rightBumper();
 
   @AutoLogOutput(key = "Superstructure/Force Funnel Req")
-  public static Trigger forceFunnelReq = operator.leftBumper().or(() -> DriverStation.isAutonomous() && Autos.autoForceFunnel);
+  public static Trigger forceFunnelReq = operator.leftBumper();
 
   //   @AutoLogOutput(key = "Superstructure/Force Index Req") // TODO what?
   //   public static Trigger forceIndexReq = operator.povDown();
