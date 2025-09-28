@@ -52,11 +52,12 @@ public class ShoulderSubsystem extends SubsystemBase {
     PRE_INTAKE_ALGAE_REEF(35.0),
     INTAKE_ALGAE_REEF(45.0),
     INTAKE_ALGAE_STACK(30.0),
-    INTAKE_ALGAE_GROUND(
-        Rotation2d.fromRadians(0.505)
-            .plus(Rotation2d.fromDegrees(-5.0))
-            .minus(Rotation2d.fromDegrees(2))
-            .getDegrees()), // hello??
+    // INTAKE_ALGAE_GROUND(
+    //     Rotation2d.fromRadians(0.505)
+    //         .plus(Rotation2d.fromDegrees(-5.0))
+    //         .minus(Rotation2d.fromDegrees(2))
+    //         .getDegrees()), // hello??
+    INTAKE_ALGAE_GROUND(Units.radiansToDegrees(0.114)),
     READY_ALGAE(60.0),
     PRE_BARGE(30),
     SCORE_BARGE(90),
