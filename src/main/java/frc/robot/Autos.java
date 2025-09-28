@@ -594,11 +594,11 @@ public class Autos {
                           new ChassisSpeeds(-0.5, 0.0, 0.0), swerve.getRotation()))
               // swerve
               //     .driveVoltage(() -> new ChassisSpeeds(-0.0, 0.0, 0.0))
-              .until(
+              .until(new Trigger(
                   () ->
                       manipulator.getSecondBeambreak()
                           || manipulator.getFirstBeambreak()
-                          || funnel.getFilteredCurrent() > 20.0));
+                          || funnel.getFilteredCurrent() > 20.0).debounce(0.08)));
     }
   }
 
